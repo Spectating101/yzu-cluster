@@ -5,6 +5,7 @@ import { uiVocabularyLabel } from "./uiVocabularyLabels.js";
 const STYLES = {
   "query-ready": "rd-v2-status-pill rd-v2-status-ready",
   registered: "rd-v2-status-pill rd-v2-status-connected",
+  available: "rd-v2-status-pill rd-v2-status-connected",
   connected: "rd-v2-status-pill rd-v2-status-connected",
   review: "rd-v2-status-pill rd-v2-status-review",
   failed: "rd-v2-status-pill rd-v2-status-failed",
@@ -35,6 +36,16 @@ const GUIDANCE = {
       "Research Drive is permitted to analyse it",
     ],
     next: "Preview rows, ask a grounded question, or use it in Synthesis.",
+  },
+  available: {
+    title: "Available to collect",
+    summary: "Research Drive knows where this dataset comes from but has not downloaded it. It is collected when someone requests it.",
+    checks: [
+      "The source and what it holds are known",
+      "Nothing is stored on the desk yet",
+      "Collecting it is a request that a research operator approves",
+    ],
+    next: "Find it in Discover to request its collection.",
   },
   registered: {
     title: "Saved to Library",

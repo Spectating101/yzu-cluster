@@ -594,7 +594,7 @@ function StructureSummary({ dataset, presentation }) {
   );
 }
 
-export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onOpenQuery, onPrepare, onRefreshData }) {
+export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onOpenQuery, onPrepare, onRefreshData, onFindInDiscover }) {
   const [overlay, setOverlay] = useState("");
   const [packageOpen, setPackageOpen] = useState(false);
   const packageAssets = useMemo(() => [dataset], [dataset]);
@@ -697,6 +697,9 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onOpenQuery,
               <button type="button" className="rd-v2-btn ghost" disabled={refreshBusy} onClick={refreshData}>{refreshBusy ? "Preparing refresh…" : "Refresh data"}</button> : null}
             {holdings.count ? <button type="button" className="rd-v2-btn ghost" onClick={() => setOverlay("holdings")}>Your Library</button> : null}
           </span>
+          {state.kind === "available" && onFindInDiscover ? (
+            <button type="button" className="rd-v2-btn primary" onClick={onFindInDiscover} data-testid="library-find-in-discover">Find it in Discover</button>
+          ) : null}
           {!canQuery && state.kind === "registered" && onPrepare ? (
             <button type="button" className="rd-v2-btn primary" onClick={onPrepare}>Prepare local copy</button>
           ) : null}

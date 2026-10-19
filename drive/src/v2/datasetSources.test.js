@@ -17,8 +17,8 @@ test("several sources are named, and many are counted", () => {
   assert.equal(sourcesHeading(two), "Available from 2 sources");
 });
 
-test("copies from one origin are called copies, not independent sources", () => {
+test("files from one origin are counted as files, not independent sources", () => {
   const same = { sources: [{ source_system: "SEC EDGAR" }, { source_system: "SEC EDGAR" }] };
-  assert.equal(sourceSummary(same), "SEC EDGAR · 2 copies");
-  assert.equal(sourcesHeading(same), "2 copies on record");
+  assert.equal(sourceSummary(same), "SEC EDGAR · 2 files");
+  assert.equal(sourcesHeading(same), "2 files on record");
 });

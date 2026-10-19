@@ -70,3 +70,13 @@ test("empty input is valid and reads zero everywhere", () => {
     registry: 0, libraryVisible: 0, libraryReferences: 0, heldForClassification: 0, libraryEvidence: 0,
   });
 });
+
+test("a dataset marked available to collect is listed in the Library but is not counted as held data", () => {
+  const rows = [
+    held("a"),
+    { dataset_id: "usgs", name: "USGS catalogue", analysis_readiness: "registered", source_access_mode: "catalog_only", library_available: true },
+    { dataset_id: "ref", name: "Some other reference", analysis_readiness: "registered", source_access_mode: "catalog_only" },
+  ];
+  assert.deepEqual(libraryHoldings(rows).map((r) => r.dataset_id), ["a", "usgs"]);
+  assert.equal(libraryReferences(rows), 1);
+});

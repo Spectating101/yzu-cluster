@@ -81,6 +81,9 @@ export function statusPillKind(dataset) {
     .trim()
     .toLowerCase()
     .replace(/[\s-]+/g, "_");
+  if (dataset?.library_available === true && !isQueryReadyReadiness(readiness)) {
+    return { kind: "available", label: "Available to collect" };
+  }
   if (acquisitionOnlyRow(dataset)) {
     return { kind: "external", label: "External" };
   }
@@ -137,6 +140,12 @@ export function canIUseDecision(dataset) {
       body: dataset?.temporal_quality?.status === "undated_snapshot"
         ? `You can inspect this snapshot now. ${dataset.temporal_quality.reason}`
         : "You can preview and query this dataset now.",
+    };
+  }
+  if (state.kind === "available") {
+    return {
+      headline: "Available to collect",
+      body: "This dataset is not downloaded yet. It is collected from its source when someone asks for it, then it is ready to query.",
     };
   }
   if (state.kind === "connected") {

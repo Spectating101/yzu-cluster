@@ -15,7 +15,7 @@ export function isLibraryVisibleRow(row) {
 
 /** A visible row the desk actually holds: one asset in the Library estate. */
 export function isLibraryHoldingRow(row) {
-  return isLibraryVisibleRow(row) && isLocalHolding(row);
+  return isLibraryVisibleRow(row) && (isLocalHolding(row) || row.library_available === true);
 }
 
 /** Every row the registry declares, held or not. */
@@ -35,7 +35,7 @@ export function libraryHoldings(rows = []) {
 
 /** Visible registry records that are not held. They remain Discover evidence. */
 export function libraryReferences(rows = []) {
-  return rows.filter((row) => isLibraryVisibleRow(row) && !isLocalHolding(row)).length;
+  return rows.filter((row) => isLibraryVisibleRow(row) && !isLibraryHoldingRow(row)).length;
 }
 
 /** What the desk possesses, used to classify a Discover result as already held.

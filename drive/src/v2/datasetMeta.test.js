@@ -209,3 +209,12 @@ test("registered folders of files read as files, not as unconfirmed tables", () 
   assert.equal(pill.label, "Files available");
   assert.equal(statusPillKind({ dataset_id: "d", registered: true, analysis_readiness: "registered" }).label, "Saved to Library");
 });
+
+test("an available-to-collect dataset says it is not downloaded yet, and a ready one is unaffected", async () => {
+  const { statusPillKind } = await import("./datasetMeta.js");
+  const row = { dataset_id: "usgs", analysis_readiness: "registered", library_available: true };
+  assert.deepEqual(statusPillKind(row), { kind: "available", label: "Available to collect" });
+  assert.match(canIUseDecision(row).body, /not downloaded yet/);
+  assert.equal(statusPillKind({ ...row, analysis_readiness: "instant" }).label, "Ready to query");
+  assert.equal(statusPillKind({ dataset_id: "x", analysis_readiness: "registered" }).label, "Saved to Library");
+});

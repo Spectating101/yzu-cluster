@@ -258,7 +258,7 @@ function LibraryHeadActions({
   );
 }
 
-function LibraryAssetInspector({ dataset, onClose, onPreview, onOpenQuery, onAsk, onRefreshData }) {
+function LibraryAssetInspector({ dataset, onClose, onPreview, onOpenQuery, onAsk, onRefreshData, onFindInDiscover }) {
   const inspectorRef = useRef(null);
   const scrimRef = useRef(null);
 
@@ -306,6 +306,7 @@ function LibraryAssetInspector({ dataset, onClose, onPreview, onOpenQuery, onAsk
           onAsk={onAsk}
           onOpenQuery={onOpenQuery}
           onRefreshData={onRefreshData}
+          onFindInDiscover={onFindInDiscover}
         />
       </section>
     </div>
@@ -870,6 +871,7 @@ export function LibraryPage({
             : selectedDataset
         }
         onClose={onClearSelection}
+        onFindInDiscover={onReviewAvailable}
         onPreview={() => selectedDataset && onPreviewDataset?.({ ...selectedDataset, __libraryExpandedSample: true })}
         onAsk={() => selectedDataset && onAskDataset?.(selectedDataset)}
         onOpenQuery={() => selectedDataset && onOpenQuery?.(selectedDataset.dataset_id)}
