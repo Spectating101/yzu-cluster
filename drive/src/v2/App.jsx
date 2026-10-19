@@ -275,18 +275,26 @@ function DeskWorkspace({ onIdentityChanged }) {
   const [previewMode, setPreviewMode] = useState("lab");
   const [previewTarget, setPreviewTarget] = useState(null);
   const [railTab, setRailTab] = useState("detail");
+  const railFoldExplicit = useRef(false);
   const [railFolded, setRailFolded] = useState(() => {
     try {
       const stored = window.localStorage.getItem("rd.railFolded");
-      if (stored !== null) return stored === "1";
+      if (stored !== null) {
+        railFoldExplicit.current = true;
+        return stored === "1";
+      }
     } catch { /* ignore */ }
     return window.innerWidth > 760 && window.innerWidth < 1280;
   });
   const foldRail = useCallback((next) => {
+    railFoldExplicit.current = true;
     setRailFolded(next);
     try { window.localStorage.setItem("rd.railFolded", next ? "1" : "0"); } catch { /* ignore */ }
   }, []);
   const [datasets, setDatasets] = useState([]);
+  useEffect(() => {
+    if (selectedId && !railFoldExplicit.current) setRailFolded(false);
+  }, [selectedId]);
   // Until the registry has actually answered, an empty array is unmeasured —
   // never a claim that the Library contains zero datasets.
   const [catalogLoading, setCatalogLoading] = useState(true);
