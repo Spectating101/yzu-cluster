@@ -5397,33 +5397,46 @@
 }
 
 .rd-v2-discover-candidates button.row.rd-v2-discover-candidate {
-  grid-template-areas: "source main";
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas: "main scale";
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: start;
   gap: clamp(12px, 1.4vw, 20px);
   min-height: 0;
-  padding: 16px 18px;
+  padding: 10px 14px;
   border-left: 3px solid transparent;
   background: #ffffff;
 }
 
+/* UI_PRODUCT_AUTHORITY §3: "Do not turn compact evidence rows into cards."
+   The Add control used to be absolutely positioned along the bottom edge,
+   which forced 43px of empty padding under every row. Three offerings then
+   filled the fold and nothing could be compared across rows. Add now sits on
+   the title line and the row reserves inline space for it instead. */
 .rd-v2-discover-candidates li:has(.rd-v2-discover-row-add) button.row.rd-v2-discover-candidate {
-  padding-bottom: 43px;
+  padding-right: 138px;
 }
 
 .rd-v2-discover-row-add {
   position: absolute;
   z-index: 2;
-  right: 18px;
-  bottom: 12px;
-  padding: 4px 8px;
+  right: 14px;
+  top: 7px;
+  /* Measured 100x25px at 10.5px type. This is the primary action on every
+     offering and the entry point to the whole procurement lifecycle, and it
+     was the smallest interactive target on the page. 30px tall clears a
+     comfortable pointer target without turning the row back into a card. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 6px 12px;
   border: 1px solid color-mix(in srgb, #3f6f5c 40%, var(--rd-border));
-  border-radius: 4px;
+  border-radius: 5px;
   background: var(--rd-surface);
   color: #35634f;
   cursor: pointer;
   font: inherit;
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 680;
 }
 
@@ -5539,6 +5552,26 @@
 
 .rd-v2-eval-scroll {
   padding: 12px 16px 18px;
+}
+
+/* The decision footer already stays put while the body scrolls, but it had no
+   styling of its own in the rail, so it ran straight into the Ask chips above
+   it and the primary action sat as a narrow pill mid-column. It read as
+   floating content rather than as the rail's action footer. Give it the same
+   separation the other rail footers use. */
+aside.rd-v2-rail .rd-v2-eval-actions {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 14px 12px;
+  border-top: 1px solid var(--rd-border);
+  background: var(--rd-surface);
+}
+
+aside.rd-v2-rail .rd-v2-eval-actions > .rd-v2-btn {
+  width: 100%;
+  justify-content: center;
 }
 
 .rd-v2-eval-block {
@@ -5858,10 +5891,100 @@
   color: var(--rd-muted);
   cursor: progress;
 }
-.rd-v2-discover-offering-facts { color: var(--rd-muted); font-size: 10.5px; letter-spacing: .01em; }
+/* Measured at 1440: this line was 10.5px at 4.57:1 contrast -- scraping past
+   WCAG AA only because the threshold is 4.5, and unreadably small for what it
+   carries. It is not decoration: it states the collection route and whether
+   the lab already holds an equivalent, which is what the researcher decides
+   on. 11.5px at 5.4:1 keeps it secondary to the description without making it
+   a squint. */
+.rd-v2-discover-offering-facts {
+  color: #59616f;
+  /* 12px, not 11.5: half-pixel type is the same drift as 13.12px, just
+     smaller. The row's hierarchy comes from colour and weight against the
+     13px description, not from a fractional size difference. */
+  font-size: 12px;
+  letter-spacing: .01em;
+  /* Slightly wider than the description: this line is scanned in fragments
+     separated by "·", not read as prose, but it must not run past the
+     description's reading edge by much. */
+  max-width: 76ch;
+}
 
 .rd-v2-discover-library-evidence {
   position: relative;
+}
+/* Counts are not controls.
+   As a bordered, segmented strip this spanned the full column -- 1099px at
+   1920 -- with the counts clustered left and the actions pushed right, so
+   roughly 700px of empty box sat between two groups that had nothing to do
+   with each other. The box also made every count look pressable.
+   Now: plain text scope line, one rule underneath, no segment walls. */
+.rd-v2-discover-explore-chrome {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 18px;
+  margin: 10px 0 16px;
+  padding: 0 0 8px;
+  border: 0;
+  border-bottom: 1px solid var(--rd-border);
+  background: transparent;
+}
+.rd-v2-discover-explore-chrome > span,
+.rd-v2-discover-explore-chrome > button,
+.rd-v2-discover-explore-chrome > .rd-v2-discover-library-evidence > summary {
+  padding: 0;
+  border-left: 0;
+  color: var(--rd-muted);
+  font-size: 12px;
+  font-weight: 600;
+  background: transparent;
+}
+
+/* The counts and the actions were styled identically inside one segmented
+   strip, so `Search wider` read as a selected fourth tab sitting beside
+   "Available · 5" rather than as something you could press. Counts stay left
+   as scope segments; actions group right and take an action colour. */
+.rd-v2-discover-explore-chrome > button:first-of-type {
+  margin-left: auto;
+}
+
+.rd-v2-discover-explore-chrome > button {
+  color: #35634f;
+  cursor: pointer;
+}
+
+.rd-v2-discover-explore-chrome > button:hover:not(:disabled) {
+  background: color-mix(in srgb, #dceee2 40%, transparent);
+}
+.rd-v2-discover-explore-chrome > :first-child,
+.rd-v2-discover-explore-chrome > .rd-v2-discover-library-evidence:first-child > summary {
+  border-left: 0;
+}
+.rd-v2-discover-explore-chrome > span.on {
+  color: var(--rd-text);
+}
+.rd-v2-discover-explore-chrome > button {
+  cursor: pointer;
+  color: #315f90;
+}
+.rd-v2-discover-explore-chrome .rd-v2-discover-library-evidence > summary {
+  border-left: 1px solid var(--rd-border);
+  color: #315f90;
+}
+.rd-v2-discover-explore-chrome .rd-v2-discover-strategy-trigger.is-ready {
+  color: var(--rd-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.rd-v2-discover-explore-chrome .rd-v2-discover-strategy-trigger.is-pending {
+  color: var(--rd-muted);
+  cursor: progress;
+}
+.rd-v2-discover-all-held {
+  margin: 0 0 14px;
+  font-size: 12.5px;
+  line-height: 1.45;
 }
 .rd-v2-discover-library-evidence > summary {
   padding: 5px 7px;
@@ -5877,17 +6000,46 @@
   position: absolute;
   z-index: 40;
   top: calc(100% + 8px);
-  right: 0;
-  width: min(520px, 72vw);
-  padding: 12px;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  width: min(480px, calc(100vw - 48px));
+  max-height: min(420px, 58vh);
+  padding: 12px 12px 0;
   border: 1px solid var(--rd-border);
   border-radius: 4px;
   background: var(--rd-surface);
   box-shadow: 0 18px 45px rgb(16 24 32 / 18%);
 }
+.rd-v2-discover-library-popover > .rd-v2-eyebrow,
+.rd-v2-discover-library-popover > .muted {
+  flex: 0 0 auto;
+}
+.rd-v2-discover-library-popover .rd-v2-library-rows {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  margin: 8px 0 0;
+}
 .rd-v2-discover-library-popover .rd-v2-catalog { margin: 8px 0 0; }
 .rd-v2-discover-library-popover .rd-v2-discover-candidate {
   padding: 10px 12px !important;
+}
+.rd-v2-discover-library-popover .rd-v2-library-snippet {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.rd-v2-discover-library-popover-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex: 0 0 auto;
+  margin: 0 -12px;
+  padding: 10px 12px 12px;
+  border-top: 1px solid var(--rd-border);
+  background: var(--rd-surface);
 }
 .rd-v2-discover-idle-library-note {
   margin-top: 12px;
@@ -6858,6 +7010,11 @@
   align-items: flex-start;
   gap: 6px;
   align-self: start;
+  /* Rows whose publisher is not recorded render no ribbon. The column still
+     holds its width so every title starts on the same left edge -- otherwise
+     the list develops a ragged margin that reads as broken rather than as
+     "source unknown". */
+  min-width: 92px;
   padding-top: 2px;
 }
 
@@ -7106,14 +7263,221 @@
   white-space: nowrap;
 }
 
-.rd-v2-discover-evidence {
+.rd-v2-miss-route {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 10px 12px;
+}
+
+.rd-v2-miss-route > div { min-width: 0; }
+.rd-v2-miss-route .rd-v2-discover-why { margin-top: 4px; }
+
+.rd-v2-discover-no-route {
+  padding: 12px 0 4px;
+  line-height: 1.5;
+}
+
+/* Held datasets as an aligned list. Monospace columns so grain, frequency and
+   period line up down the page and can be compared at a glance -- the property
+   a card grid cannot give at twenty-plus results. */
+.rd-v2-library-rows { margin: 0; padding: 0; list-style: none; }
+
+/* Header rhythm: title, mode tabs, composer and brief were each spaced as
+   independent blocks, so five short lines occupied a third of the fold before
+   the first result. Tighten between them; the gap that matters is the one
+   before the results. */
+.rd-v2-discover-page > header { margin-bottom: 8px; }
+.rd-v2-discover-page > header h1 { margin-bottom: 2px; }
+.rd-v2-discover-modes { margin-top: 6px; }
+.rd-v2-discover-brief { margin: 6px 0; }
+
+/* Held datasets collapse by default. */
+.rd-v2-library-disclosure > summary {
+  cursor: pointer;
+  list-style: none;
+}
+.rd-v2-library-disclosure > summary::-webkit-details-marker { display: none; }
+.rd-v2-library-disclosure > summary::before {
+  content: "▸";
+  margin-right: 6px;
+  color: var(--rd-muted, #9aa0a6);
+  font-size: 11px;
+}
+.rd-v2-library-disclosure[open] > summary::before { content: "▾"; }
+
+/* Landing: the box is the page. Everything else is opened on demand. */
+.rd-v2-discover-routes-disclosure > summary {
+  padding: 6px 0;
+  cursor: pointer;
+  list-style: none;
+  font-size: 12.5px;
+}
+.rd-v2-discover-routes-disclosure > summary::-webkit-details-marker { display: none; }
+.rd-v2-discover-routes-disclosure > summary::before {
+  content: "▸ ";
+  color: var(--rd-muted, #9aa0a6);
+  font-size: 11px;
+}
+.rd-v2-discover-routes-disclosure[open] > summary::before { content: "▾ "; }
+.rd-v2-discover-idle-held { margin-top: 10px; }
+
+/* Shelf chips: compact, scannable, and every one leads somewhere openable. */
+.rd-v2-discover-shelves { margin: 14px 0 4px; }
+.rd-v2-discover-shelves-head { margin-bottom: 8px; }
+.rd-v2-discover-shelves ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.rd-v2-shelf-chip {
+  display: inline-flex;
+  gap: 8px;
+  align-items: baseline;
+  padding: 7px 12px;
+  border: 1px solid var(--rd-border, #dadce0);
+  border-radius: 999px;
+  color: inherit;
+  text-decoration: none;
+}
+.rd-v2-shelf-chip:hover { background: var(--rd-hover, #f1f3f4); }
+.rd-v2-shelf-label { font-size: 13px; }
+.rd-v2-shelf-count {
+  color: var(--rd-muted, #5f6368);
+  font-family: var(--rd-mono);
+  font-size: 11px;
+}
+
+.rd-v2-library-row {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) 14px;
+  gap: 10px;
+  align-items: baseline;
+  width: 100%;
+  padding: 9px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.rd-v2-library-row:hover { background: var(--rd-hover, #f1f3f4); }
+
+.rd-v2-library-mark { color: var(--rd-muted, #9aa0a6); font-size: 12px; }
+.rd-v2-library-mark.on { color: #188038; }
+
+.rd-v2-library-main { display: block; min-width: 0; }
+
+.rd-v2-library-title {
+  display: block;
+  overflow: hidden;
+  color: var(--rd-link, #1a0dab);
+  font-size: 14px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rd-v2-library-snippet {
   display: -webkit-box;
   overflow: hidden;
-  color: #5f6368;
+  margin-top: 3px;
+  color: #4d5156;
   font-size: 13px;
   line-height: 1.45;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+}
+
+.rd-v2-library-byline {
+  display: block;
+  overflow: hidden;
+  margin-top: 3px;
+  color: var(--rd-muted, #5f6368);
+  font-size: 11.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rd-v2-library-chev { color: var(--rd-muted, #9aa0a6); font-size: 11px; }
+
+.rd-v2-library-detail {
+  display: block;
+  padding: 2px 8px 10px 46px;
+}
+.rd-v2-library-oneline {
+  display: block;
+  margin-top: 3px;
+  color: #5f6368;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.rd-v2-library-idcode {
+  display: inline-block;
+  margin-top: 6px;
+  color: var(--rd-muted, #5f6368);
+  font-family: var(--rd-mono);
+  font-size: 11.5px;
+}
+.rd-v2-library-more { margin: 6px 0 2px 8px; }
+
+.rd-v2-discover-verdict {
+  margin: 0 0 10px;
+  font-size: 13.5px;
+}
+.rd-v2-discover-verdict strong { color: var(--rd-ink, #202124); }
+
+/* The relevance argument, distinguished from the dataset's own description:
+   darker than the description so it reads first, with the label set in the
+   mono face the rest of the desk uses for machine-stated facts. */
+.rd-v2-discover-why {
+  display: block;
+  overflow: hidden;
+  color: var(--rd-ink, #202124);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.rd-v2-discover-why b {
+  margin-right: 6px;
+  color: var(--rd-muted, #5f6368);
+  font-weight: 600;
+  font-size: 11px;
+  font-family: var(--rd-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.rd-v2-discover-evidence {
+  display: -webkit-box;
+  overflow: hidden;
+  color: #3f4652;
+  /* Was inheriting to 13.12px through a rem cascade. Fractional sizes are
+     drift, not a scale, and they render inconsistently across rows. */
+  font-size: 13px;
+  line-height: 1.45;
+  /* Measured 125 characters per line at 1920. A comfortable measure is 45-75;
+     past about 90 the eye loses its place on the return sweep. That is why
+     the list read well at 1440 (~73 chars) and badly at 1920 while every row
+     was individually correct. The row still spans the column -- only the
+     reading line is bounded.
+     64ch, not 78: `ch` is the advance of "0", about 1.22x this font's
+     average glyph, so 78ch measured 95 actual characters. */
+  max-width: 64ch;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+/* An absent description is a stated fact, not an empty slot. Muted and
+   italic so it reads as "we have not recorded this" rather than as content. */
+.rd-v2-discover-evidence.is-missing {
+  color: #9aa0a6;
+  font-style: italic;
 }
 
 .rd-v2-discover-subline {
@@ -9454,3 +9818,242 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
   flex-direction: column;
   gap: 6px;
 }
+
+/* Explicit "show all" for the results list -- the same discipline History
+   uses. It is a full-width footer to the list rather than a floating link, so
+   it reads as the end of the visible set and not as another row. */
+.rd-v2-discover-show-all {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 9px 14px;
+  border: 0;
+  border-top: 1px solid var(--rd-border);
+  background: transparent;
+  color: #35634f;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  text-align: left;
+}
+
+.rd-v2-discover-show-all:hover:not(:disabled) {
+  background: color-mix(in srgb, #dceee2 34%, transparent);
+}
+
+.rd-v2-discover-show-all:disabled {
+  color: var(--rd-muted);
+  cursor: default;
+}
+
+/* Search-scoped rail summary.
+   With nothing selected the rail was 9% ink in a 374x836 column. These
+   counts are read off the rows already rendered in the centre, so the panel
+   fills the rail without asserting anything the results do not show. */
+.rd-v2-search-summary .rd-v2-eval-block { margin: 0 0 18px; }
+
+.rd-v2-summary-counts,
+.rd-v2-summary-suff,
+.rd-v2-summary-routes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.rd-v2-summary-counts b { font-weight: 700; }
+
+.rd-v2-summary-suff li {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.rd-v2-summary-suff i {
+  flex: 0 0 14px;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.rd-v2-summary-suff i.ok { color: #166534; }
+.rd-v2-summary-suff i.part { color: #92400e; }
+.rd-v2-summary-suff i.none { color: var(--rd-muted); }
+
+/* Leader dots: the count sat ~430px from its label with nothing joining
+   them, so the eye had to travel an empty gap to pair the two. */
+.rd-v2-summary-routes li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 3px 0;
+}
+
+.rd-v2-summary-routes li::after {
+  content: "";
+  order: 1;
+  flex: 1 1 auto;
+  height: 0;
+  margin-bottom: 3px;
+  border-bottom: 1px dotted color-mix(in srgb, var(--rd-muted) 45%, transparent);
+}
+
+.rd-v2-summary-routes li b { order: 2; }
+
+.rd-v2-summary-routes li:last-child { border-bottom: 0; }
+.rd-v2-summary-routes b { font-weight: 700; }
+
+/* The summary blocks sat flush against the rail's left edge while the
+   identity line above them was inset -- a ragged margin down the rail. */
+.rd-v2-search-summary { padding: 14px 16px 18px; }
+
+/* Section heads state their own size, so the reader knows how much is in the
+   group before scrolling it. */
+.rd-v2-section-count {
+  margin-left: 8px;
+  padding: 1px 7px;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--rd-muted) 14%, transparent);
+  color: var(--rd-muted);
+  font-size: 11px;
+  font-weight: 700;
+  vertical-align: middle;
+}
+
+/* Coverage proportion. Ten cells, filled by count -- never a percentage or a
+   score, so it cannot claim more than the results show. */
+.rd-v2-coverage-bar {
+  display: flex;
+  gap: 3px;
+  margin: 2px 0 6px;
+}
+
+.rd-v2-coverage-bar span {
+  flex: 1 1 0;
+  height: 8px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--rd-muted) 22%, transparent);
+}
+
+.rd-v2-coverage-bar span.on { background: #3f6f5c; }
+
+.rd-v2-coverage-caption {
+  margin: 0;
+  color: var(--rd-muted);
+  font-size: 12px;
+}
+
+.rd-v2-coverage-caption b { color: var(--rd-ink, inherit); font-weight: 700; }
+
+/* Scale column: how much of it there is.
+   Right-aligned so sizes form a scannable column down the list rather than
+   floating after each description. Empty when the probe could not measure the
+   dataset -- an unreachable or shared path is missing knowledge, not zero. */
+.rd-v2-discover-candidate-scale {
+  grid-area: scale;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-start;
+  gap: 1px;
+  min-width: 84px;
+  padding-top: 2px;
+  text-align: right;
+}
+
+.rd-v2-discover-candidate-scale b {
+  color: #3c4a43;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.rd-v2-discover-candidate-scale i {
+  color: var(--rd-muted);
+  font-size: 10.5px;
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Mobile: a third column cannot fit at 390px. The scale folds under the
+   reading column and aligns left with it, rather than being dropped -- size
+   is decision information, not decoration. */
+@media (max-width: 760px) {
+  .rd-v2-discover-candidates button.row.rd-v2-discover-candidate {
+    grid-template-areas:
+      "main"
+      "scale";
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rd-v2-discover-candidate-scale {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 8px;
+    min-width: 0;
+    padding-top: 4px;
+    text-align: left;
+  }
+}
+
+.rd-v2-discover-candidate-heading {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rd-v2-discover-candidate-heading .rd-v2-source-ribbon {
+  align-self: center;
+}
+
+.rd-v2-discover-readiness {
+  flex: 0 0 auto;
+  padding: 1px 7px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 750;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.rd-v2-discover-readiness.is-ready { background: #dceee2; color: #1d5c40; }
+.rd-v2-discover-readiness.is-mid   { background: #e7edf7; color: #2b4a72; }
+.rd-v2-discover-readiness.is-low   { background: #f0efe9; color: #6b6a62; }
+
+.rd-v2-discover-use {
+  display: -webkit-box;
+  overflow: hidden;
+  max-width: 64ch;
+  color: #6b7280;
+  font-size: 12.5px;
+  line-height: 1.4;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.rd-v2-discover-readiness.is-lead { background: #efe8dc; color: #6f5a33; }
+.rd-v2-discover-readiness.is-route { background: #e3ecf6; color: #23507f; }
+.rd-v2-section-sub { margin: 2px 0 0; font-size: 12px; color: #59616f; }
+.rd-v2-discover-answer {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border-left: 3px solid #2f6a52;
+  background: #f2f7f4;
+  border-radius: 0 6px 6px 0;
+}
+.rd-v2-discover-answer-text {
+  margin: 0;
+  max-width: 64ch;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #23301f;
+}
+.rd-v2-discover-answer-provenance {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: #4a5b52;
+}
+.rd-v2-discover-selected-mark.is-held { color: #2f6a52; }
