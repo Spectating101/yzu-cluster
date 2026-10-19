@@ -817,6 +817,7 @@ export function LibraryPage({
               onSearchWider={onSearchWider}
               onResetFilters={resetFilters}
               lens={lensControl}
+              axisRows={branchDatasetRows}
             />
             {searchActive ? null : <LibrarySubscriptions datasets={vaultDatasets} onSelectDataset={onSelectDataset} />}
             </>

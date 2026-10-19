@@ -513,6 +513,47 @@
   gap: 6px 7px;
 }
 
+.rd-v2-cap-glance {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.rd-v2-cap-glance b {
+  color: var(--rd-text);
+  font-size: var(--rd-text-xs);
+  font-weight: 600;
+}
+
+.rd-v2-cap-glance .rd-v2-cap-glance-none {
+  color: var(--rd-muted);
+  font-weight: 500;
+}
+
+.rd-v2-cap-glance-track {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--rd-border);
+}
+
+.rd-v2-cap-glance-track i {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 999px;
+  background: var(--rd-link);
+}
+
+.rd-v2-cap-glance em {
+  color: var(--rd-muted);
+  font-size: var(--rd-text-2xs);
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+}
+
 .rd-v2-cap-collection-list.is-single-row {
   flex-wrap: nowrap;
   overflow-x: auto;
@@ -596,6 +637,7 @@
 }
 
 .rd-v2-cap-lens-option {
+  transition: background-color 120ms ease, color 120ms ease;
   display: inline-flex;
   align-items: center;
   gap: 7px;
@@ -626,6 +668,10 @@
 
 .rd-v2-cap-lens-option[aria-pressed="true"] b {
   color: rgba(255, 255, 255, 0.78);
+}
+
+.rd-v2-cap-ledger-body {
+  animation: rd-pane-enter 160ms ease-out;
 }
 
 .rd-v2-cap-lens-note {
@@ -822,14 +868,14 @@
 
 .rd-v2-cap-ledger.with-verify.show-kind .rd-v2-cap-ledger-head,
 .rd-v2-cap-ledger.with-verify.show-kind .rd-v2-cap-ledger-row {
-  grid-template-columns: minmax(230px, 1.05fr) minmax(90px, 0.2fr) minmax(130px, 0.4fr) minmax(94px, 0.2fr) minmax(184px, 0.36fr);
+  grid-template-columns: minmax(230px, 1.05fr) minmax(138px, 0.3fr) minmax(112px, 0.34fr) minmax(94px, 0.2fr) minmax(176px, 0.3fr);
   grid-template-areas: "evidence kind source verify state";
   gap: 14px;
 }
 
 .rd-v2-cap-ledger.without-verify.show-kind .rd-v2-cap-ledger-head,
 .rd-v2-cap-ledger.without-verify.show-kind .rd-v2-cap-ledger-row {
-  grid-template-columns: minmax(220px, 1fr) minmax(80px, 0.2fr) minmax(120px, 0.4fr) minmax(168px, 0.36fr);
+  grid-template-columns: minmax(220px, 1fr) minmax(138px, 0.3fr) minmax(112px, 0.34fr) minmax(160px, 0.3fr);
   grid-template-areas: "evidence kind source state";
   gap: 14px;
 }
@@ -1076,6 +1122,7 @@
 }
 
 .rd-v2-library-toolbar-search {
+  transition: border-color 120ms ease, box-shadow 120ms ease;
   flex: 1 1 330px;
   min-width: 300px;
   max-width: 460px;

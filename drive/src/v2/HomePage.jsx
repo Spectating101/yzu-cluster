@@ -10,6 +10,7 @@ import { DeskError } from "@/v2/DeskError";
 import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
 import { displayName, statusPillKind } from "@/v2/datasetMeta";
 import { featuredRows } from "@/v2/libraryFocus";
+import { barBox, glanceTitle, rowsLabel, spanAxis, spanOf, spanText } from "@/v2/libraryGlance";
 import {
   buildPickUp,
   buildRecentTrail,
@@ -125,6 +126,23 @@ function firstSentence(value) {
   return end > 0 ? textValue.slice(0, end + 1) : textValue;
 }
 
+function HomeGlance({ span, axis }) {
+  const rows = rowsLabel(span.rows);
+  const box = barBox(span, axis);
+  if (!rows && !box) return null;
+  return (
+    <span className="rd-v2-home-glance" data-testid="home-glance" title={glanceTitle(span)}>
+      <b>{rows}</b>
+      {box ? (
+        <span className="rd-v2-cap-glance-track" role="img" aria-label={`Covers ${spanText(span)}`}>
+          <i style={{ left: `${box.left}%`, width: `${box.width}%` }} />
+        </span>
+      ) : <span />}
+      <em>{spanText(span)}</em>
+    </span>
+  );
+}
+
 function GuestReadyDatasets({ datasets, onGoTab, onSelectDataset }) {
   const featured = featuredRows(datasets).filter((row) => statusPillKind(row).kind === "query-ready");
   const ready = (featured.length
@@ -135,6 +153,7 @@ function GuestReadyDatasets({ datasets, onGoTab, onSelectDataset }) {
         || String(b.retrieved_at || "").localeCompare(String(a.retrieved_at || "")))
   ).slice(0, 4);
   if (!ready.length) return null;
+  const axis = spanAxis(ready.map(spanOf));
   return (
     <section className="rd-v2-home-guest-ready" aria-label="Ready to use now" data-testid="home-guest-ready">
       <div className="rd-v2-home-section-head">
@@ -147,6 +166,7 @@ function GuestReadyDatasets({ datasets, onGoTab, onSelectDataset }) {
             <button type="button" onClick={() => onSelectDataset?.(row)}>
               <strong>{displayName(row)}</strong>
               {row.description && !/^collected from https?:/i.test(String(row.description).trim()) ? <span>{firstSentence(row.description)}</span> : null}
+              <HomeGlance span={spanOf(row)} axis={axis} />
             </button>
           </li>
         ))}

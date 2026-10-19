@@ -5,6 +5,7 @@ import { libraryVerification } from "@/v2/libraryVerification";
 import { coverageSpan } from "@/v2/coverageText";
 import { StatusPill } from "@/v2/StatusPill";
 import { listDescription } from "@/v2/listDescription";
+import { barBox, glanceTitle, rowsLabel, spanAxis, spanOf, spanText } from "@/v2/libraryGlance";
 
 const PAGE_SIZE = 50;
 
@@ -79,6 +80,28 @@ function moveLedgerFocus(event) {
   rows[next]?.focus();
 }
 
+function GlanceCell({ row, span, axis }) {
+  const box = barBox(span, axis);
+  const rows = rowsLabel(span?.rows);
+  const kind = kindLabel(row);
+  if (kind !== "Dataset" || (!rows && !box)) {
+    return <span className="rd-v2-cap-kind" role="cell">{kind}</span>;
+  }
+  return (
+    <span className="rd-v2-cap-kind rd-v2-cap-glance" role="cell" data-testid="library-evidence-glance" title={glanceTitle(span)}>
+      {rows ? <b>{rows}</b> : <b className="rd-v2-cap-glance-none">{kind}</b>}
+      {box ? (
+        <>
+          <span className="rd-v2-cap-glance-track" role="img" aria-label={`Covers ${spanText(span)}`}>
+            <i style={{ left: `${box.left}%`, width: `${box.width}%` }} />
+          </span>
+          <em>{spanText(span)}</em>
+        </>
+      ) : null}
+    </span>
+  );
+}
+
 export function LibraryEvidenceEstate({
   assets = [],
   collections = [],
@@ -93,9 +116,19 @@ export function LibraryEvidenceEstate({
   onSearchWider,
   onResetFilters,
   lens = null,
+  axisRows = null,
 }) {
   const visibleAssets = assets;
   const showKind = true;
+  const spans = useMemo(() => new Map(visibleAssets.map((item) => {
+    const row = item?.row || item;
+    return [row.dataset_id, spanOf(row)];
+  })), [visibleAssets]);
+  const showGlance = [...spans.values()].some((span) => span.rows !== null || span.ranged);
+  const axis = useMemo(
+    () => spanAxis((axisRows || visibleAssets.map((item) => item?.row || item)).map(spanOf)),
+    [axisRows, visibleAssets],
+  );
   const showVerify = visibleAssets.some((item) => libraryVerification(item?.row || item).key !== "not_checked");
   const ledgerClass = `rd-v2-cap-ledger ${showVerify ? "with-verify" : "without-verify"} show-kind`;
   const query = String(searchQuery || "").trim();
@@ -205,12 +238,12 @@ export function LibraryEvidenceEstate({
       <div className={ledgerClass} role="table" aria-label="Library evidence">
         <div className="rd-v2-cap-ledger-head" role="row">
           <span role="columnheader">Dataset</span>
-          {showKind ? <span role="columnheader">Type</span> : null}
+          {showKind ? <span role="columnheader">{showGlance ? "Coverage" : "Type"}</span> : null}
           <span role="columnheader">Source</span>
           {showVerify ? <span role="columnheader" title="Whether the recorded source evidence has been checked">Verify</span> : null}
           <span role="columnheader" title="Whether this evidence can be used directly for research or querying">Readiness</span>
         </div>
-        <div className="rd-v2-cap-ledger-body">
+        <div className="rd-v2-cap-ledger-body" key={lens?.active || "rows"}>
           {visibleAssets.length ? (
             pagedAssets.map((item) => {
               const row = item?.row || item;
@@ -251,7 +284,7 @@ export function LibraryEvidenceEstate({
                       </span>
                     ) : null}
                   </span>
-                  {showKind ? <span className="rd-v2-cap-kind" role="cell">{kindLabel(row)}</span> : null}
+                  {showKind ? <GlanceCell row={row} span={spans.get(row.dataset_id)} axis={axis} /> : null}
                   <span className="rd-v2-cap-source" role="cell">{sourceLabel(row)}</span>
                   {showVerify ? (
                     <span
