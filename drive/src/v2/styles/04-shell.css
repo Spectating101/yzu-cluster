@@ -695,11 +695,29 @@
 
 /* Public visitors do not have a profile record yet. Give that truthful state a
    compact useful composition instead of rendering an empty identity template. */
-.rd-v2-profile-public-state {
-  max-width: 680px;
-  padding: 28px 0 30px;
-  border-top: 1px solid var(--rd-hps-line);
-  border-bottom: 1px solid var(--rd-hps-line);
+.rd-v2-profile-public-state,
+.rd-v2-profile-page .rd-v2-focus-try {
+  padding: 22px 24px 24px;
+  border: 1px solid var(--rd-border);
+  border-radius: 12px;
+  background: var(--rd-surface, #fffdf6);
+}
+
+.rd-v2-profile-page .rd-v2-profile-public-state,
+.rd-v2-profile-page .rd-v2-focus-try {
+  width: auto;
+  max-width: none;
+}
+
+.rd-v2-profile-page .rd-v2-focus-try {
+  margin-top: 14px;
+}
+
+.rd-v2-lock-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 }
 
 .rd-v2-profile-page:has(.rd-v2-profile-public-state) .rd-v2-body-scroll {
@@ -715,7 +733,7 @@
 .rd-v2-profile-public-state h2 {
   margin: 12px 0 8px;
   color: var(--rd-hps-ink);
-  font-size: clamp(24px, 2.5vw, 32px);
+  font-size: var(--rd-text-3xl);
   letter-spacing: -0.01em;
   line-height: 1.08;
 }

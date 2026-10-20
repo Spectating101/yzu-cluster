@@ -1,3 +1,4 @@
+import { LockTag } from "@/v2/Lock";
 import { useEffect, useMemo, useState } from "react";
 import { GuestFocusTry } from "./GuestFocusTry.jsx";
 import { facultyProfile } from "@/v2/api";
@@ -505,7 +506,10 @@ export function ProfilePage({
 
       {publicProfile ? (
         <section className="rd-v2-profile-public-state" aria-label="Research profile access">
-          <span className="rd-v2-profile-kicker">Research identity</span>
+          <div className="rd-v2-lock-head">
+            <span className="rd-v2-profile-kicker">Research identity</span>
+            <LockTag who="account" />
+          </div>
           <h2>Profiles are personal workspaces</h2>
           <p>
             A profile remembers who you are as a researcher, so it needs an account. Everything else here works without one.

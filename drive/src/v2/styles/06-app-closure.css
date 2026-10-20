@@ -288,8 +288,11 @@
   }
   .rd-v2-profile-page .rd-v2-profile-identity,
   .rd-v2-profile-page .rd-v2-profile-memory-section,
-  .rd-v2-profile-page .rd-v2-profile-public-state,
   .rd-v2-profile-page .rd-v2-profile-loading { grid-column: 1 / -1; }
+  .rd-v2-profile-page .rd-v2-focus-try { margin-top: 0; }
+  .rd-v2-profile-page .rd-v2-profile-public-state,
+  .rd-v2-profile-page .rd-v2-focus-try { align-self: start; }
+  .rd-v2-profile-page:has(.rd-v2-profile-public-state) .rd-v2-body-scroll { column-gap: 14px; }
   .rd-v2-profile-page .rd-v2-profile-identity { padding-block: 18px 20px; }
   .rd-v2-profile-page .rd-v2-profile-section { margin-top: 16px; }
   .rd-v2-profile-page .rd-v2-profile-section-head { padding: 12px 0 10px; }

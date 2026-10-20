@@ -123,6 +123,7 @@ export function LibraryEvidenceEstate({
   onResetFilters,
   lens = null,
   axisRows = null,
+  banner = null,
 }) {
   const visibleAssets = assets;
   const showKind = true;
@@ -219,6 +220,8 @@ export function LibraryEvidenceEstate({
           )}
         </div>
       ) : null}
+
+      {banner}
 
       {lens ? (
         <div className="rd-v2-cap-lens" data-testid="library-lens">

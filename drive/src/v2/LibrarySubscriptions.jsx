@@ -1,10 +1,26 @@
 import { useEffect, useState } from "react";
 import { listSubscriptions } from "@/v2/api";
 import { licensedRowsLocked } from "@/v2/licensedAccess";
+import { LockMark, LockTag } from "@/v2/Lock";
+
+let subscriptionsRequest = null;
+
+function useSubscriptions() {
+  const [state, setState] = useState({ vendors: null, failed: false });
+  useEffect(() => {
+    let cancelled = false;
+    subscriptionsRequest ||= listSubscriptions().catch((error) => { subscriptionsRequest = null; throw error; });
+    subscriptionsRequest
+      .then((payload) => { if (!cancelled) setState({ vendors: Array.isArray(payload?.vendors) ? payload.vendors : [], failed: false }); })
+      .catch(() => { if (!cancelled) setState({ vendors: null, failed: true }); });
+    return () => { cancelled = true; };
+  }, []);
+  return state;
+}
 
 const STATES = {
   ready: { label: "Ready to query", pill: "rd-v2-status-ready" },
-  members: { label: "Members only", pill: "rd-v2-status-connected" },
+  members: { label: "Members only", pill: "rd-v2-status-locked", locked: true },
   preparing: { label: "On the drive, being prepared", pill: "rd-v2-status-review" },
   needs_export: { label: "Needs a manual export", pill: "rd-v2-status-review" },
   held_unsafe: { label: "Held, not safe to use yet", pill: "rd-v2-status-review" },
@@ -26,7 +42,7 @@ function Product({ product, row, onOpen }) {
   const body = (
     <>
       <span className="rd-v2-subscription-name">{product.name}</span>
-      <span className={`rd-v2-status-pill ${state.pill}`}><span className="rd-v2-status-dot" aria-hidden />{state.label}</span>
+      <span className={`rd-v2-status-pill ${state.pill}`}>{state.locked ? <LockMark /> : <span className="rd-v2-status-dot" aria-hidden />}{state.label}</span>
       {detail ? <span className="rd-v2-subscription-detail">{detail}</span> : null}
     </>
   );
@@ -35,19 +51,35 @@ function Product({ product, row, onOpen }) {
     : <li><div className="rd-v2-subscription-product">{body}</div></li>;
 }
 
+const HELD = new Set(["ready", "members", "preparing"]);
+
+export function LibrarySubscriptionStrip({ datasets = [], onSeeAll }) {
+  const state = useSubscriptions();
+  if (!state.vendors?.length) return null;
+  const licensedOpen = datasets.some((row) => row?.licensed && row?.rows_available !== false);
+  const held = state.vendors.reduce((total, vendor) => total + vendor.products.filter((product) => HELD.has(product.state)).length, 0);
+  return (
+    <div className="rd-v2-subscription-strip" data-testid="library-subscription-strip" role="group" aria-label="University subscriptions">
+      <span className="rd-v2-subscription-strip-label">University subscriptions</span>
+      <span className="rd-v2-subscription-strip-vendors">
+        {state.vendors.map((vendor) => {
+          const count = vendor.products.filter((product) => HELD.has(product.state)).length;
+          return <span key={vendor.id}><b>{vendor.name}</b>{count ? ` ${count}` : ""}</span>;
+        })}
+      </span>
+      <span className="rd-v2-subscription-strip-held">{held} datasets held</span>
+      {licensedOpen ? <em className="rd-v2-subscription-strip-open">Open to you</em> : <LockTag who="yuanze" />}
+      {onSeeAll ? <button type="button" className="rd-v2-subscription-strip-more" onClick={onSeeAll}>See what we hold →</button> : null}
+    </div>
+  );
+}
+
 export function LibrarySubscriptions({ datasets = [], onSelectDataset }) {
-  const [state, setState] = useState({ vendors: null, failed: false });
-  useEffect(() => {
-    let cancelled = false;
-    listSubscriptions()
-      .then((payload) => { if (!cancelled) setState({ vendors: Array.isArray(payload?.vendors) ? payload.vendors : [], failed: false }); })
-      .catch(() => { if (!cancelled) setState({ vendors: null, failed: true }); });
-    return () => { cancelled = true; };
-  }, []);
+  const state = useSubscriptions();
   if (!state.vendors?.length) return null;
   const byId = new Map(datasets.map((row) => [row.dataset_id, row]));
   return (
-    <section className="rd-v2-subscriptions" aria-label="University subscriptions" data-testid="library-subscriptions">
+    <section className="rd-v2-subscriptions" id="library-subscriptions" aria-label="University subscriptions" data-testid="library-subscriptions">
       <div className="rd-v2-library-section-heading">
         <div>
           <span className="rd-v2-eyebrow">University subscriptions</span>

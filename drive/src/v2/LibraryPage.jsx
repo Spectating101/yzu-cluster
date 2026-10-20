@@ -13,7 +13,7 @@ import { libraryVerification } from "@/v2/libraryVerification";
 import { isBrowsableLibraryLocation, normalizeLibraryLocations } from "@/v2/libraryLocations";
 import { LibraryAssetWorkspace } from "@/v2/LibraryAssetWorkspace";
 import { LibraryEvidenceEstate } from "@/v2/LibraryEvidenceEstate";
-import { LibrarySubscriptions } from "@/v2/LibrarySubscriptions";
+import { LibrarySubscriptionStrip, LibrarySubscriptions } from "@/v2/LibrarySubscriptions";
 import { resolveLibrarySelection } from "@/v2/librarySelection";
 import { buildLibrarySearchAskPrompt, rankLibraryHoldings } from "@/v2/librarySearch";
 import { PageShell } from "@/v2/ui";
@@ -819,6 +819,12 @@ export function LibraryPage({
               onResetFilters={resetFilters}
               lens={lensControl}
               axisRows={branchDatasetRows}
+              banner={searchActive ? null : (
+                <LibrarySubscriptionStrip
+                  datasets={vaultDatasets}
+                  onSeeAll={() => document.getElementById("library-subscriptions")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                />
+              )}
             />
             {searchActive ? null : <LibrarySubscriptions datasets={vaultDatasets} onSelectDataset={onSelectDataset} />}
             </>
