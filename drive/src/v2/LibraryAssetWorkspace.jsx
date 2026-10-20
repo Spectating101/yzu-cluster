@@ -669,7 +669,7 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onOpenQuery,
                 <li key={source.dataset_id}>
                   <strong>{source.source_system || source.name}</strong>
                   <span>{source.name}</span>
-                  <em>{source.held ? "Held on the desk" : "Collected on request"}</em>
+                  <em>{source.held ? "In the Library" : "Available to collect"}</em>
                 </li>
               ))}
             </ul>

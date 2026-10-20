@@ -45,7 +45,7 @@ const DISPLAY_LABELS = {
   "Acquisition or registration work is still pending.": "Collection or saving to Library is still pending.",
   "Collection finished, but registration is still pending.": "Collection finished, but saving to Library is still pending.",
   "Registration not complete": "Saving to Library is not complete",
-  "Connector route declared; collection remains approval-gated.": "Can be collected; collection still requires your approval.",
+  "Connector route declared; collection remains approval-gated.": "Available to collect; collection still requires your approval.",
   "Review held evidence": "Review data in your Library",
   "Review held evidence and route genuine gaps": "Review data in your Library and find what is missing",
   "Library confirms what is actually held": "Library confirms what data you have",

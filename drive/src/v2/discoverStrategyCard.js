@@ -140,7 +140,7 @@ function accessAssessment(row, evaluation) {
     };
   }
   if (connectorId(row)) {
-    return { access: ACCESS.PROPOSED, accessDetail: `Can be collected · ${connectorId(row)}` };
+    return { access: ACCESS.PROPOSED, accessDetail: `Available to collect · ${connectorId(row)}` };
   }
   return { access: ACCESS.UNKNOWN, accessDetail: "" };
 }
@@ -239,7 +239,7 @@ export function buildDiscoverStrategyCard(row, evaluation, options = {}) {
   if (connector) {
     const routeLabel = collectRouteLabel(connector);
     const steps = [{
-      label: routeLabel === UNNAMED_ROUTE ? "Can be collected" : `Collect via ${routeLabel}`,
+      label: routeLabel === UNNAMED_ROUTE ? "Available to collect" : `Collect via ${routeLabel}`,
       evidence: "declared",
       detail: connector,
     }];

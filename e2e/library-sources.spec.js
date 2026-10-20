@@ -41,8 +41,8 @@ test("a dataset from several sources says so in the list and lists them in its v
   const sources = page.getByTestId("library-sources");
   await expect(sources).toContainText("Available from 2 sources");
   await expect(sources.locator("li")).toHaveCount(2);
-  await expect(sources).toContainText("Held on the desk");
-  await expect(sources).toContainText("Collected on request");
+  await expect(sources).toContainText("In the Library");
+  await expect(sources).toContainText("Available to collect");
 });
 
 test("a dataset with one source shows no sources block", async ({ page }) => {

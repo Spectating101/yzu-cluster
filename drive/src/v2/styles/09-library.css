@@ -905,10 +905,17 @@
 /* Provenance is a first-class evidence claim, not disposable table chrome.
    Give long institutional source identities two readable lines before clipping. */
 .rd-v2-cap-source {
-  display: -webkit-box;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
   overflow: hidden;
   line-height: 1.35;
   white-space: normal;
+}
+
+.rd-v2-cap-source-name {
+  display: -webkit-box;
+  overflow: hidden;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
@@ -1448,4 +1455,55 @@
   font: inherit;
   font-weight: 700;
   cursor: pointer;
+}
+
+.rd-v2-cap-access {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.rd-v2-cap-access-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid var(--rd-border);
+  border-radius: 999px;
+  background: var(--rd-surface, #fffdf6);
+  color: var(--rd-body);
+  font: inherit;
+  font-size: var(--rd-text-2xs);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rd-v2-cap-access-option b {
+  color: var(--rd-muted);
+  font-weight: 600;
+}
+
+.rd-v2-cap-access-option.is-ready .rd-v2-status-dot { background: var(--rd-ready-fg); }
+.rd-v2-cap-access-option.is-not_ready .rd-v2-status-dot { background: var(--rd-review-fg); }
+
+.rd-v2-cap-access-option:hover {
+  background: var(--rd-active-bg);
+}
+
+.rd-v2-cap-access-option[aria-pressed="true"] {
+  border-color: var(--rd-text);
+  background: var(--rd-text);
+  color: #fff;
+}
+
+.rd-v2-cap-access-option[aria-pressed="true"] b {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.rd-v2-cap-added {
+  display: block;
+  margin-top: 2px;
+  color: var(--rd-muted);
+  font-size: var(--rd-text-2xs);
+  font-style: normal;
 }

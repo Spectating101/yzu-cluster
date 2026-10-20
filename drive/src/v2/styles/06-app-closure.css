@@ -936,7 +936,7 @@
 .rd-v2-reach-abilities li em { color: var(--rd-ready-fg); }
 .rd-v2-reach-mark { display: grid; place-items: center; width: 20px; height: 20px; }
 .rd-v2-reach-mark img { display: block; width: 18px; height: 18px; object-fit: contain; }
-.rd-v2-reach-mark.is-generic img { opacity: 0.55; }
+.rd-v2-reach-mark.is-initials { border-radius: 5px; background: var(--rd-ext-bg); color: var(--rd-body); font-size: 9px; font-weight: 700; letter-spacing: 0.02em; }
 .rd-v2-reach-layers { margin: 14px 0 0; padding-top: 12px; border-top: 1px solid var(--rd-border); color: var(--rd-muted); font-size: var(--rd-text-2xs); line-height: 1.6; }
 .rd-v2-reach-layers b { margin-right: 6px; color: var(--rd-text); }
 .rd-v2-reach-abilities ul { margin-top: 8px; }
@@ -956,4 +956,4 @@
 .rd-v2-guest-methods article strong { color: var(--rd-text); font-size: var(--rd-text-sm); line-height: 1.35; }
 .rd-v2-guest-methods article span { color: var(--rd-muted); font-size: var(--rd-text-2xs); line-height: 1.5; }
 .rd-v2-guest-methods .rd-v2-guest-method-start { display: inline-flex; justify-self: start; align-items: center; gap: 5px; width: auto; margin-top: 4px; padding: 4px 9px; border: 0; border-radius: 999px; background: var(--rd-ext-bg); color: var(--rd-body); font-size: var(--rd-text-2xs); font-weight: 600; cursor: pointer; }
-.rd-v2-guest-methods .rd-v2-guest-method-start:disabled { cursor: default; }
+.rd-v2-guest-methods span.rd-v2-guest-method-start { cursor: default; }

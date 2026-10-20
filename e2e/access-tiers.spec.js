@@ -82,7 +82,7 @@ test("a licensed dataset shows what it is but asks for a Yuan Ze sign-in instead
   await expect(brief).toContainText("ESG factor overlays on equity panels");
   await expect(brief).toContainText("Snapshot only; not time series.");
   await expect(brief).toContainText("Yuan Ze members");
-  await expect(page.getByTestId("library-evidence-row").filter({ hasText: "LSEG ESG pillar snapshot" }).first()).toContainText("Members only");
+  await expect(page.getByTestId("library-evidence-row").filter({ hasText: "LSEG ESG pillar snapshot" }).first()).toContainText("Yuan Ze members");
   await expect(workspace.getByRole("button", { name: "View all rows" })).toHaveCount(0);
   expect(queried).toEqual([]);
   await workspace.getByTestId("library-workspace-members-sign-in").click();
@@ -96,7 +96,7 @@ test("the Library lists each university subscription with what we hold and what 
   await waitForShell(page);
   const section = page.getByTestId("library-subscriptions");
   await expect(section).toContainText("What Yuan Ze licenses, and what we hold from it");
-  await expect(page.getByTestId("subscription-lseg")).toContainText("Members only");
+  await expect(page.getByTestId("subscription-lseg")).toContainText("Yuan Ze members");
   await expect(page.getByTestId("subscription-lseg")).toContainText("570 rows");
   await expect(page.getByTestId("subscription-lseg")).toContainText("Not in our subscription");
   await expect(page.getByTestId("subscription-crsp")).toContainText("On the drive, being prepared");
@@ -146,7 +146,7 @@ test("the Library says how many datasets are members only instead of calling the
   await waitForShell(page);
   const total = MOCK_DATASETS.datasets.length + 1;
   const summary = page.locator(".rd-v2-library-folder-readiness");
-  await expect(summary).toContainText("1 members only");
+  await expect(summary).toContainText("1 for Yuan Ze members");
   await expect(summary).toContainText(`${total - 1} ready to query`);
   await expect(summary).not.toContainText(`${total} ready to query`);
   await page.getByTestId("library-state-filter").selectOption("members");

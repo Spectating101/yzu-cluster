@@ -147,7 +147,7 @@ test("acquisition path is the declared route and stops at the request boundary",
   assert.ok(build);
   assert.deepEqual(
     build.steps.map((s) => s.label),
-    ["Can be collected", "Normalize to entity-date"],
+    ["Available to collect", "Normalize to entity-date"],
   );
   assert.equal(build.steps.every((s) => s.evidence === "declared"), true);
   assert.match(build.boundary, /no acquisition request has been created yet/i);
@@ -162,7 +162,7 @@ test("verify and register enter the path only when a collection job is recorded"
   const build = block(built, "how_we_build");
   assert.deepEqual(
     build.steps.map((s) => s.label),
-    ["Can be collected", "Normalize to entity-date", "Verify + register"],
+    ["Available to collect", "Normalize to entity-date", "Verify + register"],
   );
   assert.equal(build.steps.at(-1).evidence, "measured");
   assert.equal(build.steps.at(-1).detail, "job_123");

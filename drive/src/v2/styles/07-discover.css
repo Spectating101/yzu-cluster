@@ -2092,7 +2092,6 @@ body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(
   border-color: transparent;
 }
 
-.rd-v2-discover-page .rd-v2-discover-row-add.is-locked:disabled {
+.rd-v2-discover-page span.rd-v2-discover-row-add.is-locked {
   cursor: default;
-  opacity: 1;
 }

@@ -92,7 +92,7 @@ function accessLabel(taxonomy) {
     case "external-probed":
       return "Connection tested";
     case "external-acquirable":
-      return "Can be collected";
+      return "Available to collect";
     case "external-unavailable":
       return "No supported route";
     case "licensed-manual":
@@ -285,17 +285,22 @@ function DiscoverCandidateRow({
         >
           Add to collection
         </button>
+      ) : lockedAdd && !lockedAdd.onClick ? (
+        <span className="rd-v2-discover-row-add is-locked" data-testid="discover-row-add-locked">
+          <LockMark className="rd-v2-lock-mark" />
+          Add to collection
+          <span className="rd-v2-visually-hidden">. {lockTitle(lockedAdd.who)}</span>
+        </span>
       ) : lockedAdd ? (
         <button
           type="button"
           className="rd-v2-discover-row-add is-locked"
           data-testid="discover-row-add-locked"
-          disabled={!lockedAdd.onClick}
           title={lockTitle(lockedAdd.who)}
           aria-label={`Add to collection. ${lockTitle(lockedAdd.who)}`}
           onClick={(event) => {
             event.stopPropagation();
-            lockedAdd.onClick?.(row);
+            lockedAdd.onClick(row);
           }}
         >
           <LockMark className="rd-v2-lock-mark" />

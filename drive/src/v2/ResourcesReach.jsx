@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { fetchJson } from "./apiCore.js";
 import { resolveProviderMark } from "./providerMarks.js";
 import { LockTag } from "./Lock.jsx";
+import { STATUS_WORDS, initials } from "./reachText.js";
 
 const count = (value) => Number(value).toLocaleString("en-US");
 
@@ -58,13 +59,13 @@ export function ReachSources({ reach, licensedOpen }) {
                 const mark = resolveProviderMark({ id: source.id, label: source.label });
                 return (
                   <li key={source.id}>
-                    <span className={`rd-v2-reach-mark${mark.generic ? " is-generic" : ""}`}>
-                      <img src={mark.src} alt="" width={18} height={18} />
+                    <span className={`rd-v2-reach-mark${mark.generic ? " is-initials" : ""}`} aria-hidden="true">
+                      {mark.generic ? initials(source.label) : <img src={mark.src} alt="" width={18} height={18} />}
                     </span>
                     <strong>{source.label}</strong>
                     {source.status === "licensed" && !licensedOpen
                       ? <LockTag who="yuanze" />
-                      : <em className={`is-${source.status}`}>{source.status_label}</em>}
+                      : <em className={`is-${source.status}`}>{STATUS_WORDS[source.status] || source.status_label}</em>}
                   </li>
                 );
               })}

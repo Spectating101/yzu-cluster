@@ -307,7 +307,7 @@ test.describe("Discover adaptive Explore", () => {
     await search(page, "example public research files");
 
     const result = page.getByTestId("discover-ranked-results");
-    await expect(result).toContainText("Can be collected");
+    await expect(result).toContainText("Available to collect");
     await result.getByRole("button", { name: "Add to collection" }).click();
     const workspace = page.getByTestId("discover-intent-workspace");
     await expect(workspace).toBeVisible();

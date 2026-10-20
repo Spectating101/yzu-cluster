@@ -100,7 +100,7 @@ export function LibraryFolderRailPanel({
           <div className="rd-v2-library-folder-readiness" aria-busy={loading || undefined}>
             {loading ? <span>Data saved to Library is still loading.</span> : null}
             {counts.queryReady > 0 ? <span><b>{counts.queryReady}</b> ready to query</span> : null}
-            {membersOnly > 0 ? <span><b>{membersOnly}</b> members only</span> : null}
+            {membersOnly > 0 ? <span><b>{membersOnly}</b> for Yuan Ze members</span> : null}
             {notReady > 0 ? <span><b>{notReady}</b> not ready to query</span> : null}
             {counts.connected > 0 ? <span><b>{counts.connected}</b> connected</span> : null}
             {counts.metadataOnly > 0 ? <span><b>{counts.metadataOnly}</b> metadata only</span> : null}

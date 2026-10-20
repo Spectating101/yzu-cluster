@@ -1,3 +1,5 @@
+import { addedOn } from "@/v2/datasetDates";
+import { LockMark } from "@/v2/Lock";
 import { useEffect, useMemo, useState } from "react";
 import { LIBRARY_FOLDERS_ROOT } from "@/driveTree";
 import { displayName, libraryAssetPresentation } from "@/v2/datasetMeta";
@@ -124,6 +126,7 @@ export function LibraryEvidenceEstate({
   lens = null,
   axisRows = null,
   banner = null,
+  access = null,
 }) {
   const visibleAssets = assets;
   const showKind = true;
@@ -223,8 +226,9 @@ export function LibraryEvidenceEstate({
 
       {banner}
 
-      {lens ? (
+      {lens || access ? (
         <div className="rd-v2-cap-lens" data-testid="library-lens">
+          {lens ? (
           <div className="rd-v2-cap-lens-options" role="group" aria-label="Choose which datasets to list">
             {lens.options.map((option) => (
               <button
@@ -240,7 +244,25 @@ export function LibraryEvidenceEstate({
               </button>
             ))}
           </div>
-          {lens.note ? <p className="rd-v2-cap-lens-note" data-testid="library-lens-note">{lens.note}</p> : null}
+          ) : null}
+          {access ? (
+            <div className="rd-v2-cap-access" role="group" aria-label="Filter by access" data-testid="library-access-filter">
+              {access.options.map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  className={`rd-v2-cap-access-option is-${option.id}`}
+                  aria-pressed={access.active === option.id}
+                  onClick={() => access.onChange(access.active === option.id ? "all" : option.id)}
+                >
+                  {option.id === "members" ? <LockMark className="rd-v2-lock-mark" /> : <span className="rd-v2-status-dot" aria-hidden="true" />}
+                  <span>{option.label}</span>
+                  <b>{option.count}</b>
+                </button>
+              ))}
+            </div>
+          ) : null}
+          {lens?.note ? <p className="rd-v2-cap-lens-note" data-testid="library-lens-note">{lens.note}</p> : null}
         </div>
       ) : null}
 
@@ -292,7 +314,10 @@ export function LibraryEvidenceEstate({
                     ) : null}
                   </span>
                   {showKind ? <GlanceCell row={row} span={spans.get(row.dataset_id)} axis={axis} /> : null}
-                  <span className="rd-v2-cap-source" role="cell">{sourceLabel(row)}</span>
+                  <span className="rd-v2-cap-source" role="cell">
+                    <span className="rd-v2-cap-source-name" title={sourceLabel(row)}>{sourceLabel(row)}</span>
+                    {addedOn(row) ? <em className="rd-v2-cap-added">{addedOn(row)}</em> : null}
+                  </span>
                   {showVerify ? (
                     <span
                       className={`rd-v2-cap-verify ${verification.kind}`}

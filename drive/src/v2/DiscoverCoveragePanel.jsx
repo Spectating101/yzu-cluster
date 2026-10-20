@@ -11,7 +11,7 @@ export function DiscoverCoveragePanel({ catalog = [], partitions = [], shelves =
         <div className="rd-v2-discover-coverage-heading">
           <span className="rd-v2-discover-coverage-eyebrow">Your Library</span>
           <strong>{summary.held} datasets</strong>
-          <span>{summary.queryReady} ready to query{summary.membersOnly ? ` · ${summary.membersOnly} members only` : ""}</span>
+          <span>{summary.queryReady} ready to query{summary.membersOnly ? ` · ${summary.membersOnly} for Yuan Ze members` : ""}</span>
         </div>
         {summary.declaredNotHeld ? (
           <span className="rd-v2-discover-coverage-gap">
@@ -28,7 +28,7 @@ export function DiscoverCoveragePanel({ catalog = [], partitions = [], shelves =
               <strong>{shelf.held}</strong>
               <em>{[
                 shelf.queryReady ? `${shelf.queryReady} ready` : null,
-                shelf.membersOnly ? `${shelf.membersOnly} members only` : null,
+                shelf.membersOnly ? `${shelf.membersOnly} for Yuan Ze members` : null,
                 shelf.total > shelf.held ? `${shelf.total - shelf.held} documented` : null,
               ].filter(Boolean).join(" · ") || "catalogue"}</em>
             </button>

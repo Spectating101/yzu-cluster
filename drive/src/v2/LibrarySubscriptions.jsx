@@ -20,7 +20,7 @@ function useSubscriptions() {
 
 const STATES = {
   ready: { label: "Ready to query", pill: "rd-v2-status-ready" },
-  members: { label: "Members only", pill: "rd-v2-status-locked", locked: true },
+  members: { label: "Yuan Ze members", pill: "rd-v2-status-locked", locked: true },
   preparing: { label: "On the drive, being prepared", pill: "rd-v2-status-review" },
   needs_export: { label: "Needs a manual export", pill: "rd-v2-status-review" },
   held_unsafe: { label: "Held, not safe to use yet", pill: "rd-v2-status-review" },

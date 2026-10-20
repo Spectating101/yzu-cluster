@@ -66,10 +66,17 @@ export function GuestSynthesisMethods({ onSignIn }) {
             <article>
               <strong>{profile.title || profile.id}</strong>
               <span>{briefly(profile.description || "Recorded build recipe")}</span>
-              <button type="button" className="rd-v2-guest-method-start" disabled={!onSignIn} onClick={() => onSignIn?.()} title="Sign in to start a build from this method">
-                <LockMark className="rd-v2-lock-mark" />
-                Use as starting point
-              </button>
+              {onSignIn ? (
+                <button type="button" className="rd-v2-guest-method-start" onClick={() => onSignIn()} title="Sign in to start a build from this method">
+                  <LockMark className="rd-v2-lock-mark" />
+                  Use as starting point
+                </button>
+              ) : (
+                <span className="rd-v2-guest-method-start">
+                  <LockMark className="rd-v2-lock-mark" />
+                  Use as starting point with an account
+                </span>
+              )}
             </article>
           </li>
         ))}

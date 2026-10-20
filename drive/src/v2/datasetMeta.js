@@ -89,7 +89,7 @@ export function statusPillKind(dataset) {
   }
   if (isQueryReadyReadiness(readiness)) {
     return licensedRowsLocked(dataset)
-      ? { kind: "query-ready", label: "Members only", locked: true }
+      ? { kind: "query-ready", label: "Yuan Ze members", locked: true }
       : { kind: "query-ready", label: "Ready to query" };
   }
   if (readiness === "registered") {

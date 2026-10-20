@@ -617,7 +617,9 @@ export function LibraryPage({
       <PageShell
         className="rd-v2-library-page"
         title="Library"
-        lead="Everything you hold, where it came from, and whether it is ready to query."
+        lead={allHeldDatasets.length
+          ? `${allHeldDatasets.length.toLocaleString("en-US")} datasets, with where each came from and whether it is ready to query.`
+          : "Everything you hold, where it came from, and whether it is ready to query."}
         headExtra={
           <div className="rd-v2-library-headline">
             <LibraryBreadcrumb trail={trail} onFolderChange={onFolderChange} />
@@ -693,7 +695,7 @@ export function LibraryPage({
                   <option value="all">Any</option>
                   <optgroup label="Query readiness">
                     <option value="ready">Ready to query · {readyCount}</option>
-                    {lockedCount > 0 || filterMode === "members" ? <option value="members">Members only · {lockedCount}</option> : null}
+                    {lockedCount > 0 || filterMode === "members" ? <option value="members">Yuan Ze members · {lockedCount}</option> : null}
                     <option value="not_ready">Not ready to query · {nonReadyCount}</option>
                   </optgroup>
                   {(confirmedCount > 0 && confirmedCount < branchDatasetRows.length) || filterMode === "confirmed" || filterMode === "unconfirmed" ? (
@@ -789,7 +791,7 @@ export function LibraryPage({
                 {searchActive ? " matched" : ""}
               </span>
               <span>{readyCount} ready to query</span>
-              {lockedCount > 0 ? <span>{lockedCount} members only</span> : null}
+              {lockedCount > 0 ? <span>{lockedCount} for Yuan Ze members</span> : null}
             </div>
           </div>
         ) : null}
@@ -818,6 +820,15 @@ export function LibraryPage({
               onSearchWider={onSearchWider}
               onResetFilters={resetFilters}
               lens={lensControl}
+              access={!searchActive && branchDatasetRows.length ? {
+                active: filterMode,
+                onChange: setFilterMode,
+                options: [
+                  { id: "ready", label: "Ready to query", count: readyCount },
+                  ...(lockedCount ? [{ id: "members", label: "Yuan Ze members", count: lockedCount }] : []),
+                  ...(nonReadyCount ? [{ id: "not_ready", label: "Not ready yet", count: nonReadyCount }] : []),
+                ],
+              } : null}
               axisRows={branchDatasetRows}
               banner={searchActive ? null : (
                 <LibrarySubscriptionStrip

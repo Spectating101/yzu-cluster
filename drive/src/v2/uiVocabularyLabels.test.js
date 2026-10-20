@@ -49,7 +49,7 @@ describe("display vocabulary and request wording", () => {
     assert.equal(proposal.summary, "Review the declared connector route for TWSE.");
     assert.equal(uiVocabularyLabel(proposal.summary), "Review the documented download method for TWSE.");
     assert.equal(proposal.routes[0].access, "Connector route declared; collection remains approval-gated.");
-    assert.equal(uiVocabularyLabel(proposal.routes[0].access), "Can be collected; collection still requires your approval.");
+    assert.equal(uiVocabularyLabel(proposal.routes[0].access), "Available to collect; collection still requires your approval.");
     const request = synthesisAssistRequestContext({ state: {}, ephemeral: true });
     assert.match(request.risk, /durable|construction/);
   });
