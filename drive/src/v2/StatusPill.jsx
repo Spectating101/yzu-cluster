@@ -1,6 +1,7 @@
 import { RichContextHelp } from "@/v2/InteractionGuidance";
 import { statusPillKind } from "@/v2/datasetMeta";
 import { uiVocabularyLabel } from "./uiVocabularyLabels.js";
+import { LockMark } from "./Lock.jsx";
 
 const STYLES = {
   "query-ready": "rd-v2-status-pill rd-v2-status-ready",
@@ -138,15 +139,6 @@ const GUIDANCE = {
     next: "Refresh or inspect the source, registry, and query evidence.",
   },
 };
-
-function LockMark() {
-  return (
-    <svg className="rd-v2-status-lock" viewBox="0 0 12 12" width="11" height="11" aria-hidden="true" focusable="false">
-      <rect x="2" y="5.2" width="8" height="5.6" rx="1.3" fill="currentColor" />
-      <path d="M4 5.2V3.8a2 2 0 0 1 4 0v1.4" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-    </svg>
-  );
-}
 
 export function StatusPill({ dataset, label, explain = true }) {
   const state = statusPillKind(dataset);

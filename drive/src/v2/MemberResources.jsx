@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { accountUsage } from "./accountApi.js";
 import { requestCounts } from "./requestCounts.js";
-import { MEMBERS_ONLY_TEXT } from "./licensedAccess.js";
+import { ReachAbilities, ReachSources, ReachStats, useReach } from "./ResourcesReach.jsx";
 
-export function MemberResources({ signedIn, jobs, libraryCount, onGoTab, onOpenHistory, onSignIn }) {
+export function MemberResources({ signedIn, licensedOpen = false, jobs, libraryCount, onGoTab, onOpenHistory, onSignIn }) {
+  const { reach } = useReach();
   const [usage, setUsage] = useState(null);
   const [usageError, setUsageError] = useState("");
   useEffect(() => {
@@ -14,50 +15,37 @@ export function MemberResources({ signedIn, jobs, libraryCount, onGoTab, onOpenH
   }, [signedIn]);
   const counts = requestCounts(jobs);
 
+  const reachBody = (
+    <div className="rd-v2-reach">
+      <ReachStats reach={reach} libraryCount={libraryCount} />
+      <div className="rd-v2-reach-grid">
+        <ReachSources reach={reach} licensedOpen={licensedOpen} />
+        <ReachAbilities signedIn={signedIn} licensedOpen={licensedOpen} />
+      </div>
+    </div>
+  );
+
   if (!signedIn) {
     return (
       <>
-        <section className="rd-v2-guest-feature-hero">
-          <span className="rd-v2-eyebrow">Resources</span>
-          <h2>What you can do here, and what needs an account</h2>
-          <p>Most of the desk works without signing in. An account is needed only where the desk has to remember you, and a Yuan Ze email only where a university licence applies.</p>
+        <section className="rd-v2-reach-hero">
+          <div>
+            <h2>Everything Research Drive can reach</h2>
+            <p>The data the desk holds, the sources it collects from, and the tools behind it. Most of it is open now; a padlock marks what needs an account or a Yuan Ze email.</p>
+          </div>
           <div className="rd-v2-member-resources-actions">
             {onSignIn ? <button type="button" className="rd-v2-btn primary" onClick={onSignIn}>Sign in</button> : null}
             <button type="button" className="rd-v2-btn" onClick={() => onGoTab?.("library")}>Browse the Library</button>
           </div>
         </section>
-        <div className="rd-v2-member-resources" data-testid="guest-resources-access" role="group" aria-label="What each level of access includes">
-          <article>
-            <span className="rd-v2-eyebrow">Open to everyone</span>
-            <h2>{libraryCount} dataset{libraryCount === 1 ? "" : "s"} to read now</h2>
-            <ul>
-              <li>Preview, query and download as CSV</li>
-              <li>See each dataset's source and coverage</li>
-              <li>Check what the Library covers in Discover</li>
-              <li>Read saved Synthesis results</li>
-            </ul>
-          </article>
-          <article>
-            <span className="rd-v2-eyebrow">Needs an account</span>
-            <h2>Where the desk remembers you</h2>
-            <ul>
-              <li>Ask, the research assistant</li>
-              <li>Requests for new collections</li>
-              <li>Synthesis builds saved to your Library</li>
-              <li>A research profile that tunes the Library</li>
-            </ul>
-          </article>
-          <article>
-            <span className="rd-v2-eyebrow">Needs a Yuan Ze email</span>
-            <h2>University-licensed data</h2>
-            <p>{MEMBERS_ONLY_TEXT}</p>
-          </article>
-        </div>
+        {reachBody}
       </>
     );
   }
 
   return (
+    <>
+    <h2 className="rd-v2-reach-section-title">Your access and use</h2>
     <div className="rd-v2-member-resources" data-testid="member-resources">
       <article>
         <span className="rd-v2-eyebrow">Research assistant</span>
@@ -85,5 +73,7 @@ export function MemberResources({ signedIn, jobs, libraryCount, onGoTab, onOpenH
         </div>
       </article>
     </div>
+    {reachBody}
+    </>
   );
 }

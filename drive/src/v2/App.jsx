@@ -2224,11 +2224,12 @@ function DeskWorkspace({ onIdentityChanged }) {
         <PageShell
           className="rd-v2-guest-feature-page rd-v2-guest-resources"
           title="Resources"
-          lead={canUseAsk ? "Your assistant allowance, your collection requests, and what the Library holds." : "Tools and permissions for collecting, storing, and building research data."}
+          lead={canUseAsk ? "What you can use, what you have used, and everything the desk can reach." : "What the desk holds, where its data comes from, and what each part needs."}
           surfaceState="ready"
         >
           <MemberResources
             signedIn={canUseAsk}
+            licensedOpen={heldLibraryRows.some((row) => row?.licensed && row?.rows_available !== false)}
             jobs={jobs}
             libraryCount={libraryEvidenceCount}
             onGoTab={goTab}

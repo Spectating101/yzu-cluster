@@ -28,15 +28,18 @@ async function open(page, tab) {
   await waitForShell(page);
 }
 
-test("a guest's Resources page says what is open, what needs an account and what needs a licence", async ({ page }) => {
+test("a guest's Resources page shows everything the desk reaches, with a padlock on what needs an account or a licence", async ({ page }) => {
   await open(page, "resources");
+  await expect(page.getByTestId("resources-reach-stats")).toContainText("sources we collect from");
+  await expect(page.getByTestId("resources-reach-stats")).toContainText("104");
+  const sources = page.getByTestId("resources-reach-sources");
+  await expect(sources.locator("li", { hasText: "CRSP" })).toContainText("Yuan Ze members");
+  await expect(sources.locator("li", { hasText: "SEC EDGAR" })).toContainText("In the Library");
+  await expect(sources.locator("li", { hasText: "FRED" })).toContainText("Collected on request");
   const access = page.getByTestId("guest-resources-access");
-  await expect(access).toBeVisible();
-  await expect(access.locator("article")).toHaveCount(3);
-  await expect(access).toContainText("Open to everyone");
-  await expect(access).toContainText("Needs an account");
-  await expect(access).toContainText("Needs a Yuan Ze email");
-  await expect(access).toContainText("LSEG, CRSP, Compustat");
+  await expect(access.locator("li", { hasText: "Preview, query and download" })).toContainText("Open to you");
+  await expect(access.locator("li", { hasText: "Ask, the research assistant" })).toContainText("With an account");
+  await expect(access.locator("li", { hasText: "LSEG, CRSP and Compustat" })).toContainText("Yuan Ze members");
 });
 
 test("a guest can try a research focus and see which datasets a profile would put first", async ({ page }) => {

@@ -504,6 +504,19 @@ export async function mockV2Api(
     const described = row.synthesis_analysis ? { ...row, analysis: row.synthesis_analysis, chart: MOCK_ANALYSIS_CHARTS[row.dataset_id], artifacts: row.synthesis_artifacts } : row;
     return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(described) });
   });
+  await page.route("**/library/reach", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({
+      families: [
+        { id: "licensed", title: "Licensed through Yuan Ze", sources: [{ id: "crsp_moveit", label: "CRSP", status: "licensed", status_label: "Yuan Ze members" }] },
+        { id: "markets", title: "Markets and filings", sources: [{ id: "sec_edgar", label: "SEC EDGAR", status: "held", status_label: "In the Library" }] },
+        { id: "statistics", title: "Official and economic statistics", sources: [{ id: "fred_observations", label: "FRED, St. Louis Fed", status: "on_request", status_label: "Collected on request" }] },
+      ],
+      layers: ["Discover search", "Direct download", "Lab machine jobs"],
+      counts: { sources: 3, tools: 104, archive_used_tb: 0.95, lab_machines: 6 },
+    }),
+  }));
   await page.route("**/library/desk/resources*", async (route) => {
     if (resourcesDelayMs > 0) await new Promise((resolve) => setTimeout(resolve, resourcesDelayMs));
     return route.fulfill({
