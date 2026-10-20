@@ -39,6 +39,7 @@ import { JobReviewDialog } from "./JobReviewDialog.jsx";
 import { reviewJobId } from "./reviewJobId.js";
 import { DeskAccessGate, DeskSessionBootstrap } from "@/v2/DeskAccessGate";
 import { EmailLinkConfirmation, readEmailLinkFragment } from "./EmailSignIn.jsx";
+import { connectorReturnPath, rememberConnectorReturn } from "./connectorReturn.js";
 import { AccessScreen } from "./AccessScreen.jsx";
 import { MemberResources } from "./MemberResources.jsx";
 import {
@@ -209,6 +210,7 @@ function resourceAskPrompt(row) {
   return `Explain this Resources row: ${row.label} (${row.metric || row.section || "selected"}).`;
 }
 
+rememberConnectorReturn();
 const INITIAL_EMAIL_LINK = readEmailLinkFragment();
 
 export function V2App() {
@@ -437,6 +439,8 @@ function DeskWorkspace({ onIdentityChanged }) {
     const access = await signInWithMemberAccessCode(code);
     applyDeskAccess(access);
     notifyDeskIdentityChange();
+    const returnPath = connectorReturnPath({ consume: true });
+    if (returnPath) window.location.assign(returnPath);
     setRailTab("ask");
     showToast("Signed in. Ask and your private research trail are ready.");
     return access;

@@ -8,6 +8,7 @@ import {
 import { clearDeskSession, ensureDeskSession } from "@/v2/api";
 import { ProviderConnectionsSection } from "@/v2/ProviderConnectionsSection";
 import { AccountAdministration, AccountSection } from "./AccountSection.jsx";
+import { AssistantConnections } from "./AssistantConnections.jsx";
 import { signInWithMemberAccessCode } from "./apiCore.js";
 import { ConnectedAccountsSection } from "@/v2/ConnectedAccountsSection";
 import { archiveRuntimeStatus } from "@/v2/archiveRuntimeStatus";
@@ -183,6 +184,7 @@ export function SettingsPage({
     >
       <div className="rd-v2-settings-statement">
         <AccountSection deskAccess={deskAccess} onSignOut={onSignOut} onOpenAccess={onOpenAccess} />
+        {deskAccess?.permissions?.use_ask ? <AssistantConnections key={deskAccess.principal?.id} onOpenAccess={onOpenAccess} /> : null}
         <AccountAdministration deskAccess={deskAccess} />
         <StatementSection title="Workspace behavior">
           <div className="rd-v2-settings-preference-grid">

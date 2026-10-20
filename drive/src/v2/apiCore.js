@@ -57,7 +57,10 @@ export async function fetchJson(path, init = {}) {
     }
     if (!r.ok) {
       notifyDeskAuthenticationFailure(r.status, data);
-      throw new Error(normalizeApiError(data, r.status, path));
+      const error = new Error(normalizeApiError(data, r.status, path));
+      error.code = data.error;
+      error.status = r.status;
+      throw error;
     }
     return data;
   } catch (error) {

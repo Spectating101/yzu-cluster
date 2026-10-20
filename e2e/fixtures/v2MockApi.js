@@ -445,6 +445,7 @@ export async function mockV2Api(
   };
   await page.route("**/library/subscriptions", (route) => route.fulfill({ contentType: "application/json", body: JSON.stringify(MOCK_SUBSCRIPTIONS) }));
   await page.route("**/library/provider-connections", route => route.fulfill({ contentType: "application/json", body: JSON.stringify({ ok: true, providers: [], connections: [] }) }));
+  await page.route("**/library/account/tokens", route => route.fulfill({ contentType: "application/json", body: JSON.stringify({ configured: false, tokens: [], connections: [] }) }));
   const liveIntents = new Map();
   let nextIntentId = 1;
   await page.route("**/library/desk/capabilities", (route) =>

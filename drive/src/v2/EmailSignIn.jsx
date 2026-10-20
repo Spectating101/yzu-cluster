@@ -1,5 +1,6 @@
 import { useEffect, useId, useState } from "react";
 import { fetchJson } from "./apiCore.js";
+import { connectorReturnPath } from "./connectorReturn.js";
 import { clearDeskToken, markDeskSessionBootstrapped, notifyDeskIdentityChange } from "./deskSession.js";
 import "./accounts.css";
 
@@ -28,7 +29,7 @@ export function EmailLinkConfirmation({ token, onCancel, onRequestNew }) {
       await fetchJson("/library/desk/email/consume", { method: "POST", body: JSON.stringify({ token }), timeoutMs: 15000 });
       markDeskSessionBootstrapped(true);
       notifyDeskIdentityChange();
-      window.location.replace("/?tab=home");
+      window.location.replace(connectorReturnPath({ consume: true }) || "/?tab=home");
     } catch (reason) { setTarget(null); setError(reason.message); setBusy(false); }
   };
   const lockup = <div className="rd-v2-access-lockup" aria-hidden="true"><span className="rd-v2-access-mark">RD</span><span><strong>Research Drive</strong><small>Research data you can use, with where it came from</small></span></div>;
