@@ -1,4 +1,7 @@
+import { useEffect, useState } from "react";
+import { listSynthesisProfiles } from "@/v2/apiCore";
 import { displayName, isQueryReadyReadiness } from "@/v2/datasetMeta";
+import { LockMark } from "@/v2/Lock";
 
 export function briefly(text, limit = 130) {
   const clean = String(text || "").replace(/\s+/g, " ").trim();
@@ -30,9 +33,44 @@ export function GuestSynthesisShowcase({ catalog, onOpen }) {
         {builds.map((row) => (
           <li key={row.dataset_id}>
             <button type="button" onClick={() => onOpen?.({ dataset_id: row.dataset_id })}>
-              <strong>{displayName(row)}</strong>
+              <strong>{displayName(row).replace(/^Synthesis:\s*/i, "")}</strong>
               <span>{briefly(row.one_line || row.description)}</span>
             </button>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+export function GuestSynthesisMethods({ onSignIn }) {
+  const [methods, setMethods] = useState([]);
+  useEffect(() => {
+    let current = true;
+    listSynthesisProfiles()
+      .then((out) => { if (current) setMethods(Array.isArray(out?.profiles) ? out.profiles : []); })
+      .catch(() => { if (current) setMethods([]); });
+    return () => { current = false; };
+  }, []);
+  if (!methods.length) return null;
+  return (
+    <section className="rd-v2-guest-showcase rd-v2-guest-methods" aria-label="Saved methods" data-testid="guest-synthesis-methods">
+      <div>
+        <span className="rd-v2-eyebrow">Saved methods</span>
+        <h3>Recipes a build can start from</h3>
+        <p>Each one is a recorded method: the inputs it joins and how it measures. Starting a build from one needs an account.</p>
+      </div>
+      <ul>
+        {methods.map((profile) => (
+          <li key={profile.id}>
+            <article>
+              <strong>{profile.title || profile.id}</strong>
+              <span>{briefly(profile.description || "Recorded build recipe")}</span>
+              <button type="button" className="rd-v2-guest-method-start" disabled={!onSignIn} onClick={() => onSignIn?.()} title="Sign in to start a build from this method">
+                <LockMark className="rd-v2-lock-mark" />
+                Use as starting point
+              </button>
+            </article>
           </li>
         ))}
       </ul>

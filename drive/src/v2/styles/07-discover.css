@@ -2082,3 +2082,17 @@ body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(
     --rd-rail: 448px;
   }
 }
+
+.rd-v2-discover-page .rd-v2-discover-row-add.is-locked {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--rd-muted);
+  background: var(--rd-ext-bg);
+  border-color: transparent;
+}
+
+.rd-v2-discover-page .rd-v2-discover-row-add.is-locked:disabled {
+  cursor: default;
+  opacity: 1;
+}

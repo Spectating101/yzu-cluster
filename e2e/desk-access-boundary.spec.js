@@ -144,9 +144,10 @@ test("a public guest can browse shared evidence but must sign in to Ask", async 
     await page.screenshot({ path: testInfo.outputPath("public-resources-1440x900.png"), fullPage: false });
   }
   await page.getByRole("button", { name: "Discover", exact: true }).click();
-  // The guest can evaluate shared evidence, but must not be offered an action
-  // that only a collection-capable member can submit.
-  await expect(page.getByRole("button", { name: "Add to collection" })).toHaveCount(0);
+  // The guest sees what can be collected, but the request itself is padlocked
+  // and leads to sign-in rather than submitting anything.
+  await expect(page.getByRole("button", { name: "Add to collection", exact: true })).toHaveCount(0);
+  await expect(page.getByTestId("discover-row-add-locked").first()).toHaveAccessibleName(/sign in/i);
   await expect(page.getByTestId("discover-craft-form")).toHaveCount(0);
   await page.getByLabel("Search or describe a research need").fill("MOPS filings");
   await page.getByRole("button", { name: "Explore", exact: true }).click();

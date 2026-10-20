@@ -1,3 +1,4 @@
+import { LockMark, lockTitle } from "@/v2/Lock";
 import { uiVocabularyLabel } from "./uiVocabularyLabels.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { instantLibraryMatches } from "@/v2/discoverInstantMatches";
@@ -187,6 +188,7 @@ function DiscoverCandidateRow({
   selectedId,
   onSelectRow,
   onAdd,
+  addLock,
   externalCatalogue = false,
 }) {
   const taxonomy = row.discover_taxonomy || classifyDiscoverResult(row, labIds);
@@ -223,9 +225,10 @@ function DiscoverCandidateRow({
     ["Files", row?.file_summary || null],
     ["Observation", row?.probe_snapshot?.observed_at ? "Connection tested" : null],
   ].filter(([, value]) => Boolean(value));
-  const canAdd = taxonomy.key === "external-acquirable"
-    && !["Reference only", "Web context"].includes(offeringType(row, taxonomy))
-    && typeof onAdd === "function";
+  const acquirable = taxonomy.key === "external-acquirable"
+    && !["Reference only", "Web context"].includes(offeringType(row, taxonomy));
+  const canAdd = acquirable && typeof onAdd === "function";
+  const lockedAdd = acquirable && !canAdd && addLock ? addLock : null;
 
   return (
     <li className={selected ? "rd-v2-row-on" : undefined}>
@@ -280,6 +283,22 @@ function DiscoverCandidateRow({
             onAdd(row);
           }}
         >
+          Add to collection
+        </button>
+      ) : lockedAdd ? (
+        <button
+          type="button"
+          className="rd-v2-discover-row-add is-locked"
+          data-testid="discover-row-add-locked"
+          disabled={!lockedAdd.onClick}
+          title={lockTitle(lockedAdd.who)}
+          aria-label={`Add to collection. ${lockTitle(lockedAdd.who)}`}
+          onClick={(event) => {
+            event.stopPropagation();
+            lockedAdd.onClick?.(row);
+          }}
+        >
+          <LockMark className="rd-v2-lock-mark" />
           Add to collection
         </button>
       ) : null}
@@ -586,6 +605,7 @@ function DiscoverCandidateList({
   selectedId,
   onSelectRow,
   onAdd,
+  addLock,
   externalCatalogue = false,
 }) {
   return (
@@ -598,6 +618,7 @@ function DiscoverCandidateList({
           selectedId={selectedId}
           onSelectRow={onSelectRow}
           onAdd={onAdd}
+          addLock={addLock}
           externalCatalogue={externalCatalogue}
         />
       ))}
@@ -643,6 +664,7 @@ export function BrowsePage({
   onAskQuery,
   askAvailable = false,
   onReviewAcquisition,
+  acquisitionLock,
   onStartSynthesis,
   discoverMode = "explore",
   onDiscoverModeChange,
@@ -1549,6 +1571,7 @@ export function BrowsePage({
                     selectedId={selectedId}
                     onSelectRow={onSelectRow}
                     onAdd={onReviewAcquisition}
+                    addLock={acquisitionLock}
                   />
                   {idleRecommendations.length > IDLE_SOURCE_PREVIEW ? (
                     <button
@@ -1826,6 +1849,7 @@ export function BrowsePage({
                   selectedId={selectedId}
                   onSelectRow={onSelectRow}
                   onAdd={onReviewAcquisition}
+                    addLock={acquisitionLock}
                   externalCatalogue={externalCatalogueActive}
                 />
               </section>

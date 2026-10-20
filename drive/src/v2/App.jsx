@@ -1,7 +1,7 @@
 import { collectionRecipe } from "./collectionRecipe.js";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { onDeskSignInRequest, publishDeskAccess } from "@/v2/deskPermissions";
-import { GuestSynthesisShowcase } from "@/v2/GuestSynthesisShowcase";
+import { GuestSynthesisMethods, GuestSynthesisShowcase } from "@/v2/GuestSynthesisShowcase";
 import { V2DeskHeader } from "@/v2/V2DeskHeader";
 import {
   approveJob,
@@ -2106,6 +2106,7 @@ function DeskWorkspace({ onIdentityChanged }) {
           onAskQuery={askDiscoverQuery}
           askAvailable={canUseAsk}
           onReviewAcquisition={canSubmitCollection ? askAddToLab : undefined}
+          acquisitionLock={canSubmitCollection ? undefined : canUseAsk ? { who: "lab" } : { who: "account", onClick: memberSignInAvailable ? beginMemberSignIn : undefined }}
           onStartSynthesis={canUseAsk ? startSynthesisFromDiscover : undefined}
           assessmentActive={discoverAssessment.active}
           assessmentResult={discoverAssessment.result}
@@ -2193,6 +2194,7 @@ function DeskWorkspace({ onIdentityChanged }) {
             <article><span>4</span><strong>Get the dataset</strong><p>Saved to your Library with its sources.</p></article>
           </div>
           <GuestSynthesisShowcase catalog={catalog} onOpen={openInLibraryFromDiscover} />
+          <GuestSynthesisMethods onSignIn={memberSignInAvailable ? beginMemberSignIn : undefined} />
         </PageShell>
       );
       break;

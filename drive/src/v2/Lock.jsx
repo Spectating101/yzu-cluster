@@ -10,7 +10,11 @@ export function LockMark({ className = "rd-v2-status-lock" }) {
 const WHO = {
   account: { label: "With an account", title: "Sign in to use this" },
   yuanze: { label: "Yuan Ze members", title: "Needs a Yuan Ze email sign-in" },
+  lab: { label: "Lab members", title: "Collection requests need lab membership" },
 };
+
+export const lockLabel = (who) => (WHO[who] || WHO.account).label;
+export const lockTitle = (who) => (WHO[who] || WHO.account).title;
 
 export function LockTag({ who = "account" }) {
   const entry = WHO[who] || WHO.account;

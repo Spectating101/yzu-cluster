@@ -947,3 +947,10 @@
   .rd-v2-reach-abilities ul { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 28px; }
   .rd-v2-reach-abilities li:nth-last-child(2):nth-child(odd) { border-bottom: 0; }
 }
+.rd-v2-guest-methods { margin-top: 22px; }
+.rd-v2-guest-methods ul { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+.rd-v2-guest-methods article { display: grid; grid-template-rows: auto 1fr auto; gap: 6px; height: 100%; padding: 12px 14px; border: 1px solid var(--rd-border); border-radius: 10px; background: var(--rd-surface, #fffdf6); }
+.rd-v2-guest-methods article strong { color: var(--rd-text); font-size: var(--rd-text-sm); line-height: 1.35; }
+.rd-v2-guest-methods article span { color: var(--rd-muted); font-size: var(--rd-text-2xs); line-height: 1.5; }
+.rd-v2-guest-methods .rd-v2-guest-method-start { display: inline-flex; justify-self: start; align-items: center; gap: 5px; width: auto; margin-top: 4px; padding: 4px 9px; border: 0; border-radius: 999px; background: var(--rd-ext-bg); color: var(--rd-body); font-size: var(--rd-text-2xs); font-weight: 600; cursor: pointer; }
+.rd-v2-guest-methods .rd-v2-guest-method-start:disabled { cursor: default; }

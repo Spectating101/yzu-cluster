@@ -1,3 +1,4 @@
+import { LockMark, LockTag } from "@/v2/Lock";
 import { useEffect, useState } from "react";
 import {
   BrowseRailPanel,
@@ -114,6 +115,19 @@ function DiscoverAssessmentRailSummary({ state, onClose }) {
   );
 }
 
+const ASK_ABILITIES = [
+  "Finds the Library data that fits your question",
+  "Reads a dataset's columns, coverage and limits",
+  "Plans a collection for data the Library lacks",
+  "Starts a Synthesis build from the conversation",
+];
+
+const ASK_EXAMPLES = [
+  "Which datasets cover Asian stock returns and news?",
+  "What would I need to study stablecoin de-pegs?",
+  "Compare the CRSP daily file with Yahoo prices",
+];
+
 function AskSignInPanel({
   providerAvailable,
   memberAccessCodeAvailable,
@@ -141,10 +155,23 @@ function AskSignInPanel({
 
   return (
     <section className="rd-v2-ask-sign-in" data-testid="ask-sign-in-gate" aria-label="Sign in to ask">
-      <span className="rd-v2-eyebrow">Ask needs an account</span>
-      <strong>Ask remembers you, so it needs an account.</strong>
+      <div className="rd-v2-ask-preview-head">
+        <span className="rd-v2-eyebrow">Ask, the research assistant</span>
+        <LockTag who="account" />
+      </div>
+      <strong>Answers from the Library, and plans what is missing.</strong>
+      <ul className="rd-v2-ask-preview-abilities">
+        {ASK_ABILITIES.map((item) => <li key={item}>{item}</li>)}
+      </ul>
+      <div className="rd-v2-ask-preview-examples" aria-label="Questions people ask">
+        {ASK_EXAMPLES.map((item) => <span key={item}>{item}</span>)}
+      </div>
+      <div className="rd-v2-ask-preview-composer" aria-hidden="true">
+        <span>Ask about this data, what is missing, or where to get it…</span>
+        <LockMark className="rd-v2-lock-mark" />
+      </div>
       <p>
-        Ask keeps your conversation, can plan a collection for you and builds datasets in Synthesis. Everything else works without one: Library, Discover and its coverage check, and downloads of public data.
+        Ask remembers you, so it needs an account. Everything else works without one: Library, Discover and its coverage check, and downloads of public data.
       </p>
       {providerAvailable && onProviderSignIn ? (
         <button type="button" className="rd-v2-btn primary" onClick={onProviderSignIn}>
