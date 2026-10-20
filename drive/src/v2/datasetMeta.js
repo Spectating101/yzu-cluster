@@ -344,7 +344,8 @@ export function libraryAssetPresentation(dataset = {}) {
 }
 
 export function displayName(dataset) {
-  return dataset?.name || dataset?.title || dataset?.dataset_id || "Dataset";
+  const name = dataset?.name || dataset?.title || dataset?.dataset_id || "Dataset";
+  return String(name).replace(/^Synthesis:\s+/i, "");
 }
 
 export function rowSubtitle(dataset) {

@@ -33,7 +33,7 @@ export function GuestSynthesisShowcase({ catalog, onOpen }) {
         {builds.map((row) => (
           <li key={row.dataset_id}>
             <button type="button" onClick={() => onOpen?.({ dataset_id: row.dataset_id })}>
-              <strong>{displayName(row).replace(/^Synthesis:\s*/i, "")}</strong>
+              <strong>{displayName(row)}</strong>
               <span>{briefly(row.one_line || row.description)}</span>
             </button>
           </li>

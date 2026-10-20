@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {
+import { displayName,
   canIUseDecision,
   demotionSentence,
   detailFields,
@@ -217,4 +217,10 @@ test("an available-to-collect dataset says it is not downloaded yet, and a ready
   assert.match(canIUseDecision(row).body, /not downloaded yet/);
   assert.equal(statusPillKind({ ...row, analysis_readiness: "instant" }).label, "Ready to query");
   assert.equal(statusPillKind({ dataset_id: "x", analysis_readiness: "registered" }).label, "Saved to Library");
+});
+
+test("a Synthesis output reads by its own title, without the Synthesis: prefix", () => {
+  assert.equal(displayName({ name: "Synthesis: Stablecoin de-peg weeks" }), "Stablecoin de-peg weeks");
+  assert.equal(displayName({ name: "Synthesis studies" }), "Synthesis studies");
+  assert.equal(displayName({ dataset_id: "x" }), "x");
 });
