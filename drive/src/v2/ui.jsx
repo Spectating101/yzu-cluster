@@ -1,8 +1,12 @@
+import { shortSourceLabel } from "./sourceLabel.js";
 /** Shared v2 page chrome — matches docs/design/references/desk-v2-1440.html */
 
-export function PageShell({ title, lead, headExtra, toolbar, footer, children, narrow = false, className = "" }) {
+export function PageShell({ title, lead, headExtra, toolbar, footer, children, narrow = false, className = "", surfaceState }) {
   return (
-    <div className={`rd-v2-page${narrow ? " narrow" : ""}${className ? ` ${className}` : ""}`}>
+    <div
+      className={`rd-v2-page${narrow ? " narrow" : ""}${className ? ` ${className}` : ""}`}
+      data-surface-state={surfaceState || undefined}
+    >
       {(title || lead || headExtra) ? (
         <header className="rd-v2-page-head">
           {title ? <h1>{title}</h1> : null}
@@ -124,9 +128,9 @@ export function SourceRibbon({ source }) {
   const raw = String(source || "").trim();
   const key = raw.toLowerCase();
   const looksInternal = /_/.test(raw);
-  let label = !raw ? "WEB" : looksInternal ? "SOURCE" : raw.slice(0, 12).toUpperCase();
+  let label = !raw ? "WEB" : looksInternal ? "SOURCE" : shortSourceLabel(raw);
   let tone = "neutral";
-  if (key.includes("twse")) { label = "TWSE"; tone = "tw"; }
+  if (key.includes("twse") || key.includes("taiwan stock exchange")) { label = "TWSE"; tone = "tw"; }
   else if (key.includes("mops")) { label = "MOPS"; tone = "tw"; }
   else if (key.includes("hugging")) { label = "HF"; tone = "hf"; }
   else if (key.includes("sec")) { label = "SEC"; tone = "sec"; }
@@ -134,7 +138,10 @@ export function SourceRibbon({ source }) {
   else if (key.includes("datacite") || key.includes("doi")) { label = "DOI"; tone = "doi"; }
   else if (key.includes("gdelt")) { label = "GDELT"; tone = "gdelt"; }
   else if (key.includes("refinitiv") || key.includes("lseg")) { label = "LSEG"; tone = "warn"; }
-  else if (key.includes("lab") || key.includes("registry") || key.includes("vault")) {
+  else if (key === "bls" || key.includes("bureau of labor statistics")) { label = "BLS"; }
+  else if (key.includes("federal reserve") || key === "fred") { label = "FRED"; }
+  else if (key.includes("yahoo")) { label = "YAHOO"; }
+  else if (/\blab\b/.test(key) || key.includes("registry") || key.includes("vault")) {
     label = "LAB";
     tone = "lab";
   }

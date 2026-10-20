@@ -40,7 +40,7 @@ export function folderBrowseSummary(folder) {
       desc: blurb || null,
       sub:
         datasets <= 0
-          ? `${foldersBit} · no datasets on this desk yet`
+          ? `${foldersBit} · no datasets in Research Drive yet`
           : `${foldersBit} · ${datasetPhrase(datasets)}`,
       pill: String(datasets),
     };
@@ -50,7 +50,7 @@ export function folderBrowseSummary(folder) {
   if (datasets <= 0) {
     return {
       desc: blurb || null,
-      sub: "No datasets on this desk yet",
+      sub: "No datasets in Research Drive yet",
       pill: "0",
     };
   }

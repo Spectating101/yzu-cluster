@@ -1,14 +1,18 @@
 import { EmptyRailState } from "@/v2/EmptyRailState";
-import { historyHoldingTruth } from "@/v2/discoverAdapters";
+import { historyEvidenceSummary, historyHoldingTruth } from "@/v2/discoverAdapters";
 import { RailDecisionSummary, RailEntityHeader, RailField, RailFieldGrid, RailFrame, RailStickyFooter } from "@/v2/RailFrame";
-import { historyLifecycleExplanation } from "@/v2/historyLifecycleLabel";
-
-function text(value) {
-  return String(value || "").replace(/_/g, " ").trim();
-}
+import { historyEvidenceLabel, historyEventLabel, historyExecutionModeLabel, historyLifecycleExplanation, historyLifecycleInternalLabel } from "@/v2/historyLifecycleLabel";
+import { historyKnownUnknowns, NO_EVIDENCE_YET } from "@/v2/historyKnownUnknowns";
 
 function historyState(event) {
   return historyLifecycleExplanation(event);
+}
+
+function pillTone(label) {
+  const value = String(label || "");
+  if (/needs recovery|blocked|failed/i.test(value)) return " fail";
+  if (/approval required|needs you/i.test(value)) return " warn";
+  return "";
 }
 
 function updatedAt(event) {
@@ -20,20 +24,14 @@ function updatedAt(event) {
     : date.toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
-function proofLabel(value) {
-  if (value === true) return "Verified";
-  if (value === false) return "Not verified";
-  return null;
-}
-
 export function DiscoverHistoryRailPanel({ event, job, onAskAbout, onReviewRequest }) {
   if (!event) {
     return (
       <RailFrame>
         <div className="rd-v2-rail-scroll">
           <EmptyRailState
-            title="No lifecycle item selected"
-            hint="Select a request, schedule, failure, or registered result to inspect its durable state."
+            title="No request selected"
+            hint="Select a request, schedule, failure, or result saved to Library to review its current state."
           />
         </div>
       </RailFrame>
@@ -52,56 +50,87 @@ export function DiscoverHistoryRailPanel({ event, job, onAskAbout, onReviewReque
     meta.source_id ||
     meta.candidate_key ||
     meta.intent_id ||
-    "Durable Discover record";
+    "Saved Discover record";
   const requestId =
     datasetId || meta.intent_id || truth.jobId || meta.job_id || meta.subscription_id || event.id || "";
-  const canReview = state.label === "Approval required" && Boolean(job?.id || meta.job_id || truth.jobId);
-  const registered = state.label === "Registered" || state.label === "Query ready" || truth.registered;
+  const readableId = /_|^[a-f0-9]{10,}$/i.test(requestId) ? "" : requestId;
+  const readableSource = /_|^[a-f0-9]{10,}$/i.test(source) ? "" : source;
+  const internalLabel = historyLifecycleInternalLabel(event);
+  const canReview = internalLabel === "Approval required" && Boolean(job?.id || meta.job_id || truth.jobId);
+  const registered = internalLabel === "Registered" || internalLabel === "Query-ready" || truth.registered;
   const libraryHref = datasetId ? `?tab=library&dataset=${encodeURIComponent(datasetId)}` : "";
   const risk = truth.receiptOnly
-    ? "Receipt-only holding — do not treat as query-ready until catalog reconciliation completes."
+    ? "Only a saved receipt is available. Do not treat the data as ready to query until the catalog checks finish."
     : state.risk;
+  const evidence = historyKnownUnknowns(event, truth);
+  const evidenceSummary = historyEvidenceSummary(event) ? historyEvidenceLabel(historyEvidenceSummary(event)) : "";
+  const evidenceNote = /approval is required|waiting for (your|a researcher)/i.test(evidenceSummary) ? "" : evidenceSummary;
 
   return (
     <RailFrame>
       <RailEntityHeader
-        id={requestId}
+        id={readableId}
         title={title}
-        pills={<span className={`rd-v2-pill${state.label === "Recovery required" ? " fail" : state.label === "Approval required" ? " warn" : ""}`}>{state.label}</span>}
-        description={source}
+        pills={<span className={`rd-v2-pill${pillTone(internalLabel)}`}>{state.label}</span>}
+        description={readableSource && readableSource !== requestId ? readableSource : undefined}
       />
-      <RailDecisionSummary status={state.label} primary={state.explanation} risk={risk} next={state.next} />
       <div className="rd-v2-rail-scroll">
+        <div className="rd-v2-history-known-unknowns" data-testid="history-known-unknowns">
+          {evidence.known.length ? (
+            <section className="rd-v2-eval-block" aria-label="Known">
+              <p className="rd-v2-eval-section-label">Known</p>
+              <ul className="rd-v2-eval-checklist">
+                {evidence.known.map((item) => (
+                  <li key={item}>
+                    <span className="rd-v2-eval-mark ok" aria-hidden="true">✓</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+          {evidence.unknowns.length ? (
+            <section className="rd-v2-eval-block" aria-label="Unknowns">
+              <p className="rd-v2-eval-section-label">Unknowns</p>
+              <ul className="rd-v2-eval-checklist">
+                {evidence.unknowns.map((item) => (
+                  <li key={item}>
+                    <span className="rd-v2-eval-mark unknown" aria-hidden="true">?</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+          {!evidence.hasEvidence ? (
+            <p className="rd-v2-eval-prose muted">{NO_EVIDENCE_YET}</p>
+          ) : null}
+        </div>
+        <RailDecisionSummary primary={state.explanation} risk={risk} next={state.next} />
         <RailFieldGrid>
-          <RailField label="Latest durable update" value={updatedAt(event)} />
-          <RailField label="Holding truth" value={truth.label} />
-          <RailField label="Recorded event" value={text(event.kind || event.action || "discover")} />
-          {meta.summary || event.summary ? <RailField label="Evidence" value={meta.summary || event.summary} /> : null}
-          {datasetId ? <RailField label="Dataset" value={datasetId} mono /> : null}
-          {truth.candidateKey ? <RailField label="Candidate" value={truth.candidateKey} mono /> : null}
-          {truth.sourceId ? <RailField label="Source" value={truth.sourceId} mono /> : null}
-          {truth.connectorId ? <RailField label="Connector" value={truth.connectorId} mono /> : null}
-          {meta.registry_id || event.registry_id ? <RailField label="Registry" value={meta.registry_id || event.registry_id} mono /> : null}
-          {meta.manifest_id || event.manifest_id ? <RailField label="Manifest" value={meta.manifest_id || event.manifest_id} mono /> : null}
-          {meta.job_id || event.job_id ? <RailField label="Job" value={meta.job_id || event.job_id} mono /> : null}
-          {meta.archive_verified != null || event.archive_verified != null ? (
-            <RailField label="Archive" value={proofLabel(meta.archive_verified ?? event.archive_verified)} />
-          ) : null}
-          {meta.registry_readback != null || event.registry_readback != null ? (
-            <RailField label="Registry read-back" value={proofLabel(meta.registry_readback ?? event.registry_readback)} />
-          ) : null}
-          {meta.catalog_reconciliation?.state || event.catalog_reconciliation?.state ? (
-            <RailField
-              label="Catalog state"
-              value={text(meta.catalog_reconciliation?.state || event.catalog_reconciliation?.state)}
-            />
-          ) : null}
+          <RailField label="Last updated" value={updatedAt(event)} />
+          {truth.label && truth.label !== state.label ? <RailField label="Current state" value={truth.label} /> : null}
+          <RailField label="Last step" value={historyEventLabel(event.kind || event.action || "discover")} />
+          {evidenceNote ? <RailField label="Evidence" value={evidenceNote} /> : null}
           {meta.cadence || event.cadence ? <RailField label="Schedule" value={meta.cadence || event.cadence} /> : null}
           {meta.requested_schedule || event.requested_schedule ? (
             <RailField label="Requested cadence" value={meta.requested_schedule || event.requested_schedule} />
           ) : null}
-          {meta.execution_mode ? <RailField label="Execution mode" value={text(meta.execution_mode)} /> : null}
+          {meta.execution_mode ? <RailField label="Execution mode" value={historyExecutionModeLabel(meta.execution_mode)} /> : null}
         </RailFieldGrid>
+        <details className="rd-v2-rail-technical">
+          <summary>Technical record</summary>
+          <RailFieldGrid>
+            {requestId ? <RailField label="Record" value={requestId} mono /> : null}
+            {datasetId ? <RailField label="Dataset" value={datasetId} mono /> : null}
+            {truth.candidateKey ? <RailField label="Candidate" value={truth.candidateKey} mono /> : null}
+            {truth.sourceId ? <RailField label="Source" value={truth.sourceId} mono /> : null}
+            {truth.connectorId ? <RailField label="Connector" value={truth.connectorId} mono /> : null}
+            {meta.registry_id || event.registry_id ? <RailField label="Registry" value={meta.registry_id || event.registry_id} mono /> : null}
+            {meta.manifest_id || event.manifest_id ? <RailField label="Manifest" value={meta.manifest_id || event.manifest_id} mono /> : null}
+            {meta.job_id || event.job_id ? <RailField label="Job" value={meta.job_id || event.job_id} mono /> : null}
+          </RailFieldGrid>
+        </details>
       </div>
       <RailStickyFooter>
         {canReview ? (

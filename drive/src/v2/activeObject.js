@@ -1,4 +1,5 @@
 import { displayName } from "@/v2/datasetMeta";
+export { activeObjectBelongsToTab } from "./contextOwnership.js";
 import { candidateKey } from "@/v2/candidateKey";
 
 function compactText(value, fallback = "") {
@@ -9,7 +10,7 @@ function folderPath(trail = []) {
   return trail.map((crumb) => crumb.name).filter(Boolean).join(" / ") || "Library";
 }
 
-export function datasetObject(row) {
+export function datasetObject(row, { owner = "" } = {}) {
   if (!row) return null;
   const id = row.dataset_id || row.id || row.title || row.name || "dataset";
   return {
@@ -17,6 +18,7 @@ export function datasetObject(row) {
     id,
     title: displayName(row),
     row,
+    ...(owner ? { owner } : {}),
   };
 }
 
@@ -38,7 +40,7 @@ export function discoverHistoryObject(event) {
   return {
     kind: "discover_history",
     id,
-    title: compactText(event.target || event.title, "Discover lifecycle item"),
+    title: compactText(event.target || event.title, "Discover request"),
     row: event,
   };
 }
@@ -61,10 +63,13 @@ export function libraryFolderObject({
   folderCount = 0,
   datasetCount = 0,
   readyCount = 0,
+  membersOnlyCount = 0,
   connectedCount = 0,
   metadataOnlyCount = 0,
   unknownCount = 0,
   itemCount = 0,
+  referenceCount = 0,
+  loading = false,
 } = {}) {
   const root = !folderId;
   const title = root ? "Library" : compactText(trail[trail.length - 1]?.name, "Library collection");
@@ -76,14 +81,17 @@ export function libraryFolderObject({
     path: folderPath(trail),
     destination: compactText(destination, title),
     note,
+    loading: Boolean(loading),
     counts: {
       folders: folderCount,
       datasets: datasetCount,
       queryReady: readyCount,
+      membersOnly: membersOnlyCount,
       connected: connectedCount,
       metadataOnly: metadataOnlyCount,
       unknown: unknownCount,
       items: itemCount,
+      references: referenceCount,
     },
   };
 }

@@ -1,0 +1,7 @@
+.rd-v2-job-review-facts { display: grid; gap: 12px; margin: 20px 0; }
+.rd-v2-job-review-facts > div { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 12px; }
+.rd-v2-job-review-facts dt { color: var(--rd-muted, #647087); font-size: 12px; }
+.rd-v2-job-review-facts dd { margin: 0; font-size: 14px; overflow-wrap: anywhere; }
+@media (max-width: 480px) {
+  .rd-v2-job-review-facts > div { grid-template-columns: 1fr; gap: 4px; }
+}

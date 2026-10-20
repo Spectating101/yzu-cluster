@@ -8,16 +8,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import {
-  candidateKey,
-  canonicalizeDoi,
-  canonicalizeUrl,
-  discoverCandidateUrl,
-  isCandidateQueued,
-  jobMatchesCandidate,
-  normalizeTitle,
-  slugifyProvider,
-} from "./candidateKey.js";
+import { candidateKey, canonicalizeDoi, canonicalizeUrl, discoverCandidateUrl, isCandidateQueued, jobMatchesCandidate, normalizeTitle, slugifyProvider, isSelectedCandidate } from "./candidateKey.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const FIXTURE_PATH = join(__dirname, "fixtures", "candidate_key_vectors.json");
@@ -132,3 +123,18 @@ describe("normalizeTitle", () => {
     assert.equal(normalizeTitle("  Foo   Bar "), "foo bar");
   });
 });
+
+describe("isSelectedCandidate", () => {
+  const route = { kind: "source", source_id: "bigquery_public", candidate_key: "source:google_cloud:bigquery_public" };
+  it("selects nothing when nothing is selected, even for rows without a dataset id", () => {
+    assert.equal(isSelectedCandidate(undefined, route), false);
+    assert.equal(isSelectedCandidate(null, route), false);
+    assert.equal(isSelectedCandidate("", route), false);
+  });
+  it("matches the row's candidate key or its dataset id", () => {
+    assert.equal(isSelectedCandidate(candidateKey(route), route), true);
+    assert.equal(isSelectedCandidate("abc", { dataset_id: "abc" }), true);
+    assert.equal(isSelectedCandidate("abc", route), false);
+  });
+});
+

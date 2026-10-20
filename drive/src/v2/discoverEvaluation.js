@@ -3,6 +3,7 @@
  */
 
 import { classifyDiscoverResult } from "./discoverTaxonomy.js";
+import { coverageSpan } from "./coverageText.js";
 import { humanizeDiscoverDescription } from "./browseMeta.js";
 import {
   boundProbeResult,
@@ -14,36 +15,36 @@ import { discoverCandidateUrl } from "./candidateKey.js";
 
 const DECISION = {
   "local-query-ready": {
-    headline: "In Library · Query ready",
+    headline: "In Library · ready to query",
     body: "You can query this dataset now.",
   },
   "local-connected": {
-    headline: "In Library · Connected",
-    body: "The asset is connected to the Library, but no instant query path is confirmed.",
+    headline: "In Library · connected",
+    body: "The data is connected to Library, but immediate query access is not confirmed.",
   },
   "local-metadata": {
-    headline: "In Library · Metadata only",
+    headline: "In Library · metadata only",
     body: "The Library has a registry record, but no usable local data path is confirmed.",
   },
   "external-discoverable": {
-    headline: "External · Available to inspect",
+    headline: "External · available to inspect",
     body: "This source can be inspected. Acquisition has not been confirmed.",
   },
   "external-probed": {
-    headline: "External · Probed",
-    body: "The source has been probed. Review verified evidence and remaining unknowns.",
+    headline: "External · connection tested",
+    body: "The connection has been tested. Review the checked evidence and remaining unknowns.",
   },
   "external-acquirable": {
-    headline: "External · Acquisition available",
+    headline: "External · available to collect",
     body: "A known collection route is available.",
   },
   "external-unavailable": {
-    headline: "External · Acquisition unavailable",
+    headline: "External · collection unavailable",
     body: "No supported acquisition route is currently available.",
   },
   "licensed-manual": {
-    headline: "Licensed / manual access",
-    body: "This source requires entitlement, credentials, or manual intake.",
+    headline: "Licensed · university access or manual upload",
+    body: "This source requires university access, credentials, or a manual upload.",
   },
 };
 
@@ -66,7 +67,7 @@ export function usefulForLine(row) {
     const grain = String(row?.grain || "").trim();
     const geo = String(row?.geographic_coverage || "").trim();
     if (grain && !text.toLowerCase().includes(grain.toLowerCase())) {
-      text = `${text.replace(/\.$/, "")} at ${grain} grain`;
+      text = `${text.replace(/\.$/, "")} at ${grain} unit of observation`;
     } else if (geo && !text.toLowerCase().includes(geo.toLowerCase().slice(0, 12))) {
       text = `${text.replace(/\.$/, "")} · ${geo}`;
     }
@@ -75,14 +76,40 @@ export function usefulForLine(row) {
   }
 
   const grain = String(row?.grain || "").trim();
-  const coverage = String(row?.coverage || row?.date_range || "").trim();
+  const coverage = coverageSpan(row?.coverage || row?.date_range).trim();
   const source = String(row?.source || row?.publisher || "").trim();
   if (grain || coverage || source) {
-    return [source, coverage, grain ? `${grain} grain` : ""]
+    return [source, coverage, grain ? `${grain} unit of observation` : ""]
       .filter(Boolean)
       .join(" · ");
   }
   return "Research use is not yet described.";
+}
+
+/**
+ * Convert transport/runtime failures into researcher-facing probe truth.
+ *
+ * The raw failure can contain Python exception names, errno values, local
+ * hostnames, or connector implementation details. None of those help a
+ * researcher decide whether the source is usable. Keep the visible message
+ * bounded to what the failure actually establishes: access was not verified.
+ */
+export function researcherProbeError(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  if (/name resolution|enotfound|eai_again|getaddrinfo|\bdns\b/i.test(raw)) {
+    return "The source hostname could not be resolved, so access remains unverified. Retry later or inspect the source directly.";
+  }
+  if (/timed?\s*out|timeout|deadline exceeded/i.test(raw)) {
+    return "The connection test timed out before the source responded. Access has not been confirmed. Retry later or inspect the source directly.";
+  }
+  if (/401|403|unauthori[sz]ed|forbidden|access denied/i.test(raw)) {
+    return "The source refused the connection test or requires permission. Review its access conditions before requesting collection.";
+  }
+  if (/connection refused|econnrefused|failed to connect|network is unreachable|connection error/i.test(raw)) {
+    return "The source could not be reached, so access remains unverified. Retry later or inspect the source directly.";
+  }
+  return "The connection test did not complete, so access has not been confirmed. Retry later or inspect the source directly.";
 }
 
 export function coverageParts(row) {
@@ -108,6 +135,9 @@ export function coverageParts(row) {
 
 /**
  * Primary + secondary actions for the evaluation footer.
+ * `preview` remains the stable action id because callers route it into the
+ * bounded external inspector. The researcher-facing label is intentionally
+ * "Inspect source": rows appear only when the preview contract returns them.
  * @returns {{ primary: { id: string, label: string }, secondary: { id: string, label: string }[] }}
  */
 export function evaluationActions(row, taxonomy, { queued = false, hasProbeUrl = false, probed = false } = {}) {
@@ -117,7 +147,7 @@ export function evaluationActions(row, taxonomy, { queued = false, hasProbeUrl =
     return {
       primary: { id: "track_resources", label: "Track in Resources" },
       secondary: [
-        hasProbeUrl ? { id: "probe", label: "Probe source" } : null,
+        hasProbeUrl ? { id: "probe", label: "Test connection" } : null,
         { id: "ask", label: "Ask about this source" },
       ].filter(Boolean),
     };
@@ -142,9 +172,9 @@ export function evaluationActions(row, taxonomy, { queued = false, hasProbeUrl =
     return {
       primary: { id: "review_access", label: "Review access requirements" },
       secondary: [
-        hasProbeUrl ? { id: "probe", label: "Probe source" } : null,
+        hasProbeUrl ? { id: "probe", label: "Test connection" } : null,
         { id: "ask", label: "Ask about this source" },
-        { id: "preview", label: "Preview source" },
+        { id: "preview", label: "Inspect source" },
       ].filter(Boolean),
     };
   }
@@ -152,27 +182,27 @@ export function evaluationActions(row, taxonomy, { queued = false, hasProbeUrl =
     return {
       primary: { id: "ask", label: "Ask about this source" },
       secondary: [
-        hasProbeUrl ? { id: "probe", label: "Probe source" } : null,
-        { id: "preview", label: "Preview source" },
+        hasProbeUrl ? { id: "probe", label: "Test connection" } : null,
+        { id: "preview", label: "Inspect source" },
       ].filter(Boolean),
     };
   }
   if (key === "external-acquirable") {
     return {
-      primary: { id: "add_lab", label: "Request this evidence" },
+      primary: { id: "add_lab", label: "Request this data" },
       secondary: [
-        hasProbeUrl && !probed ? { id: "probe", label: "Probe source" } : null,
-        { id: "preview", label: "Preview source" },
+        hasProbeUrl && !probed ? { id: "probe", label: "Test connection" } : null,
+        { id: "preview", label: "Inspect source" },
         { id: "ask", label: "Ask about this source" },
       ].filter(Boolean),
     };
   }
   if (key === "external-probed") {
     return {
-      primary: { id: "preview", label: "Preview source" },
+      primary: { id: "preview", label: "Inspect source" },
       secondary: [
-        { id: "add_lab", label: "Request this evidence" },
-        hasProbeUrl ? { id: "probe", label: "Probe again" } : null,
+        { id: "add_lab", label: "Request this data" },
+        hasProbeUrl ? { id: "probe", label: "Test connection again" } : null,
         { id: "ask", label: "Ask about this source" },
       ].filter(Boolean),
     };
@@ -180,12 +210,12 @@ export function evaluationActions(row, taxonomy, { queued = false, hasProbeUrl =
   // external-discoverable default
   return {
     primary: hasProbeUrl
-      ? { id: "probe", label: "Probe source" }
-      : { id: "preview", label: "Preview source" },
+      ? { id: "probe", label: "Test connection" }
+      : { id: "preview", label: "Inspect source" },
     secondary: [
-      { id: "add_lab", label: "Request this evidence" },
+      { id: "add_lab", label: "Request this data" },
       { id: "ask", label: "Ask about this source" },
-      hasProbeUrl ? { id: "preview", label: "Preview source" } : null,
+      hasProbeUrl ? { id: "preview", label: "Inspect source" } : null,
     ].filter(Boolean),
   };
 }
@@ -245,7 +275,7 @@ export function buildDiscoverEvaluation(row, labIds, probeState) {
     technical: classified.technical || [],
     actions,
     hasProbe,
-    probeError: probeState?.error || "",
+    probeError: researcherProbeError(probeState?.error),
     probeLoading: Boolean(probeState?.loading),
   };
 }

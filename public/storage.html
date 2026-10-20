@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; base-uri 'none'; form-action 'none'">
+  <meta name="description" content="Information about the operator-managed Google Drive storage connection used with Research Drive.">
+  <title>Storage connection · Research Drive</title>
+  <link rel="stylesheet" href="/storage-notice.css">
+  <link rel="canonical" href="https://rc3.easycamp.tech/storage.html">
+</head>
+<body>
+  <a class="skip" href="#content">Skip to content</a>
+  <header>
+    <a class="brand" href="/">Research Drive</a>
+    <nav aria-label="Storage information">
+      <a href="/storage.html" aria-current="page">Storage connection</a>
+      <a href="/storage-privacy.html">Privacy notice</a>
+    </nav>
+  </header>
+  <main id="content">
+    <h1>Research Drive storage connection</h1>
+    <p class="meta">Google application: research-drive-platform · Updated 15 October 2026</p>
+    <p class="summary">An operator-managed connection for research dataset archives and encrypted recovery backups.</p>
+    <p>The <strong>research-drive-platform</strong> Google OAuth application connects the operator’s authorized Google Drive accounts to local file-transfer and backup tools used with Research Drive.</p>
+    <h2>What the connection does</h2>
+    <p>It supports copying selected research datasets, retrieving archived files and writing encrypted recovery snapshots. The connection is operated by the owner of this Research Drive service.</p>
+    <p>It does not create Google accounts or grant Research Drive users direct access to the operator’s Google Drive.</p>
+    <h2>Google permissions</h2>
+    <p>The CMS storage connection requests access to files used with this application (<code>drive.file</code>). Existing connections to other operator accounts can have different permissions, as shown on their Google consent screens.</p>
+    <p>Storage requests are made by local tools using credentials held on the operator’s machine.</p>
+    <p class="note">For details about data handling, encryption, retention and revocation, read the <a href="/storage-privacy.html">storage privacy notice</a>.</p>
+    <h2>Contact</h2>
+    <p>For questions about this connection, contact <!--email_off--><a href="mailto:christstrife@gmail.com">christstrife@gmail.com</a><!--/email_off-->, the support address shown on its Google consent screen.</p>
+  </main>
+  <footer><p><a href="/">Open Research Drive</a> · <a href="/storage-privacy.html">Storage privacy notice</a></p></footer>
+</body>
+</html>

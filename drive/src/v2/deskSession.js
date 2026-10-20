@@ -1,7 +1,78 @@
 const EMAIL_KEY = "procure_user_email";
 const TOKEN_KEY = "desk_access_token";
 const SESSION_KEY = "rd_v2_chat_session";
+const SESSION_CONTEXT_PREFIX = `${SESSION_KEY}:context:`;
 const DESK_SESSION_BOOTSTRAPPED_KEY = "rd_desk_session_bootstrapped";
+export const DESK_IDENTITY_EVENT_KEY = "rd_desk_identity_changed";
+let activePrincipal = "";
+let activeRole = "";
+let identityGeneration = 0;
+
+/** Server-observed identity scopes browser pointers; storage never grants access. */
+export function bindDeskIdentity(principal = null) {
+  const next = String(principal?.id || "");
+  if (next === activePrincipal) return false;
+  const previous = activePrincipal;
+  const previousRole = activeRole;
+  activePrincipal = next;
+  activeRole = String(principal?.role || "");
+  identityGeneration += 1;
+  clearDeskToken();
+  if (previous && previousRole !== "public_guest") {
+    try {
+      const current = new URL(window.location.href);
+      const tab = current.searchParams.get("tab") || "home";
+      // Research links can carry private questions and object IDs. Retain only
+      // the public destination when leaving a signed-in identity.
+      const safeTab = ["home", "library", "settings", "profile", "resources"].includes(tab) ? tab : "home";
+      window.history.replaceState(null, "", `${current.pathname}?tab=${safeTab}`);
+    } catch { /* Non-browser clients do not have a URL. */ }
+  }
+  try {
+    // Preserve the original operator's faculty preference, without lending it
+    // to newly invited users. Legacy conversation pointers cannot establish an owner.
+    if (!previous && principal?.role === "operator" && next === "desk-operator") {
+      const legacyEmail = localStorage.getItem(EMAIL_KEY);
+      if (legacyEmail && !localStorage.getItem(userEmailKey())) localStorage.setItem(userEmailKey(), legacyEmail);
+      for (const key of ["rd_v2_settings", "rd_v2_recent_datasets", "rd_v2_last_research_surface"]) {
+        const value = localStorage.getItem(key);
+        if (value && !localStorage.getItem(deskStorageKey(key))) localStorage.setItem(deskStorageKey(key), value);
+      }
+      const legacySession = localStorage.getItem(SESSION_KEY);
+      if (legacySession && !localStorage.getItem(chatSessionStorageKey())) localStorage.setItem(chatSessionStorageKey(), legacySession);
+      for (let i = 0; i < localStorage.length; i += 1) {
+        const key = localStorage.key(i);
+        if (key?.startsWith(SESSION_CONTEXT_PREFIX)) {
+          const context = decodeURIComponent(key.slice(SESSION_CONTEXT_PREFIX.length));
+          if (!localStorage.getItem(chatSessionStorageKey(context))) localStorage.setItem(chatSessionStorageKey(context), localStorage.getItem(key));
+        }
+      }
+    }
+    localStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(EMAIL_KEY);
+    for (let i = localStorage.length - 1; i >= 0; i -= 1) {
+      const key = localStorage.key(i);
+      if (key?.startsWith(SESSION_CONTEXT_PREFIX)) localStorage.removeItem(key);
+    }
+    sessionStorage.removeItem("rd.v2.resources.rollup.v1");
+  } catch { /* Browser storage can be unavailable. */ }
+  return true;
+}
+
+export function deskIdentityGeneration() { return identityGeneration; }
+export function notifyDeskAuthenticationFailure(status, payload = {}) {
+  if ((status === 401 || (status === 409 && payload?.error === "account_changed")) && typeof window !== "undefined") {
+    window.dispatchEvent(new Event("rd-desk-session-expired"));
+  }
+}
+export function assertDeskIdentity(generation) {
+  if (generation !== identityGeneration) throw new Error("Your account changed. This earlier request was discarded.");
+}
+export function notifyDeskIdentityChange() {
+  try { localStorage.setItem(DESK_IDENTITY_EVENT_KEY, `${Date.now()}:${Math.random()}`); } catch { /* ignore */ }
+}
+function userEmailKey() { return activePrincipal ? `${EMAIL_KEY}:user:${encodeURIComponent(activePrincipal)}` : EMAIL_KEY; }
+export function deskStorageKey(key) { return activePrincipal ? `${key}:user:${encodeURIComponent(activePrincipal)}` : key; }
 
 /** Fetch/Headers-compatible: header names are always lowercase in our maps. */
 function normalizeHeaderName(name) {
@@ -52,6 +123,7 @@ export function deskHeaders(extra = {}) {
     "content-type": "application/json",
     ...flattenHeaderBag(extra),
   };
+  if (activePrincipal) headers["x-desk-principal"] = activePrincipal;
   const token = loadDeskToken();
   if (token) {
     headers["x-desk-token"] = token;
@@ -115,7 +187,7 @@ export function deskSessionBootstrapped() {
 
 export function loadUserEmail() {
   try {
-    return localStorage.getItem(EMAIL_KEY) || "";
+    return localStorage.getItem(userEmailKey()) || "";
   } catch {
     return "";
   }
@@ -123,27 +195,50 @@ export function loadUserEmail() {
 
 export function saveUserEmail(email) {
   const v = String(email || "").trim();
-  if (v) localStorage.setItem(EMAIL_KEY, v);
-  else localStorage.removeItem(EMAIL_KEY);
+  if (v) localStorage.setItem(userEmailKey(), v);
+  else localStorage.removeItem(userEmailKey());
   return v;
 }
 
-export function loadChatSessionId() {
+function normalizedChatContextKey(contextKey = "") {
+  return String(contextKey || "").trim();
+}
+
+/**
+ * Chat sessions are scoped to the research object that owns them. Keeping one
+ * global session made a new Discover question inherit an unrelated prior
+ * investigation even though the visible rail had already rebound correctly.
+ * Empty context retains the legacy key for callers that intentionally want a
+ * general desk conversation.
+ */
+export function chatSessionStorageKey(contextKey = "") {
+  const key = normalizedChatContextKey(contextKey);
+  if (activePrincipal) return `${SESSION_KEY}:user:${encodeURIComponent(activePrincipal)}:context:${encodeURIComponent(key || "general").slice(0, 512)}`;
+  return key ? `${SESSION_CONTEXT_PREFIX}${encodeURIComponent(key).slice(0, 512)}` : SESSION_KEY;
+}
+
+export function loadChatSessionId(contextKey = "") {
   try {
-    return localStorage.getItem(SESSION_KEY) || "";
+    return localStorage.getItem(chatSessionStorageKey(contextKey)) || "";
   } catch {
     return "";
   }
 }
 
-export function saveChatSessionId(id) {
-  if (!id) return;
-  localStorage.setItem(SESSION_KEY, id);
+export function saveChatSessionId(id, contextKey = "") {
+  const value = String(id || "").trim();
+  if (!value) return "";
+  try {
+    localStorage.setItem(chatSessionStorageKey(contextKey), value);
+  } catch {
+    /* ignore */
+  }
+  return value;
 }
 
-export function clearChatSessionId() {
+export function clearChatSessionId(contextKey = "") {
   try {
-    localStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(chatSessionStorageKey(contextKey));
   } catch {
     /* ignore */
   }

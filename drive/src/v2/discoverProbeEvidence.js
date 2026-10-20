@@ -153,7 +153,7 @@ export function classifyProbeEvidence(row, probeResult) {
   }
   if (summary) {
     // Probe summaries are connector/heuristic text — treat as model/interpretation, not verified.
-    pushFact(model, EVIDENCE_KIND.MODEL, "Probe summary", summary);
+    pushFact(model, EVIDENCE_KIND.MODEL, "Connection test summary", summary);
     pushFact(technical, EVIDENCE_KIND.MODEL, "Raw probe summary", summary);
   }
 
@@ -201,7 +201,7 @@ export function deriveUnknowns(row, taxonomy, classified, hasProbe) {
       unknowns.push("Schema details not shown");
     }
   } else if (!hasProbe) {
-    unknowns.push("Source endpoint not probed");
+    unknowns.push("Source connection not tested");
     unknowns.push("Acquisition constraints not verified");
     unknowns.push("Schema not inspected");
     if (!hasAny("coverage", "date_range", "temporal_coverage")) {
@@ -219,7 +219,7 @@ export function deriveUnknowns(row, taxonomy, classified, hasProbe) {
   }
 
   if (key === "licensed-manual") {
-    unknowns.push("Entitlement / credential path not confirmed in-session");
+    unknowns.push("University access or credentials not confirmed in this session");
   }
   if (key === "external-unavailable") {
     unknowns.push("No supported acquisition route confirmed");

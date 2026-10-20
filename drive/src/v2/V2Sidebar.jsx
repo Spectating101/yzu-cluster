@@ -9,18 +9,27 @@ export function V2Sidebar({
   tab,
   onTabChange,
   activeResearch = null,
+  canViewOperations = true,
+  canUseAsk = true,
+  showResearchContext = true,
   recentItems = [],
   onOpenRecent,
 }) {
   const activeButtonRef = useRef(null);
   const research = activeResearch || {
-    title: "Active research",
+    title: "No research focus set",
     emphases: [],
   };
   const recent = Array.isArray(recentItems) ? recentItems.slice(0, 4) : [];
 
   useEffect(() => {
-    activeButtonRef.current?.scrollIntoView({ block: "nearest", inline: "center" });
+    const button = activeButtonRef.current;
+    const scroller = button?.closest("nav") || button?.parentElement;
+    if (!button || !scroller) return;
+    const box = button.getBoundingClientRect();
+    const view = scroller.getBoundingClientRect();
+    if (box.left >= view.left && box.right <= view.right && box.top >= view.top && box.bottom <= view.bottom) return;
+    button.scrollIntoView({ block: "nearest", inline: "center" });
   }, [tab]);
 
   function renderNavButton({ id, label, Icon }) {
@@ -45,36 +54,51 @@ export function V2Sidebar({
         {V2_SIDEBAR_PRIMARY_TABS.map(renderNavButton)}
       </nav>
 
-      <div className="rd-v2-sidebar-context" aria-label="Active research">
-        <p className="rd-v2-sidebar-kicker">Active research</p>
-        <strong className="rd-v2-sidebar-research-title">{research.title}</strong>
-        {research.emphases?.length ? (
-          <ul className="rd-v2-sidebar-emphases">
-            {research.emphases.slice(0, 3).map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        ) : (
-          <p className="rd-v2-sidebar-hint">Profile sets research direction.</p>
-        )}
-      </div>
+      {tab === "synthesis" ? (
+        <>
+          {/* S-04 owns this region: it is the approved ACTIVE WORK / REGISTERED
+             OUTPUTS surface, not a second navigational column inside the page. */}
+          <div
+            id="rd-v2-synthesis-sidebar-slot"
+            className="rd-v2-synthesis-sidebar-slot"
+            role="region"
+            aria-label="Synthesis work"
+          />
+        </>
+      ) : (
+        <>
+          {showResearchContext ? <div className="rd-v2-sidebar-context" role="group" aria-label="Active research">
+            <p className="rd-v2-sidebar-kicker">Active research</p>
+            <strong className="rd-v2-sidebar-research-title">{research.title}</strong>
+            {research.emphases?.length ? (
+              <ul className="rd-v2-sidebar-emphases">
+                {research.emphases.slice(0, 3).map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            ) : (
+              <p className="rd-v2-sidebar-hint">Add your research focus in Profile.</p>
+            )}
+          </div> : null}
 
-      {/* VC-8: with no real recent assets the block is removed rather than
-          decorated with a placeholder line. */}
-      {recent.length ? (
-        <div className="rd-v2-sidebar-recent" aria-label="Recent">
-          <p className="rd-v2-sidebar-kicker">Recent</p>
-          <ul>
-            {recent.map((item) => (
-              <li key={item.id}>
-                <button type="button" onClick={() => onOpenRecent?.(item)}>
-                  {item.title}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
+          {/* VC-8: with no real recent assets the block is removed rather than
+              decorated with a placeholder line. */}
+          {recent.length ? (
+            <div className="rd-v2-sidebar-recent" role="group" aria-label="Recent">
+              <p className="rd-v2-sidebar-kicker">Recent</p>
+              <ul>
+                {recent.map((item) => (
+                  <li key={item.id}>
+                    <button type="button" title={item.title} onClick={() => onOpenRecent?.(item)}>
+                      {item.title}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </>
+      )}
 
       <nav className="rd-v2-sidebar-foot-nav" aria-label="Account">
         {V2_SIDEBAR_FOOT_TABS.map(renderNavButton)}

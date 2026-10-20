@@ -1,4 +1,6 @@
 /** Map registry rows → frozen UI labels (Detail + StatusPill). */
+import { coverageText } from "./coverageText.js";
+import { MEMBERS_ONLY_TEXT, licensedRowsLocked } from "./licensedAccess.js";
 
 /** Exact readiness tokens that mean smoke-proven / instant local query — never fuzzy `/query|ready/`. */
 export function isQueryReadyReadiness(value) {
@@ -26,25 +28,75 @@ export function isReceiptOnlyAsset(dataset) {
   return state === "receipt_only";
 }
 
+const RUNTIME_DEMOTION = {
+  local_panel_missing: "Documented as queryable, but the local panel is missing.",
+  local_bytes_missing: "Documented as queryable, but local data is missing.",
+  csv_schema_mismatch: "Documented as queryable, but the structure does not match the saved panel.",
+  historical_membership_invalid: "Historical use is blocked: this release repeats current constituents across historical dates. Reacquire and validate dated membership before analysis.",
+};
+
+export function runtimeReadinessReason(dataset) {
+  return String(dataset?.runtime_readiness_reason || "").trim();
+}
+
+export function demotionSentence(dataset) {
+  const reason = runtimeReadinessReason(dataset);
+  if (!reason) return "";
+  return RUNTIME_DEMOTION[reason] || "Documented as queryable, but readiness in the current system has not been confirmed.";
+}
+
+/** Engine already computed this. UI must not drop it. */
+export function hydrateRemedy(dataset) {
+  if (dataset?.hydrate_required !== true) return "";
+  return "A vault archive is available to restore local bytes.";
+}
+
+function acquisitionOnlyRow(dataset = {}) {
+  if (!dataset) return false;
+  if (dataset.external === true) return true;
+  if (!dataset.collect_via) return false;
+  return !(
+    dataset.registered === true ||
+    dataset.registry_id ||
+    dataset.local_root ||
+    dataset.local_path ||
+    dataset.vault_path ||
+    dataset.canonical_remote
+  );
+}
+
 export function statusPillKind(dataset) {
+  const reason = runtimeReadinessReason(dataset);
+  if (reason === "historical_membership_invalid") return { kind: "warn", label: "Historical use blocked" };
+  if (reason) {
+    return { kind: "warn", label: "In Library · not yet checked" };
+  }
   if (dataset?.live_identity_badge?.kind && dataset?.live_identity_badge?.label) {
     return dataset.live_identity_badge;
   }
   if (isReceiptOnlyAsset(dataset)) {
-    return { kind: "registered", label: "Registered · reconciliation pending" };
+    return { kind: "registered", label: "In Library · being checked" };
   }
   const readiness = String(dataset?.analysis_readiness || "")
     .trim()
     .toLowerCase()
     .replace(/[\s-]+/g, "_");
-  if (dataset?.external || dataset?.collect_via) {
+  if (dataset?.library_available === true && !isQueryReadyReadiness(readiness)) {
+    return { kind: "available", label: "Available to collect" };
+  }
+  if (acquisitionOnlyRow(dataset)) {
     return { kind: "external", label: "External" };
   }
   if (isQueryReadyReadiness(readiness)) {
-    return { kind: "query-ready", label: "Query ready" };
+    return licensedRowsLocked(dataset)
+      ? { kind: "query-ready", label: "Yuan Ze members", locked: true }
+      : { kind: "query-ready", label: "Ready to query" };
   }
   if (readiness === "registered") {
-    return { kind: "registered", label: "Registered" };
+    if (String(dataset?.access_shape || "").toLowerCase() === "local_file_tree") {
+      return { kind: "registered", label: "Files available" };
+    }
+    return { kind: "registered", label: "Saved to Library" };
   }
   if (readiness === "dry_run_before_execution" || /bigquery/i.test(dataset?.backend || "")) {
     return { kind: "connected", label: "Connected" };
@@ -59,17 +111,41 @@ export function statusPillKind(dataset) {
   return { kind: "unknown", label: "Readiness unknown" };
 }
 
+export function isMembersOnly(dataset) {
+  return statusPillKind(dataset).locked === true;
+}
+
 export function statusPill(dataset) {
   return statusPillKind(dataset).label;
 }
 
-/** Faculty-facing "Can I use this?" copy — keeps Registered distinct from Query ready. */
+/** Faculty-facing "Can I use this?" copy — keeps Registered distinct from Query-ready. */
 export function canIUseDecision(dataset) {
+  const demotion = demotionSentence(dataset);
+  if (demotion) {
+    const remedy = hydrateRemedy(dataset);
+    return {
+      headline: statusPillKind(dataset).label,
+      body: remedy ? `${demotion} ${remedy}` : demotion,
+    };
+  }
   const state = statusPillKind(dataset);
+  const assetKind = libraryAssetKind(dataset);
+  if (state.kind === "query-ready" && licensedRowsLocked(dataset)) {
+    return { headline: "For Yuan Ze members", body: MEMBERS_ONLY_TEXT };
+  }
   if (state.kind === "query-ready") {
     return {
-      headline: "Query ready",
-      body: "You can preview and query this dataset now.",
+      headline: "Ready to query",
+      body: dataset?.temporal_quality?.status === "undated_snapshot"
+        ? `You can inspect this snapshot now. ${dataset.temporal_quality.reason}`
+        : "You can preview and query this dataset now.",
+    };
+  }
+  if (state.kind === "available") {
+    return {
+      headline: "Available to collect",
+      body: "This dataset is not downloaded yet. It is collected from its source when someone asks for it, then it is ready to query.",
     };
   }
   if (state.kind === "connected") {
@@ -81,7 +157,7 @@ export function canIUseDecision(dataset) {
   if (state.kind === "remote") {
     return {
       headline: "Metadata only",
-      body: "This record supports discovery and acquisition. A queryable local asset is not confirmed.",
+      body: "This record supports discovery and acquisition. A local dataset ready to query is not confirmed.",
     };
   }
   if (state.kind === "queued") {
@@ -93,25 +169,37 @@ export function canIUseDecision(dataset) {
   if (state.kind === "warn") {
     return {
       headline: "Review required",
-      body: "The current asset needs review before analysis.",
+      body: "This data needs review before analysis.",
     };
   }
   if (state.kind === "failed") {
     return {
       headline: "Failed",
-      body: "The current asset path failed and needs attention before use.",
+      body: "Access to this data failed and needs attention before use.",
     };
   }
   if (state.kind === "external") {
     return {
       headline: "External source",
-      body: "This source is not confirmed as a usable Library asset.",
+      body: "This source is not confirmed as usable data in your Library.",
+    };
+  }
+  if (state.kind === "registered" && assetKind === "scholarly_work") {
+    return {
+      headline: "Saved to Library",
+      body: "Retained as a reusable scholarly work in this Library. Source verification remains a separate claim.",
+    };
+  }
+  if (state.kind === "registered" && assetKind === "operational") {
+    return {
+      headline: "Saved to Library",
+      body: "Retained as a reusable operational record; its current state must be judged from the recorded evidence.",
     };
   }
   if (state.kind === "registered") {
     return {
-      headline: "Registered",
-      body: "Registered and reusable as an archived research asset; querying has not yet been proven.",
+      headline: "Saved to Library",
+      body: "Saved to Library and reusable as an archived research dataset. Querying has not yet been confirmed.",
     };
   }
   return {
@@ -120,35 +208,172 @@ export function canIUseDecision(dataset) {
   };
 }
 
+function normalizedAssetType(value) {
+  return String(value || "").trim().toLowerCase().replace(/[\s-]+/g, "_");
+}
+
+function textCorpus(dataset = {}) {
+  return [
+    dataset?.name,
+    dataset?.title,
+    dataset?.display_name,
+    dataset?.one_line,
+    dataset?.description,
+    dataset?.recommended_use,
+    ...(Array.isArray(dataset?.tags) ? dataset.tags : []),
+    ...(Array.isArray(dataset?.keywords) ? dataset.keywords : []),
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+}
+
+/**
+ * Library holds more than rectangular datasets. Prefer explicit backend type
+ * metadata when available, then use conservative structural evidence. This is
+ * presentation typing only; it never upgrades readiness or invents access.
+ */
+export function libraryAssetKind(dataset = {}) {
+  const explicit = normalizedAssetType(
+    dataset?.research_asset_kind || dataset?.asset_kind || dataset?.asset_type || dataset?.record_type,
+  );
+  if (["scholarly_work", "paper", "article", "publication", "literature"].includes(explicit)) {
+    return "scholarly_work";
+  }
+  if (["metadata_index", "catalog", "catalogue", "dataset_catalog"].includes(explicit)) {
+    return "metadata_index";
+  }
+  if (["operational", "status", "status_endpoint", "manifest"].includes(explicit)) {
+    return "operational";
+  }
+  if (["live_source", "api", "remote_queryable"].includes(explicit)) {
+    return "live_source";
+  }
+  if (["dataset", "table", "panel", "tabular"].includes(explicit)) return "dataset";
+
+  const accessShape = normalizedAssetType(dataset?.access_shape);
+  const backend = normalizedAssetType(dataset?.backend);
+  const grain = normalizedAssetType(dataset?.grain);
+  const corpus = textCorpus(dataset);
+  const hasBibliographicIdentity = Boolean(dataset?.doi || /\bdoi\b/.test(corpus));
+  const scholarlyLanguage = /\b(paper|article|scholarly|publication|literature|citation)\b/.test(corpus);
+
+  if (
+    scholarlyLanguage &&
+    (hasBibliographicIdentity || accessShape === "local_file" || grain === "procured_snapshot")
+  ) {
+    return "scholarly_work";
+  }
+  // A registered remote holding with an explicit live connection is a source
+  // contract, not a rectangular dataset. This is presentation typing only:
+  // Connected remains distinct from Query-ready and no access is promoted.
+  if (
+    statusPillKind(dataset).kind === "connected" &&
+    !dataset?.local_root &&
+    !dataset?.local_path &&
+    !dataset?.vault_path
+  ) {
+    return "live_source";
+  }
+  if (accessShape === "metadata_index" || /catalog|catalogue/.test(backend)) return "metadata_index";
+  if (/status|manifest|operational/.test(`${accessShape} ${backend}`)) return "operational";
+  if (/api/.test(backend) && !dataset?.local_root && !dataset?.local_path) return "live_source";
+  return "dataset";
+}
+
+export function libraryAssetPresentation(dataset = {}) {
+  const kind = libraryAssetKind(dataset);
+  if (kind === "scholarly_work") {
+    return {
+      kind,
+      noun: "scholarly work",
+      eyebrow: "Selected scholarly work",
+      shapeTitle: "Bibliographic record",
+      structureTitle: "Record details",
+      structureAction: "Inspect record",
+      askLabel: "Ask about this work",
+      previewRows: false,
+    };
+  }
+  if (kind === "metadata_index") {
+    return {
+      kind,
+      noun: "metadata index",
+      eyebrow: "Selected metadata index",
+      shapeTitle: "Index scope",
+      structureTitle: "Record structure",
+      structureAction: "Inspect fields",
+      askLabel: "Ask about this index",
+      previewRows: true,
+    };
+  }
+  if (kind === "live_source") {
+    return {
+      kind,
+      noun: "live source",
+      eyebrow: "Selected live source",
+      shapeTitle: "Source contract",
+      structureTitle: "Documented response shape",
+      structureAction: "Inspect fields",
+      askLabel: "Ask about this source",
+      previewRows: true,
+    };
+  }
+  if (kind === "operational") {
+    return {
+      kind,
+      noun: "operational resource",
+      eyebrow: "Selected operational resource",
+      shapeTitle: "Operational record",
+      structureTitle: "Recorded state",
+      structureAction: "Inspect record",
+      askLabel: "Ask about this resource",
+      previewRows: false,
+    };
+  }
+  return {
+    kind: "dataset",
+    noun: "dataset",
+    eyebrow: "Selected Library dataset",
+    shapeTitle: "Documented evidence shape",
+    structureTitle: "Documented structure",
+    structureAction: "Inspect fields",
+    askLabel: "Ask about access",
+    previewRows: true,
+  };
+}
+
 export function displayName(dataset) {
-  return dataset?.name || dataset?.title || dataset?.dataset_id || "Dataset";
+  const name = dataset?.name || dataset?.title || dataset?.dataset_id || "Dataset";
+  return String(name).replace(/^Synthesis:\s+/i, "");
 }
 
 export function rowSubtitle(dataset) {
   const parts = [dataset?.subtitle || dataset?.dataset_id || dataset?.doi || dataset?.url, dataset?.grain].filter(Boolean);
   const cov = dataset?.coverage || dataset?.date_range;
-  if (cov) parts.push(String(cov));
+  if (cov) parts.push(coverageText(cov));
   return parts.join(" · ");
 }
 
 export function detailFields(dataset) {
   const d = dataset || {};
-  const partitionParts = [d.grain, d.coverage || d.date_range || d.temporal_coverage].filter(Boolean);
+  const partitionParts = [d.grain, coverageText(d.coverage || d.date_range || d.temporal_coverage)].filter(Boolean);
   const joinKeys = d.join_keys || [];
   return {
     description: d.description || d.recommended_use || "",
-    coverage: d.coverage || d.date_range || d.temporal_coverage || null,
-    source: d.source || d.publisher || d.domain || d.backend || null,
+    coverage: coverageText(d.coverage || d.date_range || d.temporal_coverage) || null,
+    // Source authority must remain distinct from transport/backend metadata.
+    source: d.source || d.publisher || d.source_system || null,
     access:
       d.access_mode ||
       d.access_shape ||
       (d.local_root ? `Vault · ${d.local_root}` : null) ||
-      (d.backend?.includes("api") ? "API" : "Query engine :8765"),
+      (d.backend?.includes("api") ? "API" : "Through Research Drive"),
     limitations: d.limitations || null,
     partition: partitionParts.length ? partitionParts.join(" · ") : null,
     joinKeys: joinKeys.length ? joinKeys : null,
     vault: d.local_root || d.local_path || d.vault_path || null,
-    use: d.recommended_use || (d.grain ? `Panel at ${d.grain} grain` : null),
+    use: d.recommended_use || (d.grain ? `Panel at ${d.grain} unit of observation` : null),
   };
 }
 

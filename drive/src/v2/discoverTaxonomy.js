@@ -2,7 +2,7 @@
  * Discover result taxonomy (D1 / D1.1).
  *
  * Machine keys → human labels:
- *   local-query-ready      → In Library · Query ready
+ *   local-query-ready      → In Library · Query-ready
  *   local-connected        → In Library · Connected
  *   local-metadata         → In Library · Metadata only
  *   external-discoverable  → External · Available to inspect
@@ -30,15 +30,15 @@ import { candidateKey } from "./candidateKey.js";
 
 export const TAXONOMY = {
   "local-query-ready": {
-    label: "In Library · Query ready",
+    label: "In Library · ready to query",
     possession: "In Library",
-    readiness: "Query ready",
+    readiness: "Ready to query",
     className: "lab",
     group: 1,
     filter: ["in_lab", "query_ready"],
   },
   "local-connected": {
-    label: "In Library · Connected",
+    label: "In Library · connected",
     possession: "In Library",
     readiness: "Connected",
     className: "lab",
@@ -46,7 +46,7 @@ export const TAXONOMY = {
     filter: ["in_lab"],
   },
   "local-metadata": {
-    label: "In Library · Metadata only",
+    label: "In Library · metadata only",
     possession: "In Library",
     readiness: "Metadata only",
     className: "lab",
@@ -54,7 +54,7 @@ export const TAXONOMY = {
     filter: ["in_lab"],
   },
   "external-discoverable": {
-    label: "External · Available to inspect",
+    label: "External · available to inspect",
     possession: "External",
     readiness: "Available to inspect",
     className: "ext",
@@ -62,15 +62,15 @@ export const TAXONOMY = {
     filter: ["external"],
   },
   "external-probed": {
-    label: "External · Probed",
+    label: "External · connection tested",
     possession: "External",
-    readiness: "Probed",
+    readiness: "Connection tested",
     className: "ext",
     group: 3,
     filter: ["external"],
   },
   "external-acquirable": {
-    label: "External · Acquisition available",
+    label: "External · available to collect",
     possession: "External",
     readiness: "Acquisition available",
     className: "ext",
@@ -78,7 +78,7 @@ export const TAXONOMY = {
     filter: ["external"],
   },
   "external-unavailable": {
-    label: "External · Acquisition unavailable",
+    label: "External · collection unavailable",
     possession: "External",
     readiness: "Acquisition unavailable",
     className: "warn",
@@ -86,7 +86,7 @@ export const TAXONOMY = {
     filter: ["external", "needs_access"],
   },
   "licensed-manual": {
-    label: "Licensed / manual access",
+    label: "Licensed · university access or manual upload",
     possession: "Licensed",
     readiness: "Manual access",
     className: "warn",
@@ -103,6 +103,14 @@ function trim(value) {
   return String(value ?? "").trim();
 }
 
+function hasNamedRoute(value) {
+  const values = Array.isArray(value) ? value : [value];
+  return values.some((item) => {
+    const route = lower(item).trim();
+    return Boolean(route) && !["none", "null", "unknown", "unavailable", "n/a", "na", "false"].includes(route);
+  });
+}
+
 const CATALOG_ONLY_ACCESS = new Set([
   "catalog_reference",
   "procurement_catalog",
@@ -112,6 +120,18 @@ const CATALOG_ONLY_ACCESS = new Set([
 /** Lab-owned / registry-local possession. */
 export function isLocalHolding(row, labIds) {
   if (!row || typeof row !== "object") return false;
+  // Access shape is authoritative about possession. Registry references and
+  // live/catalogue connectors frequently carry registry_id/registered and a
+  // local metadata-card path; none of those fields mean the evidence bytes are
+  // held. Check this before the generic registry signals below.
+  const access = lower(row.source_access_mode || row.access_shape || "");
+  const hasMaterializedEvidence = Boolean(
+    row.local_ready ||
+    row.in_vault ||
+    row.materialization?.query_ready === true ||
+    row.materialization?.resolved_path,
+  );
+  if (CATALOG_ONLY_ACCESS.has(access) && !hasMaterializedEvidence) return false;
   const id = row.dataset_id || row.id;
   if (id && labIds?.has?.(id)) return true;
   if (row.local_ready || row.in_vault) return true;
@@ -125,8 +145,6 @@ export function isLocalHolding(row, labIds) {
   // A registry row is not automatically a Library holding. The registry also
   // contains catalogue references, procurement candidates, and live connectors
   // whose local_path points to their metadata card rather than acquired evidence.
-  const access = lower(row.source_access_mode || row.access_shape || "");
-  if (CATALOG_ONLY_ACCESS.has(access)) return false;
   const hasLocalPath = Boolean(row.local_root || row.local_path);
   if (!hasLocalPath) return false;
   if (["derived_internal", "materialized_bulk", "materialized_instant"].includes(access)) {
@@ -253,7 +271,11 @@ export function hasAcquisitionRoute(row) {
   if (!row || typeof row !== "object") return false;
   if (isReferenceOnly(row)) return false;
   if (row.acquisition_available === true || row.collectable === true) return true;
-  if (trim(row.collect_via) || trim(row.source_route)) return true;
+  // Registry search uses the literal sentinel ``collect_via: none`` for a
+  // known object with no acquisition route. Treating any non-empty string as
+  // a route made that row read "Acquisition available" while its route field
+  // rendered blank. Only a named route is authority to offer acquisition.
+  if (hasNamedRoute(row.collect_via) || hasNamedRoute(row.source_route)) return true;
   if (connectorSupportsCollection(row.connector)) return true;
   if (connectorSupportsCollection(row.probe_snapshot?.connector)) return true;
   if (connectorSupportsCollection(row.probe_result?.connector)) return true;
@@ -354,6 +376,8 @@ export function orderDiscoverResults(rows, labIds) {
         : classifyDiscoverResult(row, labIds),
   }));
   decorated.sort((a, b) => {
+    const partial = Number(Boolean(a.row?.partial_fit)) - Number(Boolean(b.row?.partial_fit));
+    if (partial) return partial;
     if (a.classification.group !== b.classification.group) {
       return a.classification.group - b.classification.group;
     }

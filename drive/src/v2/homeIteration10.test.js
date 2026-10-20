@@ -7,6 +7,7 @@ import {
   buildRecentTrail,
   projectRollupFromHealth,
 } from "./homeIteration10.js";
+import { touchRecent } from "./recent.js";
 
 test("pick up prefers recent library asset as primary", () => {
   const { primary, secondary } = buildPickUp({
@@ -35,15 +36,17 @@ test("folder location never stringifies objects as [object Object]", () => {
     jobs: [],
     health: { desk: { jobs: {} } },
   });
-  assert.match(primary.location, /ASIA PANELS|LIBRARY/);
+  assert.equal(primary.location, "Library / asia panels");
   assert.doesNotMatch(primary.location, /object Object/i);
 });
 
 test("health projection lets Home paint headroom before desk/resources", () => {
   const projected = projectRollupFromHealth({
     desk: {
+      brain: "copilot_composer",
       composer_configured: true,
-      composer_model: "default",
+      composer_model: "gpt-5-mini",
+      composer_runtime: { status: "ready", configured: true, verified: true },
       storage_tiers: {
         canonical: { label: "Google Drive vault", quota_tb: 3, used_tb: 0.75, pct: 25 },
         cache: { label: "Transcend bulk cache", used_gb: 100, total_gb: 200, pct: 50, mounted: true },
@@ -54,6 +57,9 @@ test("health projection lets Home paint headroom before desk/resources", () => {
   assert.equal(slots[0].id, "vault");
   assert.equal(slots[1].id, "cache");
   assert.equal(slots[2].id, "cursor");
+  assert.equal(slots[2].name, "Copilot Ask");
+  assert.match(slots[2].headroom, /Copilot pool · confirmed live/);
+  assert.doesNotMatch(slots[2].headroom, /gpt-5-mini/);
 });
 
 test("resource headroom prefers cache + Cursor Ask over NVMe", () => {
@@ -81,16 +87,53 @@ test("resource headroom prefers cache + Cursor Ask over NVMe", () => {
   assert.ok(!slots.some((s) => s.id === "hot"));
 });
 
-test("pending approval becomes secondary decision, not a separate Attention page", () => {
-  const { secondary, pending } = buildPickUp({
+test("live health keeps Home on Copilot when the slower resources rollup lacks provider identity", () => {
+  const slots = buildResourceHeadroom(
+    {
+      usage: {
+        vault: { cap_tb: 3, observed: false },
+        cache: { used_gb: 100, total_gb: 200, pct: 50 },
+      },
+      hero: { composer: { configured: true, model: "gpt-5-mini" } },
+      ai: { composer_configured: true, composer_turns_today: 6, composer_model: "gpt-5-mini" },
+    },
+    {
+      desk: {
+        brain: "copilot_composer",
+        composer_configured: true,
+        composer_model: "gpt-5-mini",
+        composer_runtime: { status: "ready", configured: true, verified: true },
+      },
+    },
+  );
+  assert.equal(slots[2].name, "Copilot Ask");
+  assert.match(slots[2].headroom, /Copilot pool · confirmed live/);
+  assert.doesNotMatch(slots[2].headroom, /gpt-5-mini/);
+});
+
+test("pending approval becomes the primary decision, not a separate Attention page", () => {
+  const { primary, secondary, pending } = buildPickUp({
     datasets: [{ dataset_id: "a", name: "Alpha" }],
     jobs: [{ id: "j1", status: "pending_approval", plan: { title: "MOPS statements" } }],
     health: { desk: { jobs: { pending_approval: 1 } } },
   });
   assert.equal(pending, 1);
-  assert.equal(secondary.kind, "decision");
-  assert.equal(secondary.action, "review");
-  assert.match(secondary.title, /MOPS/);
+  assert.equal(primary.kind, "decision");
+  assert.equal(primary.action, "review");
+  assert.match(primary.title, /MOPS/);
+  assert.equal(primary.location, "History");
+  assert.equal(secondary.kind, "library_asset");
+});
+
+test("an internal synthesis-block marker becomes a researcher-facing primary decision", () => {
+  const { primary, secondary } = buildPickUp({
+    datasets: [{ dataset_id: "a", name: "Alpha" }],
+    jobs: [{ id: "j1", status: "pending_approval", title: "synth block" }],
+    health: { desk: { jobs: { pending_approval: 1 } } },
+  });
+  assert.equal(primary.kind, "decision");
+  assert.equal(primary.title, "Synthesis proposal awaiting review");
+  assert.equal(secondary.kind, "library_asset");
 });
 
 test("resource headroom caps at three showcase slots", () => {
@@ -118,6 +161,16 @@ test("recommended evidence uses profile procurement recommendations", () => {
   });
   assert.ok(rows.length <= 2);
   assert.ok(rows[0].badge);
+});
+
+test("legacy profile wording is readable without changing its search intent", () => {
+  const [row] = buildRecommendedEvidence({
+    procurement_recommendations: [
+      { prompt: "Find data via custom procure", source_route: "datacite", search_query: "USDT" },
+    ],
+  });
+  assert.equal(row.title, "Find data via custom collection");
+  assert.equal(row.query, "USDT");
 });
 
 test("recent trail prefers durable jobs", () => {
@@ -161,4 +214,86 @@ test("recent trail fences triage fixture noise and collapses duplicates", () => 
   assert.equal(trail.length, 1);
   assert.match(trail[0].title, /TWSE/);
   assert.equal(trail[0].kind, "COLLECTION COMPLETED");
+});
+
+test("recent trail keeps host verification probes out of researcher work", () => {
+  const trail = buildRecentTrail({
+    jobs: [
+      {
+        id: "probe-1",
+        status: "completed",
+        title: "Disposable worker verification probe",
+        updated_at: "2026-08-24T16:05:00Z",
+      },
+      {
+        id: "research-1",
+        status: "completed",
+        title: "BAYC OpenSea sales and floor history",
+        updated_at: "2026-08-24T16:00:00Z",
+      },
+    ],
+    datasets: [],
+  });
+  assert.equal(trail.length, 1);
+  assert.match(trail[0].title, /BAYC/);
+});
+
+test("recent trail translates worker exceptions instead of exposing serialized job payloads", () => {
+  const trail = buildRecentTrail({
+    jobs: [
+      {
+        id: "failed-figshare",
+        status: "failed",
+        title: "Launch acceptance Figshare acquisition",
+        error: 'RuntimeError: remote collect exited 1: {"ok":false,"job_id":"discover-submit:abc","items":[{"status":404,"error":"HTTP 404"}]}',
+        updated_at: "2026-09-09T17:32:52Z",
+      },
+    ],
+    datasets: [],
+  });
+
+  assert.equal(trail.length, 1);
+  assert.equal(trail[0].kind, "COLLECTION FAILED");
+  assert.equal(trail[0].summary, "The source file was not available; review the recorded route in History.");
+  assert.doesNotMatch(trail[0].summary, /RuntimeError|job_id|\{|\}/);
+});
+
+test("a failed collection that a later run completed is not a needs-you item", async () => {
+  const { failureSuperseded } = await import("./homeIteration10.js");
+  const failed = { id: "a", status: "failed", updated_at: "2026-09-25T14:44:32Z", plan: { task_id: "crypto_majors_daily_10y" } };
+  const later = { id: "b", status: "completed", updated_at: "2026-09-26T01:00:00Z", plan: { task_id: "crypto_majors_daily_10y" } };
+  const other = { id: "c", status: "completed", updated_at: "2026-09-27T01:00:00Z", plan: { task_id: "something_else" } };
+  assert.equal(failureSuperseded(failed, [failed, later]), true);
+  assert.equal(failureSuperseded(failed, [failed, other]), false);
+  assert.equal(failureSuperseded({ ...failed, updated_at: "2026-09-28T00:00:00Z" }, [failed, later]), false);
+});
+
+test("with nothing opened, the pick-up leads with the best suggestion, marked as a start", () => {
+  const datasets = [
+    { dataset_id: "gdelt", name: "News panel", analysis_readiness: "instant" },
+    { dataset_id: "ff", name: "Factors", analysis_readiness: "instant" },
+    { dataset_id: "cpi", name: "Prices", analysis_readiness: "instant" },
+  ];
+  const { primary, secondary } = buildPickUp({ datasets, suggested: [datasets[1], datasets[2], { dataset_id: "not-held", name: "Ghost" }] });
+  assert.equal(primary.dataset.dataset_id, "ff");
+  assert.equal(primary.start, true);
+  assert.equal(secondary.dataset.dataset_id, "cpi");
+  assert.equal(secondary.start, true);
+});
+
+test("a dataset the researcher opened still comes first and is a continuation", () => {
+  const store = new Map();
+  globalThis.localStorage = { getItem: (key) => store.get(key) ?? null, setItem: (key, value) => store.set(key, value), removeItem: (key) => store.delete(key) };
+  try {
+    const datasets = [
+      { dataset_id: "ff", name: "Factors", analysis_readiness: "instant" },
+      { dataset_id: "gdelt", name: "News panel", analysis_readiness: "instant" },
+    ];
+    touchRecent("gdelt");
+    const { primary } = buildPickUp({ datasets, suggested: [datasets[0]] });
+    assert.equal(primary.dataset.dataset_id, "gdelt");
+    assert.equal(primary.start, false);
+  } finally {
+    delete globalThis.localStorage;
+  }
 });

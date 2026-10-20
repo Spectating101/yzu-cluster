@@ -144,3 +144,32 @@ describe("deskIntegration", () => {
     assert.equal(log[2].text, "Searching the vault…");
   });
 });
+
+describe("operations self-checks", () => {
+  it("turns failing checks into header chips, bad first", () => {
+    const chips = buildDeskIntegrationChips({
+      status: "ok",
+      desk: {
+        operations: {
+          checks: [
+            { id: "drive_auth", ok: true, tone: "ok", label: "Drive connected" },
+            { id: "worker_code", ok: false, tone: "warn", label: "Job worker on older code", detail: "run desk worker" },
+            { id: "jobs_stalled", ok: false, tone: "bad", label: "2 approved jobs not starting" },
+          ],
+        },
+      },
+    });
+    assert.deepEqual(chips.map((c) => c.label), ["2 approved jobs not starting", "Job worker on older code"]);
+    assert.equal(chips[1].detail, "run desk worker");
+  });
+});
+
+describe("unverified assistant after a restart", () => {
+  it("raises no notice when the desk is otherwise healthy", () => {
+    const chips = buildDeskIntegrationChips({
+      status: "ok",
+      desk: { composer_configured: true, composer_runtime: { status: "unverified", configured: true, verified: false } },
+    });
+    assert.deepEqual(chips, []);
+  });
+});

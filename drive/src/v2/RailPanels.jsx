@@ -1,9 +1,11 @@
+import { AskUnavailableNote } from "@/v2/askNote";
+import { collectionStatusLabel } from "./procurementJobs.js";
 import { useEffect, useRef, useState } from "react";
 import { fetchLiveIdentity } from "@/v2/api";
 import { DiscoverEvaluationSurface } from "@/v2/DiscoverEvaluationSurface";
 import { displayName } from "@/v2/datasetMeta";
 import { EmptyRailState } from "@/v2/EmptyRailState";
-import { identityLookupFromRow } from "@/v2/liveIdentity";
+import { liveIdentityReadinessLabel, identityLookupFromRow } from "@/v2/liveIdentity";
 import {
   RailDecisionSummary,
   RailEntityHeader,
@@ -14,6 +16,8 @@ import {
 } from "@/v2/RailFrame";
 import { DetailPanel } from "@/v2/DetailPanel";
 import { handleEnterToSubmit } from "@/v2/enterToSubmit";
+import { DISCOVER_TAB, tabLabel } from "@/v2/tabIdentity";
+import { storageUsed } from "./storageFormat.js";
 
 function fmtGiB(gib) {
   if (gib == null) return "—";
@@ -51,8 +55,8 @@ function resourceRailName(row) {
 }
 
 function resourceRailDescription(row) {
-  if (row.group) return "Source route group";
-  if (row.kind === "source") return "Source route";
+  if (row.group) return "Collection methods";
+  if (row.kind === "source") return "How it’s collected";
   if (row.kind === "metered") return "Account limit";
   if (row.kind === "usage") return "Storage";
   return row.section || row.kind || "Resource";
@@ -71,7 +75,7 @@ function resourceRailUse(row) {
   if (row.key === "source-market-filings") return "Official market data and filings";
   if (row.key === "source-research-catalogs") return "Academic metadata and dataset APIs";
   if (row.key === "route-discovery-intake") return "Candidate discovery and URL classification";
-  if (row.key === "source-public-web") return "Probe and browser collect";
+  if (row.key === "source-public-web") return "Test connections and collect through the browser";
   if (row.key === "source-remote-tables") return "Dry-run protected remote query";
   if (row.key === "source-sec_edgar") return "Company filings";
   if (row.key === "source-twse") return "Taiwan market data";
@@ -88,8 +92,8 @@ function resourceRailAccess(row) {
   if (row.key === "source-gdelt") return "Queue to collect";
   if (row.key === "source-market-filings") return "Official feeds and queue scripts";
   if (row.key === "source-research-catalogs") return "DOI lookup and dataset import";
-  if (row.key === "route-discovery-intake") return "Search and probe before collect";
-  if (row.key === "source-public-web") return "Probe, then collect";
+  if (row.key === "route-discovery-intake") return "Search and test connections before collecting";
+  if (row.key === "source-public-web") return "Test the connection, then collect";
   if (row.key === "source-remote-tables") return "Query with dry-run limit";
   if (row.key === "source-sec_edgar") return "Download queue";
   if (row.key === "source-twse") return "Download queue";
@@ -98,7 +102,7 @@ function resourceRailAccess(row) {
   if (row.key === "source-bigquery") return "Remote query";
   if (row.key === "source-datacite") return "DOI lookup";
   if (row.key === "source-huggingface") return "Dataset import";
-  if (row.key === "source-web_generic") return "Probe, then collect";
+  if (row.key === "source-web_generic") return "Test the connection, then collect";
   return row.collect_via || row.routes || row.metric || "Available";
 }
 
@@ -145,55 +149,68 @@ const RAIL_ACTION_LABELS = {
   bq_read: "BQ read",
 };
 
+const HOME_ITEM_KINDS = {
+  decision: "A request waiting for your approval",
+  synthesis_thread: "A Synthesis build",
+  discover_work: "A data collection",
+  library_asset: "A dataset in your Library",
+};
+
 const PAGE_RAIL_COPY = {
   home: {
-    title: "Research Drive",
-    desc: "Start from the Library, missing-data search, or resource safety checks.",
+    title: "Getting around",
+    desc: "Browsing works without an account; Ask, requests and saved builds need one.",
     fields: [
-      ["Use this page", "See what needs attention now"],
-      ["Primary move", "Open Library or Discover"],
-      ["When blocked", "Check Resources for approvals, limits, or credentials"],
+      ["Library", "Preview, query and download datasets"],
+      ["Discover", "Check what the Library covers and where to get the rest"],
+      ["Synthesis", "Build a new dataset from Library data"],
+      ["Ask", "A research assistant for signed-in researchers"],
     ],
   },
   library: {
     title: "Library guide",
-    desc: "Your working data vault: folders, registered datasets, query readiness, and procurement memory.",
+    desc: "Your Library: folders, saved datasets, readiness checks, and collection history.",
     fields: [
-      ["Use this page", "Find data you already have"],
-      ["Primary move", "Select a dataset or branch"],
-      ["When missing", "Add URL / DOI or procure missing data"],
-      ["Trust cue", "Rows should show readiness, source, and destination"],
+      ["Find", "Search, or browse a research topic"],
+      ["Open", "Select a dataset to preview rows and download"],
+      ["Missing data", "Add a URL or DOI, or look for it in Discover"],
+      ["Ready to query", "You can preview and download it now"],
     ],
   },
   synthesis: {
     title: "Synthesis studio",
-    desc: "Build a reusable research output from owned Library assets.",
-    // VC-6: the rail describes the objective-first construction lifecycle, not
-    // the retired blueprint/custom-pair picker.
+    desc: "Select a build to review its evidence, review status, and Library verification.",
     fields: [
-      ["Start", "Describe the construct you need"],
-      ["Ask", "Clarifies meaning and required evidence"],
-      ["Ground", "Checks Library inputs and defensible proxies"],
-      ["Review", "You approve the method before execution"],
-      ["Output", "Archive, registration, and readiness remain separate"],
+      ["Current state", "No build selected"],
+      ["Next", "Start a saved build or open a method saved to Library"],
+      ["Boundary", "Methods, execution, archiving, saving to Library, and readiness are checked separately"],
     ],
   },
   profile: {
-    title: "Profile context",
-    desc: "Faculty profile controls ranking, procurement hints, and research-area context.",
+    title: "Your research profile",
+    desc: "Your topic, methods and works help Discover and Ask suggest relevant data.",
     fields: [
-      ["Used for", "Discover ranking"],
-      ["Also affects", "Procurement chat"],
-      ["Next", "Update email in Settings"],
+      ["Yours to edit", "Nothing here is shared as fact without your confirmation"],
+      ["Used by", "Discover suggestions and Ask"],
+      ["Not used for", "Access, approvals or collection permissions"],
     ],
   },
   settings: {
-    title: "Desk setup",
-    desc: "Credentials and display preferences for the research drive.",
+    title: "Your settings",
+    desc: "Your account, and how Research Drive behaves in this browser.",
     fields: [
-      ["Account", "Faculty email"],
-      ["Credentials", "BQ, GDrive, DataCite"],
-      ["Display", "Default tab and rail mode"],
+      ["Account", "Sign in, sign out, recover access"],
+      ["Assistant", "How many Ask requests you have left"],
+      ["System status", "Under technical details"],
+    ],
+  },
+  resources: {
+    title: "Your resources",
+    desc: "What you can use, what you have asked for, and how collection is approved.",
+    fields: [
+      ["Assistant", "Ask uses your hourly allowance; coverage checks and downloads are open to everyone"],
+      ["Requests", "Each collection waits for a research operator's approval"],
+      ["Library", "Collected data returns to the shared Library with its source"],
     ],
   },
 };
@@ -220,7 +237,7 @@ function LibraryIntakeRailPanel({ object, onSubmitUpload, onSubmitUrl, onSubmitP
         <RailEntityHeader
           id={object.id}
           title="Add URL / DOI"
-          description="Probe a public source, collect metadata, and hand the acquisition plan to Ask."
+          description="Test a public source connection, collect metadata, and send the collection plan to Ask."
           pills={<span className="rd-v2-pill ext">Intake</span>}
         />
         <div className="rd-v2-rail-scroll">
@@ -265,7 +282,7 @@ function LibraryIntakeRailPanel({ object, onSubmitUpload, onSubmitUrl, onSubmitP
         <RailEntityHeader
           id={object.id}
           title="Procure branch"
-          description="Use the current Library branch as the destination and ask the desk to search, probe, and propose acquisition steps."
+          description="Use this Library folder as the destination. Ask Research Drive to search, test connections, and propose collection steps."
           pills={<span className="rd-v2-pill ext">Procure</span>}
         />
         <div className="rd-v2-rail-scroll">
@@ -273,7 +290,7 @@ function LibraryIntakeRailPanel({ object, onSubmitUpload, onSubmitUrl, onSubmitP
             <RailField label="Destination" value={destination} />
             <RailField label="Path" value={object.path} />
             <RailField label="Known data" value={pluralCount(object.counts?.datasets, "dataset")} />
-            <RailField label="Query-ready" value={String(object.counts?.queryReady ?? 0)} />
+            <RailField label="Ready to query" value={String(object.counts?.queryReady ?? 0)} />
           </RailFieldGrid>
         </div>
         <RailStickyFooter>
@@ -319,7 +336,7 @@ function LibraryIntakeRailPanel({ object, onSubmitUpload, onSubmitUrl, onSubmitP
             Choose files
           </button>
         </div>
-        <div className="rd-v2-rail-file-list" aria-label="Selected files">
+        <div className="rd-v2-rail-file-list" role="group" aria-label="Selected files">
           {names.length ? names.map((name) => <span key={name}>{name}</span>) : <p>No files selected yet.</p>}
         </div>
       </div>
@@ -362,27 +379,24 @@ export function LibraryObjectRailPanel({
   if (!folder) return null;
   const counts = folder.counts || {};
   const root = !folder.folderId;
-  const desc = root
-    ? "Your owned data estate and acquisition memory."
-    : folder.note || "Datasets and research assets organized in this collection.";
 
   return (
     <RailFrame>
-      <RailEntityHeader
-        title={folder.title}
-        description={desc}
-        pills={<span className="rd-v2-pill lab">{root ? "Library" : "Collection"}</span>}
-      />
       <div className="rd-v2-rail-scroll rd-v2-library-folder-inspector">
         <section className="rd-v2-library-folder-summary">
           <p className="rd-v2-rail-section-label">{root ? "In this library" : "In this collection"}</p>
-          <h3>{pluralCount(counts.datasets, "dataset")}</h3>
+          <h3>{pluralCount(counts.datasets, root ? "asset" : "dataset")}</h3>
           <div className="rd-v2-library-folder-readiness">
-            {counts.queryReady > 0 ? <span><b>{counts.queryReady}</b> query ready</span> : null}
+            {counts.queryReady > 0 ? <span><b>{counts.queryReady}</b> ready to query</span> : null}
             {counts.connected > 0 ? <span><b>{counts.connected}</b> connected</span> : null}
             {counts.metadataOnly > 0 ? <span><b>{counts.metadataOnly}</b> metadata only</span> : null}
             {counts.unknown > 0 ? <span><b>{counts.unknown}</b> readiness unknown</span> : null}
           </div>
+          {root && counts.references > 0 ? (
+            <p className="rd-v2-rail-note">
+              {pluralCount(counts.references, "known source")} not yet collected; find {counts.references === 1 ? "it" : "them"} in Discover.
+            </p>
+          ) : null}
         </section>
 
         <section className="rd-v2-library-folder-add">
@@ -414,6 +428,32 @@ export function LibraryObjectRailPanel({
 
 export function PageRailPanel({ page = "home", onAskAbout }) {
   const copy = PAGE_RAIL_COPY[page] || PAGE_RAIL_COPY.home;
+
+  if (page === "library") {
+    return (
+      <RailFrame>
+        <div className="rd-v2-rail-scroll rd-v2-library-page-guide">
+          <section className="rd-v2-library-folder-summary">
+            <p className="rd-v2-rail-section-label">Find data in your Library</p>
+            <p className="rd-v2-rail-note">
+              Search by title, field, source, coverage, or research context, then inspect the result in place.
+            </p>
+          </section>
+          <RailFieldGrid>
+            <RailField label="Search" value="Title · field · source · coverage · context" />
+            <RailField label="Inspect" value="Preview, readiness, provenance, and Ask stay one selection away" />
+            <RailField label="Missing" value="Ask Library or widen the search in Discover" />
+          </RailFieldGrid>
+        </div>
+        <RailStickyFooter>
+          {onAskAbout ? <button type="button" className="rd-v2-btn sm" onClick={() => onAskAbout()}>
+            Ask Library →
+          </button> : <AskUnavailableNote className="rd-v2-rail-note" subject="your Library" />}
+        </RailStickyFooter>
+      </RailFrame>
+    );
+  }
+
   return (
     <RailFrame>
       <RailEntityHeader id={page} title={copy.title} description={copy.desc} />
@@ -425,9 +465,9 @@ export function PageRailPanel({ page = "home", onAskAbout }) {
         </RailFieldGrid>
       </div>
       <RailStickyFooter>
-        <button type="button" className="rd-v2-btn sm" onClick={() => onAskAbout?.()}>
+        {onAskAbout ? <button type="button" className="rd-v2-btn sm" onClick={() => onAskAbout()}>
           Ask about this page →
-        </button>
+        </button> : <AskUnavailableNote className="rd-v2-rail-note" subject="this page" />}
       </RailStickyFooter>
     </RailFrame>
   );
@@ -438,81 +478,24 @@ export function HomeAttentionRailPanel({ object, onAskAbout }) {
   return (
     <RailFrame>
       <RailEntityHeader
-        id={row.id || object?.id || "home-attention"}
-        title={row.title || object?.title || "Home attention"}
-        description={row.detail || "Selected work from the Home attention queue."}
+        id="Pick up"
+        title={row.title || object?.title || "Pick up"}
+        description={row.detail || row.stateSummary || "The work Home suggests you return to first."}
         pills={row.metric ? <span className={`rd-v2-pill${row.warn ? " warn" : ""}`}>{row.metric}</span> : null}
       />
       <div className="rd-v2-rail-scroll">
         <RailFieldGrid>
-          <RailField label="Type" value={row.label || row.kind || object?.kind} />
-          <RailField label="Next" value={row.next || "Review"} />
-          <RailField label="Surface" value={row.tab === "browse" ? "Discover" : row.tab || "home"} />
+          <RailField label="What" value={HOME_ITEM_KINDS[row.label || row.kind || object?.kind] || row.label || row.kind || object?.kind} />
+          {row.pill ? <RailField label="Stage" value={row.pill} /> : null}
+          <RailField label="Next" value={row.next || (row.action === "continue" ? "Continue where you left off" : "Review")} />
+          <RailField label="Where" value={tabLabel(row.tab || "home")} />
           {row.resourceRow?.job?.id ? <RailField label="Job ID" value={row.resourceRow.job.id} mono /> : null}
         </RailFieldGrid>
       </div>
       <RailStickyFooter>
-        <button type="button" className="rd-v2-btn sm" onClick={() => onAskAbout?.(object)}>
+        {onAskAbout ? <button type="button" className="rd-v2-btn sm" onClick={() => onAskAbout(object)}>
           Ask about this →
-        </button>
-      </RailStickyFooter>
-    </RailFrame>
-  );
-}
-
-export function ClusterRailPanel({ compare, onAskAbout }) {
-  if (!compare?.a || !compare?.b) {
-    return (
-      <RailFrame>
-        <div className="rd-v2-rail-scroll">
-          <EmptyRailState
-            title="No compare selected"
-            hint="Pick two datasets in Cluster to inspect join-key overlap."
-          />
-        </div>
-      </RailFrame>
-    );
-  }
-
-  const titleA = displayName(compare.a);
-  const titleB = displayName(compare.b);
-  const overlapText = compare.shared?.length
-    ? `${compare.shared.join(" · ")}${compare.grainMatch ? " · matching grain" : ""}`
-    : "Unknown overlap — no shared join keys";
-
-  return (
-    <RailFrame>
-      <RailEntityHeader
-        id={`${compare.a.dataset_id} × ${compare.b.dataset_id}`}
-        title="Overlap"
-        description={`${titleA} compared with ${titleB}`}
-        pills={
-          compare.pct != null ? (
-            <span className={`rd-v2-pill${compare.pct >= 50 ? "" : compare.pct > 0 ? " warn" : " muted"}`}>
-              {compare.pct}% key overlap
-            </span>
-          ) : null
-        }
-      />
-      <div className="rd-v2-rail-scroll">
-        <RailFieldGrid>
-          <RailField label="Overlap" value={overlapText} />
-          <RailField label="Shared keys" value={(compare.shared || []).join(" · ") || "—"} />
-          <RailField
-            label="Only A"
-            value={(compare.onlyA || []).slice(0, 5).join(" · ") || "—"}
-          />
-          <RailField
-            label="Only B"
-            value={(compare.onlyB || []).slice(0, 5).join(" · ") || "—"}
-          />
-          {compare.join ? <RailField label="Join on" value={compare.join} mono /> : null}
-        </RailFieldGrid>
-      </div>
-      <RailStickyFooter>
-        <button type="button" className="rd-v2-btn sm" onClick={onAskAbout}>
-          Ask about overlap →
-        </button>
+        </button> : <AskUnavailableNote className="rd-v2-rail-note" subject="this item" />}
       </RailStickyFooter>
     </RailFrame>
   );
@@ -569,7 +552,7 @@ export function ResourcesRailPanel({ row, rollup, onApproveJob, onRefresh, onVie
             <RailField label="Activity" value="Open the feed for approvals, asks, and metered use" />
             <RailField label="Routes" value={sourceCount != null ? `${sourceCount} configured` : "Configured procurement routes"} />
             <RailField label="Workers" value={`${workers.busy ?? "—"}/${workers.total ?? "—"} busy`} />
-            <RailField label="Vault" value={vault.used_tb != null ? `${vault.used_tb}/${vault.cap_tb ?? "?"} TB` : "quota pending"} />
+            <RailField label="Drive archive" value={vault.used_tb != null ? storageUsed(vault.used_tb, vault.cap_tb, "TB") : "Quota pending"} />
           </RailFieldGrid>
         </div>
         <RailStickyFooter>
@@ -602,12 +585,12 @@ export function ResourcesRailPanel({ row, rollup, onApproveJob, onRefresh, onVie
               <>
                 <RailField
                   label="Readiness"
-                  value={liveIdentity.synthesis_expectation?.badge || liveIdentity.readiness}
+                  value={liveIdentityReadinessLabel(liveIdentity)}
                 />
                 <RailField label="Worker" value={liveIdentity.worker_id || "—"} mono />
                 <RailField label="Run" value={liveIdentity.run_id || "—"} mono />
                 <RailField label="Job" value={liveIdentity.job_id || "—"} mono />
-                <RailField label="Lifecycle" value={liveIdentity.lifecycle || "—"} />
+                <RailField label="Request history" value={liveIdentity.lifecycle || "—"} />
               </>
             ) : null}
           </RailFieldGrid>
@@ -690,12 +673,12 @@ export function ResourcesRailPanel({ row, rollup, onApproveJob, onRefresh, onVie
   if (row.kind === "capacity") {
     return (
       <RailFrame>
-        <RailEntityHeader id={row.key} title={row.label} description="Desk capacity" />
+        <RailEntityHeader id={row.key} title={row.label} description="Research Drive capacity" />
         <div className="rd-v2-rail-scroll">
           <RailFieldGrid>
             <RailField label="Status" value={row.metric} />
             <RailField label="Detail" value={row.sublabel || "—"} />
-            {row.detail?.mcp != null ? <RailField label="MCP tools" value={String(row.detail.mcp)} /> : null}
+            {row.detail?.mcp != null ? <RailField label="Research tools" value={String(row.detail.mcp)} /> : null}
             {row.progress != null ? <RailField label="Used" value={`${row.progress}%`} /> : null}
           </RailFieldGrid>
         </div>
@@ -710,7 +693,7 @@ export function ResourcesRailPanel({ row, rollup, onApproveJob, onRefresh, onVie
 
   const shortLabel = resourceRailName(row);
   const fallbackStatus = row.job?.status
-    ? String(row.job.status).replace(/_/g, " ")
+    ? collectionStatusLabel(row.job.status)
     : row.warn
       ? "Needs review"
       : row.ok !== false
@@ -785,7 +768,7 @@ export function ResourcesRailPanel({ row, rollup, onApproveJob, onRefresh, onVie
           row.job?.status === "pending_approval"
             ? "Approve or reject the job"
             : row.kind === "source"
-              ? "Use Discover to search or probe"
+              ? "Use Discover to search or test connections"
               : row.kind === "metered"
                 ? "View activity before heavy use"
                 : row.kind === "usage"
@@ -801,14 +784,14 @@ export function ResourcesRailPanel({ row, rollup, onApproveJob, onRefresh, onVie
           {row.job ? (
             <>
               <RailField label="Job ID" value={row.job.id} mono />
-              <RailField label="Job status" value={row.job.status} />
+              <RailField label="Job status" value={collectionStatusLabel(row.job.status)} />
             </>
           ) : null}
           {liveIdentity ? (
             <>
               <RailField
                 label="Readiness"
-                value={liveIdentity.synthesis_expectation?.badge || liveIdentity.readiness}
+                value={liveIdentityReadinessLabel(liveIdentity)}
               />
               <RailField label="Worker" value={liveIdentity.worker_id || "—"} mono />
               <RailField label="Run" value={liveIdentity.run_id || "—"} mono />

@@ -3,18 +3,18 @@ import { describe, it } from "node:test";
 import {
   groupDiscoverBrowseRows,
   interpretEvidenceNeed,
-  splitBestFitAndOthers,
 } from "./discoverComposition.js";
 import {
   hasSpecificDiscoverRoute,
   meaningfulDiscoverTerms,
   normalizeDiscoverText,
 } from "./discoverQuerySpecificity.js";
+import { discoverSearchOutcomeUnknown, shouldAppendDiscoverPaint } from "./discoverResultPaint.js";
 
 describe("groupDiscoverBrowseRows", () => {
   it("buckets by taxonomy group into lab / external / needs access", () => {
     const groups = groupDiscoverBrowseRows([
-      { title: "Lab A", discover_taxonomy: { key: "local-query-ready", group: 1, label: "In Library · Query ready" } },
+      { title: "Lab A", discover_taxonomy: { key: "local-query-ready", group: 1, label: "In Library · Query-ready" } },
       { title: "Ext B", discover_taxonomy: { key: "external-acquirable", group: 3, label: "External · Acquisition available" } },
       { title: "Lic C", discover_taxonomy: { key: "licensed-manual", group: 4, label: "Licensed / manual access" } },
     ]);
@@ -65,14 +65,55 @@ describe("Discover query specificity", () => {
   });
 });
 
-describe("splitBestFitAndOthers", () => {
-  it("promotes first ranked row as Best fit", () => {
-    const { bestFit, others, total } = splitBestFitAndOthers([{ title: "A" }, { title: "B" }, { title: "C" }]);
-    assert.equal(bestFit.title, "A");
-    assert.deepEqual(
-      others.map((r) => r.title),
-      ["B", "C"],
-    );
-    assert.equal(total, 3);
+it("a research brief names the subject, not the request framing", () => {
+  // "Regarding" was rendered as the leading research-object chip for
+  // "i need dataset regarding forest fire and economic changes", which is also
+  // how a paper about knowledge transfer scored as a forest-fire match.
+  const brief = interpretEvidenceNeed(
+    "i need dataset regarding forest fire and economic changes",
+  );
+  assert.deepEqual(brief.chips, ["Forest", "Fire", "Economic", "Changes"]);
+  assert.equal(brief.overflow, 0);
+});
+
+it("framing verbs never survive into the interpreted tokens", () => {
+  const brief = interpretEvidenceNeed(
+    "please show me any datasets concerning wildfire smoke exposure",
+  );
+  const lowered = brief.tokens.map((t) => t.toLowerCase());
+  for (const word of ["please", "show", "any", "concerning"]) {
+    assert.ok(!lowered.includes(word), `${word} leaked into the brief`);
+  }
+  assert.ok(lowered.includes("wildfire"), "subject token dropped");
+});
+
+describe("progressive Discover result paint", () => {
+  it("preserves an already-painted field during a later leg of the same query", () => {
+    assert.equal(shouldAppendDiscoverPaint({ sameQuery: true, currentCount: 12 }), true);
+  });
+
+  it("replaces the prior field for a genuinely new query", () => {
+    assert.equal(shouldAppendDiscoverPaint({ sameQuery: false, currentCount: 12 }), false);
+  });
+
+  it("keeps explicit widening additive before the first field count settles", () => {
+    assert.equal(shouldAppendDiscoverPaint({ append: true, currentCount: 0 }), true);
+  });
+
+  it("does not turn one failed search leg plus an empty leg into a proven miss", () => {
+    assert.equal(discoverSearchOutcomeUnknown({ resultCount: 0, libraryFailed: true }), true);
+    assert.equal(discoverSearchOutcomeUnknown({ resultCount: 0, routesFailed: true }), true);
+  });
+
+  it("keeps a partial result field usable when another search leg fails", () => {
+    assert.equal(discoverSearchOutcomeUnknown({ resultCount: 1, libraryFailed: true }), false);
+    assert.equal(discoverSearchOutcomeUnknown({ resultCount: 0 }), false);
+  });
+});
+
+describe("interpretEvidenceNeed question words", () => {
+  it("keeps evidence terms and drops question scaffolding", () => {
+    const { tokens } = interpretEvidenceNeed("Did bitcoin volatility rise when stablecoins de-pegged?");
+    assert.deepEqual(tokens, ["Bitcoin", "Volatility", "Stablecoins", "De-pegged"]);
   });
 });

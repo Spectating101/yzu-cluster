@@ -15,6 +15,10 @@ export function discoverIntentCandidate(row = {}, probe = null) {
     candidate_key: candidateKey(row),
     dataset_id: text(row.dataset_id),
     source_id: text(row.source_id),
+    provider: text(row.provider),
+    kind: text(row.kind || row.result_kind),
+    doi: text(row.doi),
+    external_id: text(row.external_id),
     connector_id: text(
       connector.connector_id ||
       connector.id ||
@@ -62,6 +66,51 @@ export function proposalFromDiscoverCandidate(candidate = {}) {
     reason: "Candidate identity and connector route are recorded; unknowns remain explicit.",
     routes: [cleanRoute],
     recommended_route_id: cleanRoute.id,
+  };
+}
+
+function primitiveLabel(value) {
+  const key = text(value);
+  if (key === "http_manifest") return "HTTP acquisition";
+  if (key === "scraper_run") return "Browser acquisition";
+  if (key === "source_probe") return "Connection test";
+  return key.replaceAll("_", " ");
+}
+
+/**
+ * Normalize the backend procurement compiler summary for a compact researcher-facing surface.
+ * No summary is synthesized when the backend did not compile a route.
+ */
+export function procurementEngineeringSummary(route = {}) {
+  const execution = route?.collect_plan?.cluster_execution;
+  const summary = execution?.engineering_summary;
+  if (!summary || summary.status !== "compiled") return null;
+
+  const capabilities = Array.isArray(summary.required_capabilities)
+    ? summary.required_capabilities.map(text).filter(Boolean)
+    : [];
+  const preflight = text(summary.preflight, "ready");
+  const resourceBasis = text(summary.resource_basis, "baseline_only");
+  const parallelism = Number(summary.parallelism_hint);
+
+  return {
+    status: "compiled",
+    primitive: text(summary.primitive),
+    primitiveLabel: primitiveLabel(summary.primitive) || "Acquisition plan",
+    capabilities,
+    capabilityLabel: capabilities.length ? capabilities.join(" + ") : "capability not recorded",
+    placementLabel: summary.placement === "runtime" ? "runtime placement" : text(summary.placement, "placement unrecorded"),
+    sizingLabel: resourceBasis === "bounded" ? "sample-based sizing" : "baseline sizing",
+    preflight,
+    preflightLabel:
+      preflight === "required"
+        ? "preflight required"
+        : preflight === "recommended"
+          ? "preflight recommended"
+          : "preflight ready",
+    parallelismLabel: Number.isFinite(parallelism) && parallelism > 1 ? `up to ${parallelism} parallel claims` : "single claim",
+    postAcquisitionReassessment: Boolean(summary.post_acquisition_reassessment),
+    contractHash: text(execution.contract_hash),
   };
 }
 

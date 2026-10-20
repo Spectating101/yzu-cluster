@@ -2,11 +2,19 @@
  * Home Iteration 10 projection helpers — docs/HOME_FULL_SCALE_FREEZE_2026-07-16.md
  */
 
+import { storageFree, storageUsed } from "./storageFormat.js";
 import { displayName, isReceiptOnlyAsset, statusPill } from "./datasetMeta.js";
 import { buildHomeBriefing } from "./homeBriefing.js";
 import { buildLab } from "./profileViewModel.js";
 import { recentDatasets } from "./recent.js";
-import { isHistoryNoise } from "./historyNoiseFence.js";
+import { isHistoryNoise, isSystemVerificationTraffic } from "./historyNoiseFence.js";
+import { synthesisJourneyStage } from "./synthesisLifecycle.js";
+import { waitingAge } from "./historyAge.js";
+import {
+  assistantProviderRead,
+  assistantRuntimeDetail,
+  composerRuntimeRead,
+} from "./composerRuntimeStatus.js";
 
 function purposeLine(ds) {
   return (
@@ -39,8 +47,8 @@ function folderLocation(ds) {
   const folder = folderLabel(
     ds?.library_folder || ds?.folder || ds?.collection || ds?.estate_folder || "",
   );
-  if (folder) return `LIBRARY / ${String(folder).replace(/_/g, " ").toUpperCase()}`;
-  return "LIBRARY";
+  if (folder) return `Library / ${String(folder).replace(/_/g, " ")}`;
+  return "Library";
 }
 
 function formatHeadroom(pct) {
@@ -48,73 +56,206 @@ function formatHeadroom(pct) {
   return `${Math.max(0, Math.round(100 - pct))}% headroom`;
 }
 
-export function buildPickUp({ datasets = [], jobs = [], health, acquisitions = [], profile } = {}) {
-  // Terra donor: observed briefing for pending judgment / recovery before cosmetics.
+
+function jobIdentity(job) {
+  const plan = job?.plan || {};
+  return String(plan.task_id || plan.dataset_id || plan.url || plan.title || job?.title || "").trim().toLowerCase();
+}
+
+export function failureSuperseded(job, jobs) {
+  const identity = jobIdentity(job);
+  if (!identity) return false;
+  const failedAt = String(job?.updated_at || job?.created_at || "");
+  return (jobs || []).some((other) =>
+    other !== job
+    && String(other?.status || "").toLowerCase() === "completed"
+    && jobIdentity(other) === identity
+    && String(other?.updated_at || other?.created_at || "") > failedAt);
+}
+
+function pendingSummary(count, jobs) {
+  const stamps = (jobs || [])
+    .map((job) => Date.parse(job?.created_at || job?.updated_at || ""))
+    .filter(Number.isFinite);
+  const age = stamps.length ? waitingAge(new Date(Math.min(...stamps)).toISOString()) : "";
+  const waiting = count === 1 ? "This request is waiting for your approval." : `${count} requests are waiting for your approval.`;
+  return age && count > 1 ? `${waiting} The oldest has been ${age}.` : age ? `${waiting.slice(0, -1)}, ${age}.` : waiting;
+}
+
+export function buildPickUp({
+  datasets = [],
+  jobs = [],
+  health,
+  acquisitions = [],
+  profile,
+  synthesisThreads = [],
+  suggested = [],
+} = {}) {
   const briefing = buildHomeBriefing({ datasets, jobs, acquisitions, health, profile });
   const holdings = (datasets || []).filter((ds) => !isReceiptOnlyAsset(ds));
   const recent = recentDatasets(holdings, 2);
-  // Prefer touched recent IDs; fall back to first holdings so Pick Up is never empty when the vault has assets.
-  const primaryDs = recent[0] || holdings[0] || datasets[0] || null;
+  const starts = (suggested || []).filter((ds) => ds?.dataset_id && holdings.some((row) => row.dataset_id === ds.dataset_id));
+  const primaryDs = recent[0] || starts[0] || holdings[0] || datasets[0] || null;
   const secondaryDs =
     recent[1] ||
+    (primaryDs && starts.find((ds) => ds.dataset_id !== primaryDs.dataset_id)) ||
     (primaryDs && holdings.find((ds) => ds?.dataset_id && ds.dataset_id !== primaryDs.dataset_id)) ||
     null;
-  const pendingJobs = jobs.filter((job) =>
-    /pending|approval|hold/i.test(String(job.status || job.state || "")),
+  const opened = new Set(recent.map((ds) => ds.dataset_id));
+
+  const candidates = [];
+  const pendingJobs = (jobs || []).filter((job) =>
+    /pending|approval|hold/i.test(String(job?.status || job?.state || "")),
   );
   const judgmentApprovals = (briefing?.needsJudgment || []).filter((item) => item.kind === "approval");
-  const pending =
-    judgmentApprovals.length ||
-    health?.desk?.jobs?.pending_approval ||
-    pendingJobs.length;
+  const pendingCount = Number(
+    pendingJobs.length || health?.desk?.jobs?.pending_approval || judgmentApprovals.length || 0,
+  );
   const firstPending =
-    (judgmentApprovals[0]?.job && pendingJobs.find((j) => j.id === judgmentApprovals[0].job.id)) ||
-    pendingJobs[0];
+    (judgmentApprovals[0]?.job && pendingJobs.find((job) => job.id === judgmentApprovals[0].job.id)) ||
+    judgmentApprovals[0]?.job ||
+    pendingJobs[0] ||
+    null;
 
-  const primary = primaryDs
-    ? {
-        kind: "library_asset",
-        id: primaryDs.dataset_id,
-        title: displayName(primaryDs),
-        stateSummary: purposeLine(primaryDs),
-        location: folderLocation(primaryDs),
-        pill: statusPill(primaryDs),
-        dataset: primaryDs,
-        action: "continue",
-      }
-    : null;
-
-  let secondary = null;
-  if (pending > 0 && firstPending) {
-    secondary = {
-      kind: "decision",
-      id: firstPending.id || "approval",
-      title:
-        firstPending?.plan?.title ||
-        firstPending?.title ||
-        firstPending?.name ||
-        "Procurement approval waiting",
-      stateSummary: "Decision required before collection can continue.",
-      location: "RESOURCES / APPROVALS",
-      pill: `${pending} pending`,
-      job: firstPending,
-      action: "review",
-      warn: true,
-    };
-  } else if (secondaryDs) {
-    secondary = {
-      kind: "library_asset",
-      id: secondaryDs.dataset_id,
-      title: displayName(secondaryDs),
-      stateSummary: purposeLine(secondaryDs),
-      location: folderLocation(secondaryDs),
-      pill: statusPill(secondaryDs),
-      dataset: secondaryDs,
-      action: "continue",
-    };
+  if (pendingCount > 0) {
+    const rawTitle = String(
+      firstPending?.plan?.title || firstPending?.title || firstPending?.name || "",
+    ).trim();
+    candidates.push({
+      rank: 0,
+      updated: String(firstPending?.updated_at || firstPending?.created_at || ""),
+      point: {
+        kind: "decision",
+        id: firstPending?.id || "approval",
+        title: /^synth(?:esis)?[\s_-]*block$/i.test(rawTitle)
+          ? "Synthesis proposal awaiting review"
+          : rawTitle || `${pendingCount} ${pendingCount === 1 ? "request" : "requests"} awaiting your approval`,
+        stateSummary: pendingSummary(pendingCount, pendingJobs),
+        location: "History",
+        pill: `${pendingCount} pending`,
+        job: firstPending,
+        tab: "browse",
+        action: "review",
+        warn: true,
+      },
+    });
   }
 
-  return { primary, secondary, pending };
+  const stageRank = {
+    approval: 2,
+    proposal: 3,
+    preview: 4,
+    specification: 5,
+    evidence: 6,
+    build: 7,
+    objective: 8,
+  };
+  const stageLabel = {
+    approval: "Approval",
+    proposal: "Proposal review",
+    preview: "Sample preview",
+    specification: "Method",
+    evidence: "Evidence",
+    build: "Build",
+    objective: "Objective",
+  };
+
+  for (const thread of synthesisThreads || []) {
+    if (!thread?.id) continue;
+    const status = String(thread?.state?.execution?.status || "").toLowerCase().replace(/-/g, "_");
+    const stage = synthesisJourneyStage(thread);
+    if (["registered", "query_ready"].includes(status) || stage === "result") continue;
+    const failed = status === "failed";
+    const summary = failed
+      ? "Execution failed. Inspect the saved build before retrying."
+      : stage === "approval"
+        ? "A sample preview is ready. Approve it to run the full build."
+        : stage === "proposal"
+          ? "A proposal is ready for you to review."
+          : stage === "preview"
+            ? "The method is being tested on a sample."
+            : stage === "specification"
+              ? "Your data is matched. A few build choices are still open."
+              : stage === "evidence"
+                ? "This build is waiting for you to choose its data."
+                : stage === "build"
+                  ? `Execution is ${status || "in progress"}; inspect its saved build and Library status.`
+                  : "A saved Synthesis build is ready to continue.";
+    candidates.push({
+      rank: failed ? 1 : (stageRank[stage] ?? 8),
+      updated: String(thread.updated_at || thread.created_at || ""),
+      point: {
+        kind: "synthesis_thread",
+        id: thread.id,
+        title: String(thread.title || thread?.state?.title || thread?.state?.objective || thread.objective || "Synthesis build"),
+        stateSummary: summary,
+        location: `Synthesis · ${stageLabel[stage] || "Build"}`,
+        pill: failed ? "Needs attention" : stageLabel[stage] || "Active",
+        thread,
+        tab: "synthesis",
+        action: "continue",
+        warn: failed || stage === "approval",
+      },
+    });
+  }
+
+  for (const job of jobs || []) {
+    const status = String(job?.status || job?.state || "").toLowerCase();
+    if (!/failed|queued|running/.test(status)) continue;
+    if (status === "failed" && failureSuperseded(job, jobs)) continue;
+    if (isHistoryNoise({ id: job.id, title: job?.plan?.title || job.title, status })) continue;
+    const failed = status === "failed";
+    candidates.push({
+      rank: failed ? 9 : 10,
+      updated: String(job.updated_at || job.created_at || ""),
+      point: {
+        kind: "discover_work",
+        id: job.id || `discover-${status}`,
+        title: String(job?.plan?.title || job.title || job.name || "Discover acquisition"),
+        stateSummary: failed
+          ? "Collection failed. Inspect the saved History record before retrying."
+          : `Collection is ${status}. Follow it in History.`,
+        location: "History",
+        pill: failed ? "Needs attention" : status,
+        job,
+        tab: "browse",
+        action: "review",
+        warn: failed,
+      },
+    });
+  }
+
+  const libraryPoint = (ds, rank) => ds ? {
+    rank,
+    updated: String(ds.updated_at || ds.created_at || ""),
+    point: {
+      kind: "library_asset",
+      id: ds.dataset_id,
+      title: displayName(ds),
+      stateSummary: purposeLine(ds),
+      location: folderLocation(ds),
+      pill: statusPill(ds),
+      dataset: ds,
+      tab: "library",
+      action: "continue",
+      start: !opened.has(ds.dataset_id),
+    },
+  } : null;
+  const firstLibrary = libraryPoint(primaryDs, 20);
+  const secondLibrary = libraryPoint(secondaryDs, 21);
+  if (firstLibrary) candidates.push(firstLibrary);
+  if (secondLibrary) candidates.push(secondLibrary);
+
+  candidates.sort((left, right) => {
+    if (left.rank !== right.rank) return left.rank - right.rank;
+    return String(right.updated).localeCompare(String(left.updated));
+  });
+
+  return {
+    primary: candidates[0]?.point || null,
+    secondary: candidates[1]?.point || null,
+    pending: pendingCount,
+  };
 }
 
 function headroomPct(used, cap) {
@@ -162,7 +303,9 @@ export function projectRollupFromHealth(health) {
     hero: {
       composer: {
         configured: Boolean(desk.composer_configured),
-        model: desk.composer_model || "default",
+        model: String(desk.composer_model || "").trim(),
+        provider: String(desk.brain || "").trim(),
+        runtime: desk.composer_runtime || null,
       },
       vault:
         canonical.used_tb != null || canonical.quota_tb != null
@@ -175,7 +318,9 @@ export function projectRollupFromHealth(health) {
     },
     ai: {
       composer_configured: Boolean(desk.composer_configured),
-      composer_model: desk.composer_model || "default",
+      composer_model: String(desk.composer_model || "").trim(),
+      composer_provider: String(desk.brain || "").trim(),
+      composer_runtime: desk.composer_runtime || null,
     },
   };
 }
@@ -185,7 +330,7 @@ export function projectRollupFromHealth(health) {
  * Prefer vault + bulk cache + one live service (Cursor Ask / BigQuery).
  * NVMe / collectors stay on Resources Desk, not the Home teaser.
  */
-export function buildResourceHeadroom(rollup) {
+export function buildResourceHeadroom(rollup, health = null) {
   const usage = rollup?.usage || {};
   const hero = rollup?.hero || {};
   const ai = rollup?.ai || {};
@@ -218,7 +363,7 @@ export function buildResourceHeadroom(rollup) {
       metric: observed
         ? used === 0 && capOk
           ? `Empty · ${cap} TB capacity`
-          : `${used}/${capOk ? cap : "?"} TB`
+          : storageUsed(used, capOk ? cap : null, "TB")
         : capOk
           ? `${cap} TB capacity · use not observed`
           : "Quota not observed",
@@ -239,7 +384,7 @@ export function buildResourceHeadroom(rollup) {
       pinned: false,
       metric:
         cache.used_gb != null || cache.total_gb != null
-          ? `${cache.used_gb ?? "?"}/${cache.total_gb ?? "?"} GB`
+          ? storageUsed(cache.used_gb, cache.total_gb, "GB")
           : cache.mounted
             ? "Mounted"
             : "Capacity",
@@ -250,21 +395,45 @@ export function buildResourceHeadroom(rollup) {
     });
   }
 
-  // Third teaser: Cursor Ask when Composer is live, else BigQuery quota.
+  // Third teaser: the currently selected research assistant when live, else
+  // BigQuery quota. Provider identity comes from /health.desk.brain; never
+  // leave a retired provider name hard-coded on Home.
   const composer = hero.composer || {};
-  const composerOk = Boolean(composer.configured ?? ai.composer_configured);
+  const liveDesk = health?.desk || {};
+  const composerOk = Boolean(
+    liveDesk.composer_configured ?? composer.configured ?? ai.composer_configured,
+  );
   const turnsToday = Number(ai.composer_turns_today ?? 0);
   const bq = metered.bigquery || {};
   if (composerOk) {
+    // A configured key is not a live probe. Settings and Resources render
+    // composer_runtime; Home must read the same field or it claims readiness
+    // the desk has not observed.
+    const runtime = composerRuntimeRead(
+      liveDesk.composer_runtime ?? composer.runtime ?? ai.composer_runtime,
+    );
+    const provider = assistantProviderRead({
+      brain: liveDesk.brain || composer.provider || ai.composer_provider,
+    });
+    const providerDesk = {
+      brain: liveDesk.brain || composer.provider || ai.composer_provider,
+      composer_model:
+        liveDesk.composer_model || composer.model || ai.composer_model,
+    };
     slots.push({
       id: "cursor",
-      markId: "cursor",
-      name: "Cursor Ask",
+      markId: provider.id === "cursor" ? "cursor" : "assistant",
+      name: provider.label,
       pinned: false,
-      metric: turnsToday > 0 ? `${turnsToday} turns today` : "Composer ready",
+      metric: turnsToday > 0 ? `${turnsToday} turns today` : (runtime?.short ?? "Connection not yet tested"),
       pct: null,
-      headroom: `API key live · ${composer.model || ai.composer_model || "default"}`,
-      warn: false,
+      headroom: runtime
+        ? assistantRuntimeDetail(
+            providerDesk,
+            runtime,
+          )
+        : `${provider.runtimeLabel} · runtime not verified`,
+      warn: runtime ? Boolean(runtime.warn) : true,
       action: "resources",
     });
   } else if (bq.configured) {
@@ -296,15 +465,40 @@ export function buildResourceHeadroom(rollup) {
 
 export function buildRecommendedEvidence(profile, { limit = 2 } = {}) {
   const lab = buildLab(profile);
+  const researcherCopy = (value) => String(value || "").replace(/\bcustom procure(?:ment)?\b/gi, "custom collection");
   return (lab.suggested || []).slice(0, limit).map((item) => ({
     id: item.id,
-    title: item.label,
-    reason: item.reason || "recommended for current research",
+    title: researcherCopy(item.label),
+    reason: researcherCopy(item.reason || "recommended for current research"),
     badge: item.action === "link" ? "IN LIBRARY, NOT LINKED" : "NOT IN LIBRARY YET",
     query: item.query,
     datasetId: item.datasetId,
     action: item.action === "link" ? "library" : "explore",
   }));
+}
+
+function recentTrailFailureSummary(job) {
+  const detail = String(job?.error || job?.result?.summary || "");
+  if (/\b(?:http\s*)?404\b|not[ _-]?found/i.test(detail)) {
+    return "The source file was not available; review the recorded route in History.";
+  }
+  if (/\b(?:http\s*)?40[13]\b|forbidden|unauthori[sz]ed|access[ _-]?denied/i.test(detail)) {
+    return "The source denied access; review its access requirements in History.";
+  }
+  if (/timed?[ _-]?out|timeout|deadline[ _-]?exceeded/i.test(detail)) {
+    return "The source did not respond in time; review and retry from History.";
+  }
+  if (/rate[ _-]?limit|\b429\b|too[ _-]?many[ _-]?requests/i.test(detail)) {
+    return "The source rate-limited this collection; review retry options in History.";
+  }
+  return "Collection failed; review the recorded cause and recovery options in History.";
+}
+
+function recentTrailSummary(job, status) {
+  if (/failed/i.test(status)) return recentTrailFailureSummary(job);
+  const summary = String(job?.result?.summary || status).replace(/_/g, " ").trim();
+  if (summary.length <= 180) return summary;
+  return `${summary.slice(0, 177).trimEnd()}…`;
 }
 
 export function buildRecentTrail({ jobs = [], datasets = [], limit = 3 } = {}) {
@@ -314,7 +508,7 @@ export function buildRecentTrail({ jobs = [], datasets = [], limit = 3 } = {}) {
       // Home trail is resume surface — keep cancelled out of the first viewport.
       if (/cancelled|canceled/i.test(status)) return false;
       if (!/completed|registered|failed|running|queued/i.test(status)) return false;
-      return !isHistoryNoise({
+      const event = {
         id: job.id,
         target: job?.plan?.title || job?.title || job?.name || job?.dataset_id,
         title: job?.plan?.title || job?.title || job?.name,
@@ -322,7 +516,8 @@ export function buildRecentTrail({ jobs = [], datasets = [], limit = 3 } = {}) {
         status,
         error: job.error,
         meta: { summary: job.error || job.result?.summary, status },
-      });
+      };
+      return !isHistoryNoise(event) && !isSystemVerificationTraffic(event);
     })
     .sort((a, b) => {
       const rank = (job) => {
@@ -360,7 +555,7 @@ export function buildRecentTrail({ jobs = [], datasets = [], limit = 3 } = {}) {
       id: job.id,
       kind,
       title,
-      summary: String(job.error || job.result?.summary || status).replace(/_/g, " "),
+      summary: recentTrailSummary(job, status),
       dest: /registered|completed/.test(status) ? "library" : "history",
     });
     if (fromJobs.length >= limit) break;

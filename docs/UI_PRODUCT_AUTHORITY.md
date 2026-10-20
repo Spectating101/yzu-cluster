@@ -1011,7 +1011,7 @@ Every handoff opens an exact object, bounded review state, or prefilled query—
 ## 17. Responsive and accessibility requirements
 
 - Desktop maintains full-height navigation, evidence centre, and active rail.
-- At 1440 the full three-surface desk is authoritative. Mobile does not drive desktop composition.
+- At 1440 the full three-surface desk is authoritative. This is the desktop composition reference, not a requirement to run Chrome at exactly 1440×900 or to omit the laptop/tablet/mobile reviews. Mobile does not drive desktop composition.
 - Discover and Library full-scale appendices define their binding 1440 compositions.
 - Laptop may reduce navigation and rail width, but compact evidence/lifecycle row grammar and bounded rail budgets do not expand.
 - Library at 1280 preserves distinct Evidence, Source, Verify, and State semantics; reduce padding before deleting meaning.

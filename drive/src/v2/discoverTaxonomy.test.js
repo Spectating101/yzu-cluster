@@ -24,7 +24,7 @@ describe("discover taxonomy (D1 / D1.1)", () => {
       lab,
     );
     assert.equal(c.key, "local-query-ready");
-    assert.match(c.label, /Query ready/i);
+    assert.match(c.label, /Ready to query/i);
   });
 
   it("does not call connected local holdings query-ready", () => {
@@ -71,6 +71,18 @@ describe("discover taxonomy (D1 / D1.1)", () => {
     assert.equal(classifyDiscoverResult(rows[2], lab).key, "local-connected");
     assert.equal(classifyDiscoverResult(rows[3], lab).key, "local-query-ready");
     assert.equal(classifyDiscoverResult(rows[0], lab).key, "external-discoverable");
+  });
+
+  it("keeps a registered catalogue card out of Library even when it has a local metadata path", () => {
+    const row = {
+      dataset_id: "registered_reference",
+      source_access_mode: "catalog_reference",
+      registered: true,
+      registry_id: "registered_reference",
+      local_path: "data_lake/catalogue/registered_reference.json",
+    };
+    assert.deepEqual([...holdingIdsFromCatalog([row])], []);
+    assert.equal(classifyDiscoverResult(row).key, "external-discoverable");
   });
 
   it("marks registry metadata-only when no connection or query path", () => {
@@ -131,6 +143,14 @@ describe("discover taxonomy (D1 / D1.1)", () => {
       collect_via: "mops_tw",
     });
     assert.equal(c.key, "external-acquirable");
+  });
+
+  it("does not treat a no-route registry sentinel as acquisition available", () => {
+    for (const collect_via of ["none", "unknown", "unavailable", "n/a", ["none"]]) {
+      const row = { kind: "registry_dataset", dataset_id: "known-but-unusable", collect_via };
+      assert.equal(hasAcquisitionRoute(row), false);
+      assert.equal(classifyDiscoverResult(row, new Set()).key, "external-discoverable");
+    }
   });
 
   it("does not treat connector_id alone as acquisition available", () => {
@@ -232,11 +252,11 @@ describe("discover taxonomy (D1 / D1.1)", () => {
 
   it("exceptional pills only for queued / manual / unavailable", () => {
     assert.equal(
-      exceptionalRowPill({}, { key: "local-query-ready", readiness: "Query ready" }, { key: "in_lab" }),
+      exceptionalRowPill({}, { key: "local-query-ready", readiness: "Ready to query" }, { key: "in_lab" }),
       null,
     );
     assert.equal(
-      exceptionalRowPill({}, { key: "external-probed", readiness: "Probed", className: "ext" }, {}),
+      exceptionalRowPill({}, { key: "external-probed", readiness: "Connection tested", className: "ext" }, {}),
       null,
     );
     assert.equal(

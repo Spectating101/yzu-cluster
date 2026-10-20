@@ -1,6 +1,17 @@
-import { useEffect, useState } from "react";
+import { LockTag } from "@/v2/Lock";
+import { useEffect, useMemo, useState } from "react";
+import { GuestFocusTry } from "./GuestFocusTry.jsx";
 import { facultyProfile } from "@/v2/api";
 import { saveUserEmail } from "@/v2/deskSession";
+import { requestDeskSignIn } from "@/v2/deskPermissions";
+import {
+  clearResearchMemory,
+  clearResearchProfile,
+  forgetResearchMemory,
+  getResearchProfile,
+  saveResearchMemorySettings,
+  saveResearchProfile,
+} from "@/v2/researchProfileApi";
 import {
   PILOT_PREVIEW_EMAIL,
   buildDeskRead,
@@ -8,6 +19,7 @@ import {
   buildMemoryCards,
   buildWorks,
 } from "@/v2/profileViewModel";
+import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
 import { PageShell } from "@/v2/ui";
 
 function memoryText(card, prefix) {
@@ -19,20 +31,393 @@ function memoryLabel(card) {
   if (card?.id === "methods") return "Methods";
   if (card?.id === "also") return "Research context";
   if (card?.id === "current") return "Current research direction";
-  return "Research memory";
+  return "Research context";
+}
+
+function holdingIds(rows = []) {
+  const ids = new Set();
+  for (const row of rows || []) {
+    const id = String(row?.dataset_id || row?.id || "").trim();
+    if (id) ids.add(id);
+  }
+  return ids;
+}
+
+function evidenceRelationship(row, heldIds) {
+  const ids = (row?.datasetIds || []).map((id) => String(id || "").trim()).filter(Boolean);
+  const held = ids.some((id) => heldIds.has(id));
+  return {
+    ...row,
+    held,
+    status: held ? "In Library" : "Recorded link · dataset not confirmed",
+  };
+}
+
+function explicitDemoMode() {
+  try {
+    return new URLSearchParams(window.location.search).get("demo") === "1";
+  } catch {
+    return false;
+  }
+}
+
+function sameEmail(left, right) {
+  const a = String(left || "").trim().toLowerCase();
+  const b = String(right || "").trim().toLowerCase();
+  return Boolean(a && b && a === b);
+}
+
+function listDraft(value) {
+  return Array.isArray(value) ? value.join(", ") : "";
+}
+
+function parseList(value) {
+  return [...new Set(
+    String(value || "")
+      .split(/[\n,;]+/)
+      .map((item) => item.trim())
+      .filter(Boolean),
+  )].slice(0, 20);
+}
+
+function draftFromDocument(document) {
+  const profile = document?.profile || {};
+  return {
+    academic_stage: profile.academic_stage || "",
+    discipline: profile.discipline || "",
+    current_project: profile.current_project || "",
+    research_topics: listDraft(profile.research_topics),
+    methods: listDraft(profile.methods),
+    data_interests: listDraft(profile.data_interests),
+  };
+}
+
+const LEARNED_MEMORY_LABELS = {
+  topic: "Topic",
+  method: "Method",
+  data_interest: "Data interest",
+  research_goal: "Research goal",
+  preference: "Working preference",
+};
+
+function LearnedResearchMemory({ document, onDocument, onProfileRefresh }) {
+  const memory = document?.memory || {};
+  const settings = memory.settings || { auto_learn: true, use_memory: true };
+  const memories = Array.isArray(memory.memories) ? memory.memories : [];
+  const [working, setWorking] = useState("");
+  const [notice, setNotice] = useState("");
+
+  const replaceMemory = (next) => {
+    onDocument?.({ ...document, memory: next });
+    onProfileRefresh?.();
+  };
+  const updateSettings = async (patch) => {
+    setWorking("settings");
+    setNotice("");
+    try {
+      replaceMemory(await saveResearchMemorySettings(patch));
+    } catch (error) {
+      setNotice(error?.message || "Memory settings could not be saved.");
+    } finally {
+      setWorking("");
+    }
+  };
+  const forget = async (memoryId) => {
+    setWorking(memoryId);
+    setNotice("");
+    try {
+      replaceMemory(await forgetResearchMemory(memoryId));
+      setNotice("Memory removed.");
+    } catch (error) {
+      setNotice(error?.message || "That memory could not be removed.");
+    } finally {
+      setWorking("");
+    }
+  };
+  const clear = async () => {
+    setWorking("clear");
+    setNotice("");
+    try {
+      replaceMemory(await clearResearchMemory());
+      setNotice("Learned research memory cleared.");
+    } catch (error) {
+      setNotice(error?.message || "Learned memory could not be cleared.");
+    } finally {
+      setWorking("");
+    }
+  };
+
+  return (
+    <section className="rd-v2-profile-section rd-v2-learned-memory" data-testid="learned-research-memory" aria-labelledby="learned-memory-title">
+      <header className="rd-v2-profile-section-head">
+        <div>
+          <h2 id="learned-memory-title">Learned research memory</h2>
+          <p>
+            Ask can save your topics, methods, data needs, goals, and working preferences. You still write your own profile fields.
+          </p>
+        </div>
+        <span>{memories.length ? `${memories.length} remembered` : "Nothing learned"}</span>
+      </header>
+
+      <div className="rd-v2-memory-controls" role="group" aria-label="Research memory controls">
+        <label>
+          <input
+            type="checkbox"
+            checked={Boolean(settings.auto_learn)}
+            disabled={Boolean(working)}
+            onChange={(event) => updateSettings({ auto_learn: event.target.checked })}
+          />
+          <span><strong>Learn from Ask</strong><em>Save useful long-term research context automatically.</em></span>
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            checked={Boolean(settings.use_memory)}
+            disabled={Boolean(working)}
+            onChange={(event) => updateSettings({ use_memory: event.target.checked })}
+          />
+          <span><strong>Use learned memory</strong><em>Apply remembered context to future search and reasoning.</em></span>
+        </label>
+      </div>
+
+      {memories.length ? (
+        <ul className="rd-v2-learned-memory-list">
+          {memories.map((item) => (
+            <li key={item.id}>
+              <div>
+                <span>{LEARNED_MEMORY_LABELS[item.kind] || "Research context"}{item.scope === "project" ? " · Project" : ""}</span>
+                <strong>{item.value}</strong>
+                <em>
+                  {item.evidence_count > 1 ? `${item.evidence_count} supporting moments` : "Learned from Ask"}
+                </em>
+              </div>
+              <button
+                type="button"
+                className="rd-v2-btn sm ghost"
+                disabled={Boolean(working)}
+                onClick={() => forget(item.id)}
+                aria-label={`Forget ${item.value}`}
+              >
+                {working === item.id ? "Removing…" : "Forget"}
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="rd-v2-empty-inline">
+          Nothing has been learned yet. Research Drive saves research context only from signed-in Ask conversations.
+        </p>
+      )}
+
+      {memories.length ? (
+        <button type="button" className="rd-v2-btn sm ghost rd-v2-memory-clear" disabled={Boolean(working)} onClick={clear}>
+          {working === "clear" ? "Clearing…" : "Clear learned memory"}
+        </button>
+      ) : null}
+      {notice ? <p className="rd-v2-profile-hint" role="status">{notice}</p> : null}
+    </section>
+  );
+}
+
+function PersonalResearchProfile({ document, onDocument, onProfileRefresh }) {
+  const [draft, setDraft] = useState(() => draftFromDocument(document));
+  const [saving, setSaving] = useState(false);
+  const [notice, setNotice] = useState("");
+
+  useEffect(() => {
+    setDraft(draftFromDocument(document));
+  }, [document]);
+
+  const patch = (key, value) => setDraft((current) => ({ ...current, [key]: value }));
+  const save = async () => {
+    setSaving(true);
+    setNotice("");
+    try {
+      const next = await saveResearchProfile({
+        academic_stage: draft.academic_stage,
+        discipline: draft.discipline,
+        current_project: draft.current_project,
+        research_topics: parseList(draft.research_topics),
+        methods: parseList(draft.methods),
+        data_interests: parseList(draft.data_interests),
+      });
+      onDocument?.(next);
+      onProfileRefresh?.();
+      setNotice("Research context saved for this account.");
+    } catch (error) {
+      setNotice(error?.message || "Research context could not be saved.");
+    } finally {
+      setSaving(false);
+    }
+  };
+  const clear = async () => {
+    setSaving(true);
+    setNotice("");
+    try {
+      const next = await clearResearchProfile();
+      onDocument?.(next);
+      onProfileRefresh?.();
+      setNotice("Research context cleared. Your signed-in account remains active.");
+    } catch (error) {
+      setNotice(error?.message || "Research context could not be cleared.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const principal = document?.principal || {};
+  const configured = Boolean(document?.configured);
+  const hasLearnedMemory = Boolean(document?.memory?.memories?.length);
+  const learnedMemory = (
+    <LearnedResearchMemory
+      document={document}
+      onDocument={onDocument}
+      onProfileRefresh={onProfileRefresh}
+    />
+  );
+  return (
+    <>
+      <section className="rd-v2-profile-identity" aria-label="Researcher identity" data-testid="personal-research-profile">
+        <div className="rd-v2-profile-ident">
+          <span className="rd-v2-profile-kicker">Verified researcher</span>
+          <h2 className="rd-v2-profile-name">
+            {principal.display_name || principal.email?.split("@")[0] || "Researcher"}
+          </h2>
+          <p className="rd-v2-profile-hint">
+            {principal.email || "Verified account"} · Personal research workspace
+          </p>
+        </div>
+      </section>
+
+      {hasLearnedMemory ? learnedMemory : null}
+
+      <section className="rd-v2-profile-section" data-testid="research-profile-editor" aria-labelledby="research-profile-editor-title">
+        <header className="rd-v2-profile-section-head">
+          <div>
+            <h2 id="research-profile-editor-title">
+              {configured ? "Your research context" : "Set up your research context"}
+            </h2>
+            <p>
+              This context is yours. It helps Discover and Ask understand your work without overwriting your faculty record. It cannot change your account, role, or access and collection permissions.
+            </p>
+          </div>
+          <span>{configured ? "Confirmed by you" : "Not set up yet"}</span>
+        </header>
+        <div className="rd-v2-settings-statement">
+          <div className="rd-v2-settings-row stack">
+            <label className="rd-v2-settings-label" htmlFor="rd-profile-stage">Academic stage</label>
+            <input id="rd-profile-stage" className="rd-v2-input" value={draft.academic_stage} onChange={(event) => patch("academic_stage", event.target.value)} placeholder="e.g. Master's student" />
+          </div>
+          <div className="rd-v2-settings-row stack">
+            <label className="rd-v2-settings-label" htmlFor="rd-profile-discipline">Field / discipline</label>
+            <input id="rd-profile-discipline" className="rd-v2-input" value={draft.discipline} onChange={(event) => patch("discipline", event.target.value)} placeholder="e.g. Finance, Marketing, Computer Science" />
+          </div>
+          <div className="rd-v2-settings-row stack">
+            <label className="rd-v2-settings-label" htmlFor="rd-profile-project">What are you working on now?</label>
+            <textarea id="rd-profile-project" className="rd-v2-input" rows={3} value={draft.current_project} onChange={(event) => patch("current_project", event.target.value)} placeholder="Describe your thesis, paper, experiment, or current research question." />
+          </div>
+          <div className="rd-v2-settings-row stack">
+            <label className="rd-v2-settings-label" htmlFor="rd-profile-topics">Research topics</label>
+            <input id="rd-profile-topics" className="rd-v2-input" value={draft.research_topics} onChange={(event) => patch("research_topics", event.target.value)} placeholder="stablecoins, market liquidity, consumer trust" />
+          </div>
+          <div className="rd-v2-settings-row stack">
+            <label className="rd-v2-settings-label" htmlFor="rd-profile-methods">Methods</label>
+            <input id="rd-profile-methods" className="rd-v2-input" value={draft.methods} onChange={(event) => patch("methods", event.target.value)} placeholder="panel regression, survey, SEM" />
+          </div>
+          <div className="rd-v2-settings-row stack">
+            <label className="rd-v2-settings-label" htmlFor="rd-profile-data">Data interests</label>
+            <input id="rd-profile-data" className="rd-v2-input" value={draft.data_interests} onChange={(event) => patch("data_interests", event.target.value)} placeholder="transaction data, survey panels, market prices" />
+          </div>
+          <div className="rd-v2-profile-public-actions">
+            <button type="button" className="rd-v2-btn sm primary" disabled={saving} onClick={save}>
+              {saving ? "Saving…" : configured ? "Save research context" : "Set up research context"}
+            </button>
+            {configured ? (
+              <button type="button" className="rd-v2-btn sm ghost" disabled={saving} onClick={clear}>
+                Clear research context
+              </button>
+            ) : null}
+          </div>
+          {notice ? <p className="rd-v2-profile-hint" role="status">{notice}</p> : null}
+        </div>
+      </section>
+      {hasLearnedMemory ? null : learnedMemory}
+    </>
+  );
+}
+
+const PERSONAL_PROFILE_UPDATED_EVENT = "research-drive:personal-profile-updated";
+
+function publishPersonalProfile(document) {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new CustomEvent(PERSONAL_PROFILE_UPDATED_EVENT, { detail: document }));
 }
 
 /**
- * Profile — Memory · Works · Lab (PROFILE_GROUNDED_FREEZE).
- * Unbound desk shows labelled EXAMPLE pilot from faculty registry.
+ * Profile is an epistemic record, not a routing dashboard. Account identity,
+ * user-confirmed research context, faculty-registry evidence and Library
+ * possession stay separate authorities.
  */
-export function ProfilePage({ profile, onGoTab, onSuggestSearch, onProfileRefresh }) {
-  const bound = Boolean(profile && !profile.unknown);
+function RegistryFocusAction({ signedIn }) {
+  if (!signedIn) {
+    return <p className="rd-v2-profile-focus-note">Sign in to add your own research focus alongside this record.</p>;
+  }
+  const openEditor = () => {
+    document.querySelector("[data-testid=research-profile-editor]")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.setTimeout(() => document.getElementById("rd-profile-project")?.focus({ preventScroll: true }), 250);
+  };
+  return (
+    <div className="rd-v2-profile-focus-action">
+      <p>Add or correct your focus. It is saved as yours beside this registry record, and Discover and Ask use both.</p>
+      <button type="button" className="rd-v2-btn sm primary" data-testid="profile-add-focus" onClick={openEditor}>
+        Add research focus
+      </button>
+    </div>
+  );
+}
+
+export function ProfilePage({
+  profile,
+  libraryHoldings = [],
+  onGoTab,
+  onProfileRefresh,
+  allowExamplePreview = false,
+  personalProfileAvailable = false,
+  datasets = [],
+  onOpenDataset,
+}) {
+  const [personalDocument, setPersonalDocument] = useState(undefined);
+  const [personalAttempt, setPersonalAttempt] = useState(0);
   const [pilot, setPilot] = useState(null);
-  const [pilotLoading, setPilotLoading] = useState(!bound);
+  const demoMode = explicitDemoMode();
 
   useEffect(() => {
-    if (bound) {
+    if (!personalProfileAvailable) {
+      setPersonalDocument(null);
+      return undefined;
+    }
+    let cancelled = false;
+    getResearchProfile()
+      .then((document) => {
+        if (!cancelled) setPersonalDocument(document || null);
+      })
+      .catch(() => {
+        if (!cancelled) setPersonalDocument(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [personalProfileAvailable, personalAttempt]);
+
+  const principalEmail = personalDocument?.principal?.email || "";
+  const suppliedProfileBound = Boolean(profile && !profile.unknown);
+  const suppliedMatchesPrincipal = !principalEmail || sameEmail(profile?.email, principalEmail);
+  const bound = Boolean(suppliedProfileBound && (suppliedMatchesPrincipal || demoMode));
+  const shouldLoadExample = Boolean(demoMode && allowExamplePreview && !bound);
+  const [pilotLoading, setPilotLoading] = useState(false);
+
+  useEffect(() => {
+    if (!shouldLoadExample) {
       setPilot(null);
       setPilotLoading(false);
       return undefined;
@@ -54,10 +439,17 @@ export function ProfilePage({ profile, onGoTab, onSuggestSearch, onProfileRefres
     return () => {
       cancelled = true;
     };
-  }, [bound]);
+  }, [shouldLoadExample]);
 
   const previewing = !bound && Boolean(pilot);
   const active = bound ? profile : pilot;
+  const signedInResearcher = Boolean(personalDocument?.principal);
+  const publicProfile = !personalProfileAvailable && !active && personalDocument !== undefined && !pilotLoading;
+  const personalUnavailable = personalProfileAvailable && !signedInResearcher && personalDocument !== undefined;
+  const surfaceState = resolveSurfaceLifecycle({
+    loading: personalDocument === undefined || pilotLoading,
+    count: signedInResearcher || active ? 1 : 0,
+  });
   const name = active?.name_en || active?.name || "Research profile";
   const paperCount = active?.paper_count_parsed || active?.paper_count || null;
   const orgLine = [active?.title, active?.discipline].filter(Boolean).join(" · ");
@@ -67,105 +459,135 @@ export function ProfilePage({ profile, onGoTab, onSuggestSearch, onProfileRefres
   const lab = buildLab(active);
   const currentMemory = memory.find((card) => card.id === "current") || null;
   const savedMemory = memory.filter((card) => card.id !== "current");
-  const savedCount = memory.length;
-
-  const runQuery = (q) => {
-    const query = String(q || "").trim();
-    if (query && onSuggestSearch) {
-      onSuggestSearch(query);
-      return;
-    }
-    onGoTab?.("browse");
-  };
+  const heldIds = useMemo(() => holdingIds(libraryHoldings), [libraryHoldings]);
+  const relationships = useMemo(
+    () => (lab.linked || []).map((row) => evidenceRelationship(row, heldIds)),
+    [lab.linked, heldIds],
+  );
+  const heldRelationships = relationships.filter((row) => row.held).length;
 
   return (
     <PageShell
       className={`rd-v2-profile-page rd-v2-profile-grounded${previewing ? " is-preview" : ""}`}
       title="Profile"
-      lead="Research memory carried into Discover and Ask"
+      lead="Account identity, user-confirmed research context, and recorded scholarly evidence"
+      surfaceState={surfaceState}
     >
-      <section className="rd-v2-profile-identity" aria-label="Faculty identity">
-        <div className="rd-v2-profile-ident">
-          <span className="rd-v2-profile-kicker">Research memory</span>
-          {previewing ? <span className="rd-v2-profile-badge">Example</span> : null}
-          <h2 className="rd-v2-profile-name">{name}</h2>
-          {orgLine ? <p className="rd-v2-profile-org">{orgLine}</p> : null}
-          <p className="rd-v2-profile-hint">
-            {email || "—"}
-            {previewing ? " · Example · pilot faculty" : ""}
-          </p>
-        </div>
-        <div className="rd-v2-profile-identity-side">
-          <div className="rd-v2-profile-identity-metrics" aria-label="Research memory summary">
-            {paperCount ? (
-              <span>
-                <strong>{paperCount}</strong>
-                <em>indexed works</em>
-              </span>
-            ) : null}
-            {savedCount ? (
-              <span>
-                <strong>{savedCount}</strong>
-                <em>saved contexts</em>
-              </span>
-            ) : null}
-          </div>
-          {previewing ? (
+      {signedInResearcher ? (
+        <PersonalResearchProfile
+          document={personalDocument}
+          onDocument={(document) => {
+            setPersonalDocument(document);
+            publishPersonalProfile(document);
+          }}
+          onProfileRefresh={onProfileRefresh}
+        />
+      ) : null}
+
+      {personalUnavailable ? (
+        <section className="rd-v2-profile-public-state" aria-label="Research profile access" data-testid="profile-unavailable">
+          <span className="rd-v2-profile-kicker">Your research profile</span>
+          <h2>Your profile could not be loaded right now</h2>
+          <p>You are signed in. Your saved research focus is safe; try loading it again in a moment.</p>
+          <div className="rd-v2-profile-public-actions">
             <button
               type="button"
               className="rd-v2-btn sm primary"
               onClick={() => {
-                saveUserEmail(PILOT_PREVIEW_EMAIL);
-                onProfileRefresh?.();
+                setPersonalDocument(undefined);
+                setPersonalAttempt((attempt) => attempt + 1);
               }}
             >
-              Bind example identity
+              Try again
             </button>
-          ) : !bound ? (
-            <button type="button" className="rd-v2-btn sm primary" onClick={() => onGoTab?.("settings")}>
-              Use my email
-            </button>
-          ) : null}
-        </div>
-      </section>
-
-      {pilotLoading && !bound ? (
-        <p className="rd-v2-profile-loading" data-testid="profile-know-empty">
-          Loading example profile…
-        </p>
+          </div>
+        </section>
       ) : null}
 
-      {(bound || previewing) && memory.length ? (
-        <section
-          className="rd-v2-profile-section rd-v2-profile-memory-section"
-          data-testid="profile-memory"
-          aria-labelledby="profile-memory-title"
-        >
-          {/* VC-1: research memory stays editable — it drives Discover ranking,
-              Ask context, and Synthesis constraints. No completion score. */}
+      {publicProfile ? (
+        <section className="rd-v2-profile-public-state" aria-label="Research profile access">
+          <div className="rd-v2-lock-head">
+            <span className="rd-v2-profile-kicker">Research identity</span>
+            <LockTag who="account" />
+          </div>
+          <h2>Profiles are personal workspaces</h2>
+          <p>
+            A profile remembers who you are as a researcher, so it needs an account. Everything else here works without one.
+          </p>
+          <ul className="rd-v2-profile-public-list">
+            <li><strong>Your research focus</strong> helps Discover rank results for your field and helps Ask suggest relevant data.</li>
+            <li><strong>Learned memory</strong> keeps the topics you work on, and you can review or forget any of it.</li>
+            <li><strong>Your request history</strong> follows the data you asked for from approval to ready.</li>
+          </ul>
+          <div className="rd-v2-profile-public-actions">
+            <button type="button" className="rd-v2-btn sm primary" onClick={() => requestDeskSignIn("signup")}>
+              Create an account
+            </button>
+            <button type="button" className="rd-v2-btn sm" onClick={() => requestDeskSignIn("signin")}>
+              Sign in
+            </button>
+            <button type="button" className="rd-v2-btn sm ghost" onClick={() => onGoTab?.("library")}>
+              Open Library
+            </button>
+          </div>
+        </section>
+      ) : null}
+
+      {publicProfile ? <GuestFocusTry catalog={datasets} onOpen={onOpenDataset} /> : null}
+
+      {active ? (
+        <section className="rd-v2-profile-identity" aria-label="Recorded scholarly identity">
+          <div className="rd-v2-profile-ident">
+            <span className="rd-v2-profile-kicker">Recorded scholarly evidence</span>
+            {previewing ? <span className="rd-v2-profile-badge">Example</span> : null}
+            <h2 className="rd-v2-profile-name">{name}</h2>
+            {orgLine ? <p className="rd-v2-profile-org">{orgLine}</p> : null}
+            <p className="rd-v2-profile-hint">
+              {email || "—"}
+              {previewing ? " · Example · pilot faculty" : ""}
+              {active ? " · Source · faculty registry" : ""}
+            </p>
+          </div>
+          <div className="rd-v2-profile-identity-side">
+            <div className="rd-v2-profile-identity-metrics" role="group" aria-label="Researcher record summary">
+              {paperCount ? <span><strong>{paperCount}</strong><em>indexed works</em></span> : null}
+              {memory.length ? <span><strong>{memory.length}</strong><em>context fields</em></span> : null}
+              {relationships.length ? <span><strong>{heldRelationships}/{relationships.length}</strong><em>links in Library</em></span> : null}
+            </div>
+            {previewing ? (
+              <button
+                type="button"
+                className="rd-v2-btn sm primary"
+                onClick={() => {
+                  saveUserEmail(PILOT_PREVIEW_EMAIL);
+                  onProfileRefresh?.();
+                }}
+              >
+                Bind example identity
+              </button>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
+
+      {pilotLoading ? <p className="rd-v2-profile-loading">Loading example profile…</p> : null}
+
+      {active && memory.length ? (
+        <section className="rd-v2-profile-section rd-v2-profile-memory-section" data-testid="profile-memory" aria-labelledby="profile-memory-title">
           <header className="rd-v2-profile-section-head">
             <div>
-              <h2 id="profile-memory-title">Research memory</h2>
-              <p>
-                Context Research Drive should remember while finding and evaluating evidence.
-                It shapes Discover ranking, Ask context, and Synthesis constraints.
-              </p>
+              <h2 id="profile-memory-title">Research context on record</h2>
+              <p>Recorded scholarly context is evidence, not account identity and not a claim that every workflow uses every field.</p>
             </div>
-            <button type="button" className="rd-v2-btn sm" onClick={() => onGoTab?.("settings")}>
-              Edit research memory
-            </button>
+            <span>Registry-backed</span>
           </header>
+          <RegistryFocusAction signedIn={signedInResearcher} />
           <div className="rd-v2-profile-memory-layout">
             <ul className="rd-v2-profile-memory">
               {savedMemory.map((card) => (
                 <li key={card.id} className="rd-v2-profile-memory-card" data-memory={card.id}>
                   <span>{memoryLabel(card)}</span>
-                  <strong>
-                    {memoryText(
-                      card,
-                      card.id === "also" ? "Also" : card.id === "methods" ? "Methods" : "Focus",
-                    )}
-                  </strong>
+                  <strong>{memoryText(card, card.id === "also" ? "Also" : card.id === "methods" ? "Methods" : "Focus")}</strong>
                 </li>
               ))}
             </ul>
@@ -173,156 +595,105 @@ export function ProfilePage({ profile, onGoTab, onSuggestSearch, onProfileRefres
               <article className="rd-v2-profile-memory-anchor" data-memory="current">
                 <span>Current research direction</span>
                 <strong>{memoryText(currentMemory, "Current")}</strong>
-                <p>Used when finding and evaluating evidence.</p>
+                <p>Recorded in the faculty registry.</p>
               </article>
             ) : null}
           </div>
         </section>
-      ) : (bound || previewing) && !memory.length ? (
-        <section className="rd-v2-profile-section" data-testid="profile-memory-thin" aria-label="Research memory">
-          {/* VC-1: an empty research memory must offer a way to improve it —
-              it changes Discover ranking, Ask context, and Synthesis
-              constraints, so a dead read-only record is not enough. */}
+      ) : active ? (
+        <section className="rd-v2-profile-section" data-testid="profile-memory-thin" aria-label="Research context on record">
           <header className="rd-v2-profile-section-head">
-            <div>
-              <h2>Research memory</h2>
-              <p>Thin faculty profiles keep this empty rather than inventing research context.</p>
-            </div>
+            <div><h2>Research context on record</h2><p>The faculty registry holds no specialties, methods, or current research direction for this record.</p></div>
+            <span>Registry-backed</span>
           </header>
-          <p className="rd-v2-empty-inline">No research direction saved.</p>
-          <p className="rd-v2-profile-memory-effect">
-            Research memory shapes Discover ranking, the context Ask carries, and the
-            constraints Synthesis applies.
-          </p>
-          <div className="rd-v2-profile-memory-actions">
-            <button type="button" className="rd-v2-btn sm primary" onClick={() => onGoTab?.("settings")}>
-              Add research focus
-            </button>
-          </div>
+          <RegistryFocusAction signedIn={signedInResearcher} />
         </section>
       ) : null}
 
-      {(bound || previewing) && (works.items.length || works.paperCount) ? (
-        <section
-          className="rd-v2-profile-section rd-v2-profile-works-section"
-          data-testid="profile-works"
-          aria-labelledby="profile-works-title"
-        >
+      {active && (works.items.length || works.paperCount) ? (
+        <section className="rd-v2-profile-section rd-v2-profile-works-section" data-testid="profile-works" aria-labelledby="profile-works-title">
           <header className="rd-v2-profile-section-head">
-            <div>
-              <h2 id="profile-works-title">Works</h2>
-              <p>Research output that helps ground recurring evidence needs.</p>
-            </div>
+            <div><h2 id="profile-works-title">Works</h2><p>Indexed publication information retained in the faculty record.</p></div>
             {works.paperCount ? <span>{works.paperCount} indexed</span> : null}
           </header>
           {works.items.length ? (
             <ol className="rd-v2-profile-works">
-              {works.items.map((work, index) => (
-                <li key={work.raw}>
-                  <span>{String(index + 1).padStart(2, "0")}</span>
-                  <strong>{work.title}</strong>
-                  <em aria-hidden>→</em>
-                </li>
-              ))}
+              {works.items.map((work, index) => <li key={work.raw}><span>{String(index + 1).padStart(2, "0")}</span><strong>{work.title}</strong></li>)}
             </ol>
-          ) : (
-            <p className="rd-v2-empty-inline">Indexed count on file; highlights not listed.</p>
-          )}
+          ) : <p className="rd-v2-empty-inline">Indexed count on file; highlights not listed.</p>}
         </section>
       ) : null}
 
-      {bound || previewing ? (
-        <section
-          className="rd-v2-profile-section rd-v2-profile-lab-section"
-          data-testid="profile-lab"
-          aria-labelledby="profile-lab-title"
-        >
+      {active ? (
+        <section className="rd-v2-profile-section rd-v2-profile-lab-section" data-testid="profile-lab" aria-labelledby="profile-lab-title">
           <header className="rd-v2-profile-section-head">
             <div>
-              <h2 id="profile-lab-title">Library connections</h2>
-              <p>Library evidence already attached to this research context, and useful next connections.</p>
+              <h2 id="profile-lab-title">Research evidence relationships</h2>
+              <p>Saved links are checked against the current Library. Library confirms which data you have.</p>
             </div>
-            <span>Linked · next</span>
+            <span>{heldRelationships} in Library · {relationships.length} recorded</span>
           </header>
-
-          <div className="rd-v2-profile-lab-grid">
-            <div className="rd-v2-profile-lab-block">
-              <h3 className="rd-v2-profile-lab-label">Linked to you</h3>
-              {lab.linked.length ? (
-                <ul className="rd-v2-profile-lab-rows">
-                  {lab.linked.map((row) => (
-                    <li key={row.id}>
-                      <span className="rd-v2-profile-lab-title" title={row.label}>
-                        {row.label}
-                      </span>
-                      <button
-                        type="button"
-                        className="rd-v2-profile-lab-action"
-                        onClick={() => runQuery(row.label)}
-                      >
-                        {row.routeLabel} · Open →
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <div data-testid="profile-lab-linked-empty">
-                  <p className="rd-v2-empty-inline">No evidence linked to this profile.</p>
-                  <button
-                    type="button"
-                    className="rd-v2-btn sm"
-                    onClick={() => onGoTab?.("library")}
-                  >
-                    Find relevant Library assets
-                  </button>
-                </div>
-              )}
-            </div>
-
-            <div className="rd-v2-profile-lab-block rd-v2-profile-lab-suggested">
-              <h3 className="rd-v2-profile-lab-label">Suggested</h3>
-              {lab.suggested.length ? (
-                <ul className="rd-v2-profile-lab-rows">
-                  {lab.suggested.map((row) => (
-                    <li key={row.id}>
-                      <span className="rd-v2-profile-lab-title" title={row.label}>
-                        {row.label}
-                        <em> — {row.reason}</em>
-                      </span>
-                      <button
-                        type="button"
-                        className="rd-v2-profile-lab-action"
-                        onClick={() => runQuery(row.query)}
-                      >
-                        {row.action === "link" ? "Link →" : "Search →"}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="rd-v2-empty-inline">
-                  Suggestions appear after a research focus is saved.
-                </p>
-              )}
-            </div>
-          </div>
+          {relationships.length ? (
+            <ul className="rd-v2-profile-lab-rows">
+              {relationships.map((row) => (
+                <li key={row.id}>
+                  <span className="rd-v2-profile-lab-title" title={row.label}>{row.label}<em> — {row.routeLabel}</em></span>
+                  <span className="rd-v2-profile-lab-action" data-held={row.held ? "true" : "false"}>{row.status}</span>
+                </li>
+              ))}
+            </ul>
+          ) : <p className="rd-v2-empty-inline">No evidence relationships are recorded for this researcher.</p>}
+          <p className="rd-v2-profile-memory-effect" data-testid="profile-suggestion-boundary">
+            Suggested evidence belongs to Home and Discover. A recommendation is not a researcher fact and is not part of this profile.
+          </p>
         </section>
-      ) : !pilotLoading ? (
-        <p className="rd-v2-profile-loading" data-testid="profile-know-empty">
-          Bind a YZU faculty email in Settings, or load the example research memory.
-        </p>
       ) : null}
     </PageShell>
   );
 }
 
-/** DETAIL rail content for Profile — Scholar / Strengths / Desk. */
-export function ProfileDetailPanel({ profile }) {
-  const bound = Boolean(profile && !profile.unknown);
+/** DETAIL rail for Profile: account identity first, registry evidence second. */
+export function ProfileDetailPanel({
+  profile,
+  allowExamplePreview = false,
+  personalProfileAvailable = false,
+}) {
+  const [personalDocument, setPersonalDocument] = useState(undefined);
   const [pilot, setPilot] = useState(null);
+  const demoMode = explicitDemoMode();
 
   useEffect(() => {
-    if (bound) {
+    if (!personalProfileAvailable) {
+      setPersonalDocument(null);
+      return undefined;
+    }
+    let cancelled = false;
+    getResearchProfile()
+      .then((document) => {
+        if (!cancelled) setPersonalDocument(document || null);
+      })
+      .catch(() => {
+        if (!cancelled) setPersonalDocument(null);
+      });
+    return () => { cancelled = true; };
+  }, [personalProfileAvailable]);
+
+  useEffect(() => {
+    const onPersonalProfileUpdated = (event) => {
+      if (event?.detail && typeof event.detail === "object") {
+        setPersonalDocument(event.detail);
+      }
+    };
+    window.addEventListener(PERSONAL_PROFILE_UPDATED_EVENT, onPersonalProfileUpdated);
+    return () => window.removeEventListener(PERSONAL_PROFILE_UPDATED_EVENT, onPersonalProfileUpdated);
+  }, []);
+
+  const principalEmail = personalDocument?.principal?.email || "";
+  const suppliedBound = Boolean(profile && !profile.unknown);
+  const bound = Boolean(suppliedBound && (!principalEmail || sameEmail(profile?.email, principalEmail) || demoMode));
+
+  useEffect(() => {
+    if (bound || !demoMode || !allowExamplePreview) {
       setPilot(null);
       return undefined;
     }
@@ -334,45 +705,63 @@ export function ProfileDetailPanel({ profile }) {
       .catch(() => {
         if (!cancelled) setPilot(null);
       });
-    return () => {
-      cancelled = true;
-    };
-  }, [bound]);
+    return () => { cancelled = true; };
+  }, [bound, demoMode, allowExamplePreview]);
 
-  const previewing = !bound && Boolean(pilot);
-  const active = bound ? profile : pilot;
-  const read = buildDeskRead(active, { previewing });
-
-  if (!active) {
+  if (personalDocument?.principal) {
+    const principal = personalDocument.principal;
+    const context = personalDocument.profile || {};
+    const memory = personalDocument.memory || {};
+    const learned = memory?.settings?.use_memory === false
+      ? []
+      : (memory.memories || []).map((item) => item?.value).filter(Boolean);
+    const contextBits = [
+      context.current_project,
+      ...(context.research_topics || []),
+      ...(context.methods || []),
+      ...learned,
+    ].filter(Boolean).slice(0, 5);
+    const contextSources = [
+      personalDocument.configured ? "user-confirmed context" : null,
+      learned.length ? "learned memory" : null,
+    ].filter(Boolean);
     return (
       <div className="rd-v2-profile-rail" data-testid="profile-detail-rail">
-        <p className="rd-v2-empty-inline">Loading…</p>
+        <section className="rd-v2-profile-rail-block">
+          <h3>Researcher</h3>
+          <p>{principal.display_name || principal.email || "Verified researcher"}</p>
+        </section>
+        <section className="rd-v2-profile-rail-block">
+          <h3>Current context</h3>
+          <p>{contextBits.length ? contextBits.join(" · ") : "Not set up yet. Add research context in Profile."}</p>
+        </section>
+        <section className="rd-v2-profile-rail-block">
+          <h3>Record source</h3>
+          <p>Verified account{contextSources.length ? ` · ${contextSources.join(" · ")}` : ""}</p>
+        </section>
       </div>
     );
   }
 
+  const previewing = !bound && Boolean(pilot);
+  const active = bound ? profile : pilot;
+  const read = buildDeskRead(active, { previewing });
+  if (!active) {
+    return (
+      <div className="rd-v2-profile-rail" data-testid="profile-detail-rail">
+        <p className="rd-v2-empty-inline">
+          {personalProfileAvailable ? "Your profile could not be loaded right now." : "Sign in to keep a personal research profile."}
+        </p>
+      </div>
+    );
+  }
   return (
     <div className="rd-v2-profile-rail" data-testid="profile-detail-rail">
-      <section className="rd-v2-profile-rail-block">
-        <h3>Scholar</h3>
-        <p>{read.scholar}</p>
-      </section>
+      <section className="rd-v2-profile-rail-block"><h3>Scholar</h3><p>{read.scholar}</p></section>
       {read.strengths.length ? (
-        <section className="rd-v2-profile-rail-block">
-          <h3>Strengths</h3>
-          <ul>
-            {read.strengths.map((s) => (
-              <li key={s}>{s}</li>
-            ))}
-          </ul>
-        </section>
+        <section className="rd-v2-profile-rail-block"><h3>Registry strengths</h3><ul>{read.strengths.map((strength) => <li key={strength}>{strength}</li>)}</ul></section>
       ) : null}
-      {read.desk ? (
-        <section className="rd-v2-profile-rail-block">
-          <h3>Desk</h3>
-          <p>{read.desk}</p>
-        </section>
-      ) : null}
+      <section className="rd-v2-profile-rail-block"><h3>Record source</h3><p>Faculty registry{active.email ? ` · ${active.email}` : ""}. Library separately confirms evidence possession.</p></section>
     </div>
   );
 }

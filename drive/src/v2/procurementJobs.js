@@ -1,3 +1,5 @@
+import { plainIdentifiers } from "./plainText.js";
+
 /** Bind cluster jobs to Discover candidates and normalize procure state. */
 
 export function normalizedTitle(value) {
@@ -5,7 +7,24 @@ export function normalizedTitle(value) {
 }
 
 export function jobTitle(job) {
-  return job?.plan?.title || job?.plan?.dataset_id || job?.type || job?.id || "Collection job";
+  const plan = job?.plan || {};
+  const explicit = plan.title || job?.title || job?.name || plan.dataset_id;
+  if (explicit && !/^(synth block|collection run)$/i.test(String(explicit).trim())) return explicit;
+  const kind = String(plan.job_type || job?.type || "").trim().toLowerCase();
+  const kindLabels = {
+    synthesis_execute: "Synthesis execution",
+    scraper_run: "Evidence collection",
+    source_probe: "Connection test",
+    collection_queue_batch: "Scheduled collection",
+  };
+  return kindLabels[kind] || explicit || job?.id || "Collection job";
+}
+
+/** Internal ops schedules belong in Resources/System checks, not Discover's researcher lifecycle. */
+export function isDiscoverHistoryJob(job) {
+  const plan = job?.plan || {};
+  const request = job?.request || {};
+  return request._ops_internal !== true && plan.execution_policy?.scope !== "ops";
 }
 
 export function jobMatchesCandidate(job, candidate) {
@@ -47,6 +66,12 @@ export function jobToCandidateRow(job) {
   };
 }
 
+const SOURCE_LABELS = { discover_intent: "Discover request", cluster: "Lab cluster" };
+
+function sourceLabel(source) {
+  return SOURCE_LABELS[source] || plainIdentifiers(source);
+}
+
 export function jobToDiscoverHistoryEvent(job) {
   if (!job?.id) return null;
   const status = String(job.status || "queued");
@@ -57,8 +82,8 @@ export function jobToDiscoverHistoryEvent(job) {
     job.message ||
     job.plan?.summary ||
     (status === "pending_approval"
-      ? "Researcher approval is required before collection begins"
-      : `${source} · ${status.replace(/_/g, " ")}`);
+      ? "Researcher approval is required before this request can continue"
+      : `${sourceLabel(source)} · ${status.replace(/_/g, " ")}`);
   return {
     id: `job:${job.id}`,
     ts: job.updated_at || job.created_at || job.submitted_at || "",
@@ -101,4 +126,48 @@ export function pendingApprovalCount(jobs = []) {
 
 export function activeProcurementJobs(jobs = []) {
   return jobs.filter((j) => ["pending_approval", "queued", "running"].includes(String(j.status || "")));
+}
+
+export function mergeJobLists(recent, pending) {
+  const seen = new Set(recent.map((job) => job?.id));
+  return [...recent, ...pending.filter((job) => job?.id && !seen.has(job.id))];
+}
+
+const COLLECTION_STATUS_LABELS = {
+  pending_approval: "Waiting for your approval",
+  running: "Collecting",
+  collecting: "Collecting",
+  queued: "Queued",
+  failed: "Failed — needs attention",
+  blocked: "Blocked — needs attention",
+  registered: "Saved to Library",
+  query_ready: "Ready to query",
+  cancelled: "Cancelled",
+  completed: "Collection complete",
+  draft: "Draft request",
+  proposal_ready: "Proposal ready for review",
+  route_selected: "Collection method selected",
+  submitted: "Submitted for approval",
+  registered_not_queryable: "In Library · not yet checked",
+  registering: "Saving to Library",
+  registration_pending: "Waiting to save to Library",
+  approved: "Approved",
+  pending: "Pending",
+  paused: "Paused",
+  stopped: "Stopped",
+  succeeded: "Completed",
+  archiving: "Saving the master copy",
+  ready_for_review: "Ready for review",
+  query_ready_declared: "Documented as ready to query · not yet checked",
+  assigned: "Worker assigned",
+  retrying: "Retrying",
+  validating: "Checking the output",
+  not_started: "Not started",
+};
+
+export function collectionStatusLabel(status, fallback = "Status not reported") {
+  const value = String(status || "").trim().toLowerCase().replace(/[\s-]+/g, "_");
+  return Object.hasOwn(COLLECTION_STATUS_LABELS, value)
+    ? COLLECTION_STATUS_LABELS[value]
+    : fallback;
 }

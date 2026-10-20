@@ -1,6 +1,8 @@
 /** Resources — Spending | Activity model from desk rollup. */
 
 import { buildMotionRowsFromRollup } from "@/v2/resourcesFromRollup";
+import { measuredComposerLabel } from "./resourcesTruth.js";
+import { plainIdentifiers } from "./plainText.js";
 
 function rowBase(row) {
   return { ok: true, warn: false, ...row };
@@ -38,8 +40,9 @@ function cleanTarget(target) {
 }
 
 function cleanActivitySubject(target, action) {
-  let text = cleanTarget(target).replace(/\s+/g, " ").trim();
+  let text = cleanTarget(target).replace(/\s+/g, " ").replace(/^web:\s*/i, "").trim();
   if (!text) return ACTION_LABELS[action] || action || "Activity";
+  if (/^[a-z][a-z0-9]*(?:_[a-z0-9]+)+$/.test(text)) return plainIdentifiers(text);
 
   const currentRun = text.match(/^Explain the current procurement run:\s*([^.]+?)(?:\s*\(|\.|$)/i);
   if (currentRun?.[1]) return currentRun[1].trim();
@@ -55,9 +58,11 @@ function cleanActivitySubject(target, action) {
 
 const ACTION_LABELS = {
   ask: "Ask",
-  discover: "Browse discover",
-  bq_dry_run: "BQ dry-run",
-  bq_read: "BQ read",
+  discover: "Discover search",
+  discover_sources: "Source search",
+  web: "Web context",
+  bq_dry_run: "BigQuery cost check",
+  bq_read: "BigQuery read",
   procure: "Procure",
   query: "Query dataset",
   preview: "Preview",
@@ -78,7 +83,7 @@ export function buildCapacityCards(rollup) {
       kind: "capacity",
       key: "cap-ask",
       label: "Ask",
-      metric: composer.model || "composer-2.5",
+      metric: measuredComposerLabel(composer.model),
       sublabel: composer.configured ? "Composer + MCP" : "Composer not configured",
       ok: composer.configured,
       warn: !composer.configured,
@@ -164,7 +169,7 @@ export function buildSpendingMeters(rollup) {
       periodValue: String(period.composer_turns ?? 0),
       todayValue: String(today.composer_turns ?? 0),
       unitLabel: "Ask turns this month",
-      sublabel: rollup.ai?.composer_model || "composer-2.5",
+      sublabel: measuredComposerLabel(rollup.ai?.composer_model),
       section: "spending",
       detail: rollup.ai,
     }),
@@ -172,11 +177,11 @@ export function buildSpendingMeters(rollup) {
       kind: "meter",
       meterId: "probes",
       key: "meter-probes",
-      label: "Source probes",
+      label: "Connection tests",
       metric: `${period.probe_calls ?? 0} period · ${today.probe_calls ?? 0} today`,
       periodValue: String(period.probe_calls ?? 0),
       todayValue: String(today.probe_calls ?? 0),
-      unitLabel: "URL probes this month",
+      unitLabel: "URL connection tests this month",
       sublabel: "classify before collect",
       section: "spending",
     }),
@@ -200,7 +205,7 @@ export function buildAccountSummaryRows(rollup) {
       label: "Ask / model turns",
       metric: `${period.composer_turns ?? 0} month`,
       sublabel: `${today.composer_turns ?? 0} today`,
-      detail: rollup.ai?.composer_model || "composer-2.5",
+      detail: measuredComposerLabel(rollup.ai?.composer_model),
       section: "account",
     }),
     rowBase({
@@ -287,8 +292,8 @@ export function buildActivityRows(rollup, filter = null) {
         kind: "activity",
         key: `act-${ev.id}`,
         label: cleanActivitySubject(ev.target, ev.action),
-        metric: ACTION_LABELS[ev.action] || ev.action,
-        actionLabel: ACTION_LABELS[ev.action] || ev.action,
+        metric: ACTION_LABELS[ev.action] || plainIdentifiers(ev.action),
+        actionLabel: ACTION_LABELS[ev.action] || plainIdentifiers(ev.action),
         target: cleanTarget(ev.target),
         sublabel: fmtTime(ev.ts),
         costLabel: fmtCost(ev.cost),

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { buildCapacityAccessPairs } from "./resourcesCapacity.js";
+import { buildCapacityAccessPairs, plainAccessText } from "./resourcesCapacity.js";
 
 const sampleRollup = {
   hero: {
@@ -55,13 +55,14 @@ describe("buildCapacityAccessPairs", () => {
     assert.match(byId.vault.name, /Google Drive/i);
     assert.match(byId.cache.name, /Transcend/i);
     assert.match(byId.cursor.metric, /50 turns/);
-    assert.match(byId.bigquery.metric, /search-485108/);
+    assert.match(byId.bigquery.metric, /^Connected/);
+    assert.match(byId.bigquery.available, /project search-485108/);
     // VC-4: the fleet headline uses the shared collector vocabulary so the
     // card, toolbar, and rail cannot disagree. Identity readiness moved to the
     // detail line because it is a different operational dimension.
     assert.match(byId.fleet.metric, /^\d+ registered/);
     assert.match(byId.fleet.available, /3\/4 identities ready/);
-    assert.match(byId.mcp.metric, /86 MCP/);
+    assert.match(byId.mcp.metric, /86 research tools/);
   });
 
   it("shows Composer unverified rather than Ready when /health.desk.composer_runtime is configured but not verified", () => {
@@ -85,6 +86,8 @@ describe("buildCapacityAccessPairs", () => {
   it("keeps Composer ready when /health confirms a live-verified probe", () => {
     const health = {
       desk: {
+        brain: "copilot_composer",
+        composer_model: "gpt-5-mini",
         composer_runtime: { status: "ready", configured: true, verified: true, checked_at: "2026-08-12T10:00:00Z" },
       },
     };
@@ -92,6 +95,9 @@ describe("buildCapacityAccessPairs", () => {
     const byId = Object.fromEntries(pairs.flatMap((p) => p.meters.map((m) => [m.id, m])));
     assert.match(byId.cursor.metric, /50 turns/);
     assert.equal(byId.cursor.warn, false);
+    assert.equal(byId.cursor.name, "Copilot Ask");
+    assert.match(byId.cursor.available, /Copilot pool · confirmed live/);
+    assert.doesNotMatch(byId.cursor.available, /gpt-5-mini/);
   });
 
   it("shows Degraded rather than Ready for a failed probe, even though verified is true", () => {
@@ -121,10 +127,50 @@ describe("buildCapacityAccessPairs", () => {
     assert.equal(byId.cursor.warn, true);
   });
 
-  it("falls back to the prior configured-only behavior when no /health signal is available", () => {
+  it("keeps measured usage but does not infer live readiness while /health is loading", () => {
     const pairs = buildCapacityAccessPairs(sampleRollup);
     const byId = Object.fromEntries(pairs.flatMap((p) => p.meters.map((m) => [m.id, m])));
     assert.match(byId.cursor.metric, /50 turns/);
-    assert.equal(byId.cursor.warn, false);
+    assert.equal(byId.cursor.warn, true);
   });
+
+  it("shows Unverified, never Composer ready, before the first /health observation", () => {
+    const rollup = {
+      ...sampleRollup,
+      ai: { ...sampleRollup.ai, composer_turns_today: 0 },
+    };
+    const pairs = buildCapacityAccessPairs(rollup);
+    const byId = Object.fromEntries(pairs.flatMap((p) => p.meters.map((m) => [m.id, m])));
+    assert.equal(byId.cursor.metric, "Unverified");
+    assert.equal(byId.cursor.warn, true);
+    assert.doesNotMatch(byId.cursor.metric, /^Composer ready$/);
+  });
+
+  it("does not use a configured Composer key as proof that MCP tools loaded", () => {
+    const rollup = {
+      ...sampleRollup,
+      hero: { ...sampleRollup.hero, mcp_tools: 0 },
+      ai: { ...sampleRollup.ai, mcp_tools: { total: 0 }, composer_turns_today: 0 },
+    };
+    const pairs = buildCapacityAccessPairs(rollup, {
+      desk: { composer_runtime: { status: "unverified", configured: true, verified: false } },
+    });
+    const byId = Object.fromEntries(pairs.flatMap((p) => p.meters.map((m) => [m.id, m])));
+    assert.equal(byId.cursor.metric, "Unverified");
+    assert.equal(byId.mcp.metric, "Not reported");
+    assert.equal(byId.mcp.warn, true);
+  });
+});
+
+it("source access text reads as plain language, keeping paths and prose", () => {
+  assert.equal(
+    plainAccessText("refinitiv_backfill · refinitiv_promote_registry · entitlement probes"),
+    "Refinitiv backfill · Refinitiv promote registry · entitlement probes",
+  );
+  assert.equal(
+    plainAccessText("wrds_crsp_compustat_ccm queue task → data_lake/wrds/"),
+    "WRDS CRSP Compustat CCM queue task → data_lake/wrds/",
+  );
+  assert.equal(plainAccessText("sec_fetch_company_tickers"), "SEC fetch company tickers");
+  assert.equal(plainAccessText("Official feeds and queue scripts"), "Official feeds and queue scripts");
 });

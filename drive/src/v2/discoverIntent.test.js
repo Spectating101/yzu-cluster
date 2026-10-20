@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   canSubmitDiscoverIntent,
   discoverIntentCandidate,
+  procurementEngineeringSummary,
   proposalFromDiscoverCandidate,
   selectedIntentRoute,
 } from "./discoverIntent.js";
@@ -15,6 +16,10 @@ test("intent candidate preserves descriptions and observed connector identity", 
       description: "Public transaction and token-transfer tables.",
       recommended_use: "Aggregate transaction flows into daily measures.",
       grain: "transaction",
+      provider: "DataCite",
+      kind: "live_candidate",
+      doi: "10.5281/zenodo.123",
+      external_id: "zenodo.123",
       url: "https://console.cloud.google.com/bigquery",
     },
     {
@@ -27,6 +32,10 @@ test("intent candidate preserves descriptions and observed connector identity", 
   assert.equal(candidate.connector_id, "bigquery_public");
   assert.equal(candidate.description, "Public transaction and token-transfer tables.");
   assert.equal(candidate.recommended_use, "Aggregate transaction flows into daily measures.");
+  assert.equal(candidate.provider, "DataCite");
+  assert.equal(candidate.kind, "live_candidate");
+  assert.equal(candidate.doi, "10.5281/zenodo.123");
+  assert.equal(candidate.external_id, "zenodo.123");
 });
 
 test("declared collection route survives normalization as connector authority", () => {
@@ -66,6 +75,69 @@ test("unknown route remains unproposed instead of inventing procurement", () => 
     }),
     null,
   );
+});
+
+test("procurement engineering summary renders only backend-compiled truth", () => {
+  assert.equal(procurementEngineeringSummary({ id: "connector_only" }), null);
+
+  const summary = procurementEngineeringSummary({
+    id: "craft_primary",
+    collect_plan: {
+      cluster_execution: {
+        contract_hash: "abc123",
+        engineering_summary: {
+          status: "compiled",
+          primitive: "http_manifest",
+          required_capabilities: ["http"],
+          resource_basis: "baseline_only",
+          placement: "runtime",
+          parallelism_hint: 4,
+          preflight: "recommended",
+          post_acquisition_reassessment: true,
+        },
+      },
+    },
+  });
+
+  assert.deepEqual(summary, {
+    status: "compiled",
+    primitive: "http_manifest",
+    primitiveLabel: "HTTP acquisition",
+    capabilities: ["http"],
+    capabilityLabel: "http",
+    placementLabel: "runtime placement",
+    sizingLabel: "baseline sizing",
+    preflight: "recommended",
+    preflightLabel: "preflight recommended",
+    parallelismLabel: "up to 4 parallel claims",
+    postAcquisitionReassessment: true,
+    contractHash: "abc123",
+  });
+});
+
+test("bounded browser engineering summary stays explicit about required preflight", () => {
+  const summary = procurementEngineeringSummary({
+    collect_plan: {
+      cluster_execution: {
+        engineering_summary: {
+          status: "compiled",
+          primitive: "scraper_run",
+          required_capabilities: ["browser"],
+          resource_basis: "bounded",
+          placement: "runtime",
+          parallelism_hint: 1,
+          preflight: "required",
+          post_acquisition_reassessment: true,
+        },
+      },
+    },
+  });
+
+  assert.equal(summary.primitiveLabel, "Browser acquisition");
+  assert.equal(summary.capabilityLabel, "browser");
+  assert.equal(summary.sizingLabel, "sample-based sizing");
+  assert.equal(summary.preflightLabel, "preflight required");
+  assert.equal(summary.parallelismLabel, "single claim");
 });
 
 test("intent submits only after reviewed route selection and before job linkage", () => {

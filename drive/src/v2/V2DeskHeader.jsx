@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { deskStatusBadge, visibleIntegrationChips } from "@/v2/deskStatusBadge";
+import { deskStatusBadge, deskStatusSummary } from "@/v2/deskStatusBadge";
+import { ACCOUNT_ROLES } from "./accountRoles.js";
 
 /** v2 header — brand · research context · resting status (no global search/Ask pill) */
 
@@ -26,6 +27,7 @@ export function V2DeskHeader({
   onRetry,
   headerInitials = "YZ",
   datasetCount = 0,
+  dataLoading = false,
   usingSeed = false,
   workCount = 0,
   onPendingClick,
@@ -33,24 +35,39 @@ export function V2DeskHeader({
   refreshedAt = null,
   dryRunProtected: _dryRunProtected = true,
   integrationChips = [],
-  activeResearchTitle = "Active research",
+  activeResearchTitle = "No research focus set",
   currentPage = "home",
   onAccountNavigate,
+  onDeskStatusNavigate,
+  onMemberSignIn,
+  onSignOut,
+  memberSignInAvailable = false,
   principal = null,
+  datasetLabel = "datasets",
 }) {
   const [accountOpen, setAccountOpen] = useState(false);
   const accountRef = useRef(null);
   const pendingVisible = workCount > 0 && Boolean(onPendingClick);
-  const metaText = usingSeed
-    ? `${datasetCount} datasets`
+  const countText = `${datasetCount} ${datasetLabel}`;
+  const metaText = dataLoading && !usingSeed
+    ? "Loading Library…"
+    : usingSeed
+    ? countText
     : pendingVisible
-      ? `${datasetCount} datasets · ${workCount} pending`
-      : `${datasetCount} datasets`;
+      ? `${countText} · ${workCount} pending`
+      : countText;
   const fresh = freshnessLabel(refreshedAt);
   const chips = Array.isArray(integrationChips) ? integrationChips : [];
 
   const statusBadge = deskStatusBadge(deskStatus, usingSeed);
+  const statusSummary = deskStatusSummary(statusBadge, chips);
+  const statusTitle = [
+    ...statusSummary.details,
+    fresh ? `Updated ${fresh}` : null,
+    onDeskStatusNavigate ? "Open Resources" : null,
+  ].filter(Boolean).join(" · ");
   const pageLabel = PAGE_LABELS[currentPage] || String(currentPage || "").toUpperCase();
+  const isGuest = principal?.role === "public_guest";
 
   useEffect(() => {
     if (!accountOpen) return undefined;
@@ -82,37 +99,46 @@ export function V2DeskHeader({
         </div>
       </button>
 
-      <div className="rd-v2-header-context" aria-label="Active research context">
-        <button type="button" className="rd-v2-header-research" title={activeResearchTitle}>
-          <span>{activeResearchTitle}</span>
-          <em aria-hidden>▾</em>
-        </button>
+      <div className="rd-v2-header-context" role="group" aria-label="Active research context">
+        {isGuest ? null : (
+          <button
+            type="button"
+            className="rd-v2-header-research"
+            title={`${activeResearchTitle} · Edit in Profile`}
+            onClick={() => onAccountNavigate?.("profile")}
+          >
+            <span>{activeResearchTitle}</span>
+            <em aria-hidden>▾</em>
+          </button>
+        )}
         <span className="rd-v2-header-page" data-testid="header-page-label">
           {pageLabel}
         </span>
       </div>
 
       <div className="rd-v2-header-meta">
-        <div className="rd-v2-trust-strip" aria-label="Desk status" data-testid="desk-integration-strip">
-          <span className={`rd-v2-trust-badge ${statusBadge.tone}`}>{statusBadge.label}</span>
-          {visibleIntegrationChips(chips, statusBadge.label)
-            .map((chip) => (
-              <span
-                key={chip.id}
-                className={`rd-v2-trust-badge ${chip.tone || "muted"}`}
-                title={chip.label}
-              >
-                {chip.label}
-              </span>
-            ))}
-          {fresh && deskStatus !== "ok" ? (
-            <span className="rd-v2-trust-badge muted">Updated {fresh}</span>
-          ) : null}
+        <div className="rd-v2-trust-strip" role="group" aria-label="Research Drive status" data-testid="desk-integration-strip">
+          {onDeskStatusNavigate ? (
+            <button
+              type="button"
+              className={`rd-v2-trust-badge rd-v2-trust-summary ${statusSummary.tone}`}
+              title={statusTitle}
+              onClick={onDeskStatusNavigate}
+            >
+              {statusSummary.label}
+            </button>
+          ) : (
+            <span className={`rd-v2-trust-badge rd-v2-trust-summary ${statusSummary.tone}`} title={statusTitle}>
+              {statusSummary.label}
+            </span>
+          )}
         </div>
         <span className="rd-v2-header-meta-count" title={metaText}>
-          {pendingVisible ? (
+          {dataLoading && !usingSeed ? (
+            metaText
+          ) : pendingVisible ? (
             <>
-              {`${datasetCount} datasets · `}
+              {`${countText} · `}
               <button
                 type="button"
                 className="rd-v2-header-pending-link"
@@ -148,8 +174,21 @@ export function V2DeskHeader({
             {principal ? (
               <div className="rd-v2-account-identity">
                 <strong>{principal.display_name || principal.email || "Research Drive user"}</strong>
-                <span>{principal.role === "operator" ? "Operator" : "Member"}</span>
+                <span>{ACCOUNT_ROLES[principal.role] || "Unknown access"}</span>
               </div>
+            ) : null}
+            {isGuest ? (
+              <button
+                type="button"
+                role="menuitem"
+                data-testid="member-sign-in"
+                disabled={!memberSignInAvailable}
+                title={memberSignInAvailable ? "Sign in to use Ask, Synthesis, and save your research trail" : "Member sign-in is not enabled on this host"}
+                onClick={() => { setAccountOpen(false); onMemberSignIn?.(); }}
+              >
+                <span>{memberSignInAvailable ? "Sign in" : "Member sign-in unavailable"}</span>
+                <small>{memberSignInAvailable ? "Ask, Synthesis, and saved work" : "Browse shared evidence as a guest"}</small>
+              </button>
             ) : null}
             <button type="button" role="menuitem" onClick={() => openAccountPage("profile")}>
               <span>Profile</span>
@@ -157,8 +196,14 @@ export function V2DeskHeader({
             </button>
             <button type="button" role="menuitem" onClick={() => openAccountPage("settings")}>
               <span>Settings</span>
-              <small>Desk preferences</small>
+              <small>Research Drive preferences</small>
             </button>
+            {!isGuest && onSignOut ? (
+              <button type="button" role="menuitem" data-testid="desk-sign-out" onClick={() => { setAccountOpen(false); onSignOut(); }}>
+                <span>Sign out</span>
+                <small>Return to shared guest browsing</small>
+              </button>
+            ) : null}
           </div>
         ) : null}
       </div>

@@ -1,9 +1,12 @@
 import { RichContextHelp } from "@/v2/InteractionGuidance";
 import { statusPillKind } from "@/v2/datasetMeta";
+import { uiVocabularyLabel } from "./uiVocabularyLabels.js";
+import { LockMark } from "./Lock.jsx";
 
 const STYLES = {
   "query-ready": "rd-v2-status-pill rd-v2-status-ready",
   registered: "rd-v2-status-pill rd-v2-status-connected",
+  available: "rd-v2-status-pill rd-v2-status-connected",
   connected: "rd-v2-status-pill rd-v2-status-connected",
   review: "rd-v2-status-pill rd-v2-status-review",
   failed: "rd-v2-status-pill rd-v2-status-failed",
@@ -15,25 +18,45 @@ const STYLES = {
 };
 
 const GUIDANCE = {
-  "query-ready": {
-    title: "Query ready",
-    summary: "This asset has passed the checks needed for analysis inside Research Drive.",
+  members: {
+    title: "Yuan Ze members",
+    summary: "This data comes from a university subscription (LSEG, CRSP or Compustat). Its licence limits the rows to Yuan Ze members.",
     checks: [
-      "A durable registry identity is available",
-      "Local or connected query authority is reconciled",
-      "The current desk is permitted to analyse it",
+      "You can read what it is, its columns, size and coverage",
+      "Rows, samples and downloads need a Yuan Ze member sign-in",
+      "The licence decides this, not Research Drive",
+    ],
+    next: "Sign in with your Yuan Ze email to query it.",
+  },
+  "query-ready": {
+    title: "Ready to query",
+    summary: "This data has passed the checks needed for analysis inside Research Drive.",
+    checks: [
+      "A saved Library identifier is available",
+      "Local or connected query access has been checked",
+      "Research Drive is permitted to analyse it",
     ],
     next: "Preview rows, ask a grounded question, or use it in Synthesis.",
   },
+  available: {
+    title: "Available to collect",
+    summary: "Research Drive knows where this dataset comes from but has not downloaded it. It is collected when someone requests it.",
+    checks: [
+      "The source and what it holds are known",
+      "Nothing is stored on the desk yet",
+      "Collecting it is a request that a research operator approves",
+    ],
+    next: "Find it in Discover to request its collection.",
+  },
   registered: {
-    title: "Registered",
-    summary: "The asset is durably archived and registered, but Research Drive has not promoted it to Query ready.",
+    title: "Saved to Library",
+    summary: "The dataset is archived and saved to Library. Research Drive has not confirmed that it is ready to query.",
     checks: [
       "Archive and registry identity are available",
       "Provenance can be inspected in Detail",
       "Query readiness remains a separate evidence claim",
     ],
-    next: "Inspect files or preview support without relabelling the asset Query ready.",
+    next: "Inspect files or preview options. Readiness for querying still needs a separate check.",
   },
   connected: {
     title: "Connected source",
@@ -43,7 +66,7 @@ const GUIDANCE = {
       "Availability may depend on credentials or an upstream service",
       "Local archival and licensing still require confirmation",
     ],
-    next: "Open Detail to inspect access, authority, and collection options.",
+    next: "Open Detail to review access, verification, and collection options.",
   },
   review: {
     title: "Review required",
@@ -73,7 +96,7 @@ const GUIDANCE = {
       "Access and licensing may still need verification",
       "Collection requires an explicit route or proposal",
     ],
-    next: "Probe the source or ask Research Drive for the safest acquisition path.",
+    next: "Test the connection or ask Research Drive for the safest collection method.",
   },
   remote: {
     title: "Remote query",
@@ -81,15 +104,15 @@ const GUIDANCE = {
     checks: [
       "Results depend on upstream availability",
       "The Library may retain metadata without retaining the source bytes",
-      "Remote access does not imply durable archival",
+      "Remote access does not confirm a saved archive",
     ],
-    next: "Confirm limits and decide whether a durable local copy is required.",
+    next: "Check the limits and decide whether to save a local copy.",
   },
   queued: {
     title: "Queued",
     summary: "The request has been accepted into the work queue but is not currently executing.",
     checks: [
-      "A durable work item exists",
+      "The request is saved",
       "No running worker is implied",
       "Queue position and approval requirements may still change",
     ],
@@ -107,27 +130,27 @@ const GUIDANCE = {
   },
   unknown: {
     title: "Readiness unknown",
-    summary: "Research Drive cannot yet prove this asset's readiness state.",
+    summary: "Research Drive has not yet confirmed whether this data is ready for use.",
     checks: [
       "No positive readiness claim is being fabricated",
       "Metadata may still be incomplete or stale",
-      "The asset should not silently enter analysis",
+      "The data needs a readiness check before analysis",
     ],
     next: "Refresh or inspect the source, registry, and query evidence.",
   },
 };
 
-export function StatusPill({ dataset, label }) {
+export function StatusPill({ dataset, label, explain = true }) {
   const state = statusPillKind(dataset);
-  const text = label || state.label;
+  const text = uiVocabularyLabel(label || state.label);
   const kind = state.kind;
-  const cls = STYLES[kind] || STYLES.unknown;
-  const guidance = GUIDANCE[kind] || GUIDANCE.unknown;
+  const cls = state.locked ? "rd-v2-status-pill rd-v2-status-locked" : STYLES[kind] || STYLES.unknown;
+  const guidance = state.locked ? GUIDANCE.members : GUIDANCE[kind] || GUIDANCE.unknown;
   return (
     <span className={cls}>
-      <span className="rd-v2-status-dot" aria-hidden />
-      <span>{text}</span>
-      <RichContextHelp {...guidance} label={`Explain ${text}`} />
+      {state.locked ? <LockMark /> : <span className="rd-v2-status-dot" aria-hidden />}
+      <span title={text}>{text}</span>
+      {explain ? <RichContextHelp {...guidance} label={`Explain ${text}`} /> : null}
     </span>
   );
 }

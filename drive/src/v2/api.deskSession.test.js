@@ -8,8 +8,9 @@ import {
   ensureDeskAccess,
   ensureDeskSession,
   fetchJson,
+  signInWithMemberAccessCode,
 } from "./api.js";
-import { deskSessionBootstrapped, markDeskSessionBootstrapped } from "./deskSession.js";
+import { deskSessionBootstrapped, loadDeskToken, markDeskSessionBootstrapped } from "./deskSession.js";
 
 function installMemorySessionStorage() {
   const store = new Map();
@@ -290,4 +291,33 @@ test("ensureDeskAccess rechecks capabilities after a successful mint", async () 
   assert.equal(out.principal.role, "member");
   assert.equal(capabilityCalls, 2);
   assert.equal(fetchCalls.length, 3);
+});
+
+test("member access code is exchanged for a cookie session and then discarded", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    const path = String(url);
+    fetchCalls.push({ url: path, method: init.method || "GET", init });
+    if (path.endsWith("/library/desk/session")) {
+      assert.equal(init.headers["x-desk-token"], "member-code-123");
+      assert.equal(init.headers.authorization, "Bearer member-code-123");
+      return mockResponse({ ok: true, authorized: true });
+    }
+    if (path.endsWith("/library/desk/capabilities")) {
+      assert.equal(init.headers["x-desk-token"], undefined);
+      return mockResponse({
+        version: 2,
+        authenticated: true,
+        access: "member",
+        permissions: { use_ask: true },
+      });
+    }
+    throw new Error(`unexpected request ${path}`);
+  };
+
+  const out = await signInWithMemberAccessCode("member-code-123");
+
+  assert.equal(out.access, "member");
+  assert.equal(loadDeskToken(), "");
+  assert.equal(deskSessionBootstrapped(), true);
+  assert.deepEqual(fetchCalls.map((call) => call.method), ["POST", "GET"]);
 });

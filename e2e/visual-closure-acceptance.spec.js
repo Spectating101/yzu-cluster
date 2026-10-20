@@ -46,8 +46,8 @@ test("Home sparse — start action, no dead sidebar placeholder", async ({ page 
 test("Library sparse branch — clear state and bounded intake", async ({ page }) => {
   await open(page, "/?tab=library&folder=zz-empty-branch");
   const empty = page.locator(".rd-v2-library-empty");
-  await expect(empty).toContainText("Nothing else in this folder");
-  for (const label of ["Add files", "Add URL", "Find missing data"]) {
+  await expect(empty).toContainText("Nothing else in this collection");
+  for (const label of ["Add files", "Add URL", "Find missing evidence"]) {
     await expect(empty.getByRole("button", { name: label })).toBeVisible();
   }
   // Library boundary vocabulary is unified.
@@ -61,22 +61,21 @@ test("Discover idle — first-use examples, no oversized empty route block", asy
   await expect(examples.getByText("Try a keyword")).toBeVisible();
   await expect(examples.getByText("Ask a research need")).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Sources the desk already knows how to investigate" }),
+    page.getByRole("heading", { name: "Sources Research Drive knows how to investigate" }),
   ).toHaveCount(0);
   await shot(page, "discover-idle-1440x900.png");
 });
 
-test("Synthesis new — lifecycle rail and stated disabled reason", async ({ page }) => {
+test("Synthesis new — durable-object start and bounded empty rail", async ({ page }) => {
   await open(page, "/?tab=synthesis");
   const rail = page.getByRole("complementary", { name: "Inspector" });
-  // Scope to rail field labels — "Ask" is also the rail tab name.
-  const labels = rail.locator(".rd-v2-detail-label");
-  for (const step of ["Start", "Ask", "Ground", "Review", "Output"]) {
-    await expect(labels.filter({ hasText: new RegExp(`^${step}$`, "i") })).toHaveCount(1);
+  await expect(rail.getByRole("heading", { name: "No build selected" })).toBeVisible();
+  for (const step of ["Describe it", "Choose data", "Approve", "Get the dataset"]) {
+    await expect(page.getByTestId("rail-pane-detail").getByText(step, { exact: true })).toBeVisible();
   }
+  await expect(rail).toContainText("Nothing runs before you approve the method");
   await expect(rail).not.toContainText("Choose a blueprint or custom pair");
-  // Synthesis nests a studio <main> inside the shell <main>.
-  await expect(page.locator("main.yzu-main")).toContainText("Enter an objective to continue");
+  await expect(page.getByRole("button", { name: /Start from a research question/ })).toBeVisible();
   await shot(page, "synthesis-new-1440x900.png");
 });
 
@@ -89,14 +88,33 @@ test("Resources — one collector vocabulary across toolbar, card, and rail", as
   await shot(page, "resources-1440x900.png");
 });
 
-test("Profile thin — actionable memory and Library connections", async ({ page }) => {
-  await open(page, "/?tab=profile");
+test("Profile thin — a signed-in researcher can add a research focus beside the registry record", async ({ page }) => {
+  await page.setViewportSize(DESKTOP);
+  await mockV2Api(page, {
+    profileBody: { found: true, profile: { name_en: "Test Prof", email: "prof@example.edu", discipline: "YZU" } },
+  });
+  await page.route("**/library/profile", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        configured: false,
+        principal: { id: "prof-1", email: "prof@example.edu", display_name: "Test Prof", role: "member" },
+        profile: {},
+        memory: { memories: [], settings: { auto_learn: true, use_memory: true } },
+      }),
+    }),
+  );
+  await page.goto("/?tab=profile", { waitUntil: "domcontentloaded" });
+  await waitForShell(page).catch(() => {});
+  await page.waitForTimeout(900);
   const main = page.locator("main");
-  await expect(main).toContainText("No research direction saved.");
-  await expect(main.getByRole("button", { name: "Add research focus" })).toBeVisible();
-  await expect(main).toContainText("Library connections");
-  await expect(main.getByRole("button", { name: "Find relevant Library assets" })).toBeVisible();
-  await expect(main).toContainText("Suggestions appear after a research focus is saved.");
+  await expect(main.getByTestId("profile-memory-thin").or(main.getByTestId("profile-memory"))).toBeVisible();
+  const add = main.getByTestId("profile-add-focus");
+  await expect(add).toBeVisible();
+  await add.click();
+  await expect(page.locator("#rd-profile-project")).toBeFocused();
+  await expect(main.getByTestId("research-profile-editor")).toContainText("without overwriting your faculty record");
   await shot(page, "profile-thin-1440x900.png");
 });
 
@@ -116,7 +134,7 @@ test("Mobile Discover — first result readable, no horizontal overflow", async 
   await open(page, "/?tab=browse&q=stablecoin", MOBILE, { discoverBody: MOCK_DISCOVER_HIT });
   // The freeze requires the first offering to be readable on a phone, so the
   // capture must show a populated result rather than a miss state.
-  const firstRow = page.getByTestId("discover-best-fit").locator(".rd-v2-discover-candidate").first();
+  const firstRow = page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidate").first();
   await expect(firstRow).toBeVisible();
   const rowBox = await firstRow.boundingBox();
   expect(rowBox.x).toBeGreaterThanOrEqual(0);

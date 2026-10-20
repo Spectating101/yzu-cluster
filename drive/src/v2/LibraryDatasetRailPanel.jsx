@@ -1,141 +1,335 @@
-import { canIUseDecision, detailFields, displayName, statusPillKind } from "@/v2/datasetMeta";
-import { assetTypeLabel } from "@/v2/libraryEstate";
-import { RailEntityHeader, RailFrame, RailStickyFooter } from "@/v2/RailFrame";
-import { StatusPill } from "@/v2/StatusPill";
+import { AskUnavailableNote } from "@/v2/askNote";
+import { uiVocabularyLabel } from "./uiVocabularyLabels.js";
+import {
+  canIUseDecision,
+  demotionSentence,
+  detailFields,
+  hydrateRemedy,
+  libraryAssetPresentation,
+  statusPillKind,
+} from "@/v2/datasetMeta";
+import { freshnessDate, summarizeLibraryFreshness } from "@/v2/libraryFreshness";
+import { hasReproductionMethod, librarySourceReceipt, libraryUpstreamDatasets } from "@/v2/libraryProvenance";
+import { libraryVerification } from "@/v2/libraryVerification";
+import { holdingRoleLabel, summarizeLibraryHoldings } from "@/v2/libraryHoldings";
+import { RailFrame, RailStickyFooter } from "@/v2/RailFrame";
+import { plainRoute } from "@/v2/plainText";
+import { datasetDownloadHref } from "@/v2/askDownloadLink";
+import { requestDeskSignIn } from "@/v2/deskPermissions";
+import { licensedRowsLocked } from "@/v2/licensedAccess";
 
 export function decisionFor(dataset) {
   return canIUseDecision(dataset);
 }
 
-function usefulFor(dataset) {
-  const explicit = String(dataset?.recommended_use || dataset?.description || dataset?.subtitle || "").trim();
-  if (explicit) return explicit;
-  if (dataset?.grain) return `Research at ${dataset.grain} grain.`;
-  return "Research purpose is not described in the current registry metadata.";
+function sourceAuthorityValue(dataset) {
+  if (dataset?.self_provided || dataset?.upload) return "Self-provided";
+  const provenance = typeof dataset?.provenance === "string" ? dataset.provenance.trim() : "";
+  return String(
+    dataset?.source ||
+      dataset?.publisher ||
+      dataset?.source_system ||
+      provenance ||
+      "",
+  ).trim();
 }
 
-function unknowns(dataset, fields) {
-  // Terra donor (33f7288): judgment caveats as short strings — no invented readiness scores.
+function accessRouteValue(dataset, fields) {
+  return String(dataset?.collect_via || dataset?.backend || fields.access || "").trim();
+}
+
+function unknowns(dataset, fields, presentation, receipt, freshness) {
   const out = [];
+  const demotion = demotionSentence(dataset);
+  if (demotion) out.push(demotion);
+
+  if (!sourceAuthorityValue(dataset)) {
+    out.push("Source not recorded");
+  }
+  if (!dataset?.self_provided && !dataset?.upload && !receipt.sourceUrl) {
+    out.push("Exact source URL not recorded");
+  }
+  if (receipt.sourceUrlKind === "Endpoint from saved recipe") out.push("Original fetch URL was not recorded; endpoint reconstructed from saved recipe");
+  if (!hasReproductionMethod(receipt)) {
+    out.push("Reproduction method not recorded");
+  }
+
+  if (presentation.kind === "scholarly_work") {
+    if (!dataset?.doi && !dataset?.url && !receipt.sourceUrl) out.push("Stable identifier not reported");
+    return out;
+  }
+
+  if (presentation.kind === "live_source") {
+    if (!accessRouteValue(dataset, fields) && !receipt.method) out.push("Access not reported");
+    if (!Array.isArray(dataset?.columns) && !Array.isArray(dataset?.fields)) out.push("Documented response shape not reported");
+    if (!dataset?.last_checked_at && !dataset?.checked_at && !freshness.lastRefreshedAt && !freshness.dataAsOf) {
+      out.push("Connection freshness not described");
+    }
+    return out;
+  }
+
+  if (presentation.kind === "operational") {
+    if (!dataset?.updated_at && !dataset?.last_modified && !dataset?.as_of) out.push("Recorded state freshness not described");
+    return out;
+  }
+
   if (!dataset?.analysis_readiness) out.push("Readiness not reported by registry");
   if (!fields.coverage && !dataset?.coverage && !dataset?.date_range) out.push("Coverage not reported");
-  if (!dataset?.grain) out.push("Grain not reported");
-  if (!fields.source && !dataset?.source && !dataset?.source_system && !dataset?.provenance) {
-    out.push("Provenance not reported beyond registry");
-  }
-  if (!dataset?.updated_at && !dataset?.last_modified && !dataset?.as_of) {
-    out.push("Freshness / last refresh not described");
+  if (!dataset?.grain) out.push("Unit of observation not reported");
+  if (!freshness.hasFreshnessEvidence) {
+    out.push("Data freshness / refresh cadence not recorded");
   }
   if (!fields.joinKeys?.length) out.push("Join keys / schema relationship not described");
-  const limitations = dataset?.limitations || dataset?.caveats || fields.limitations;
-  if (limitations) out.push(String(limitations).slice(0, 160));
-  else out.push("Known caveats not described");
+  if (!(dataset?.limitations || dataset?.caveats || fields.limitations)) out.push("Known caveats not described");
   return out;
 }
 
-function Fact({ label, value, mono = false }) {
+function knownBoundaries(dataset, fields) {
+  const raw = dataset?.limitations || dataset?.caveats || fields.limitations;
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw.map((item) => String(item).trim()).filter(Boolean);
+  return [String(raw).trim()].filter(Boolean);
+}
+
+function Fact({ label, value, mono = false, href = "" }) {
   if (value == null || value === "") return null;
   return (
     <div className="rd-v2-library-inspector-fact">
       <span>{label}</span>
-      <strong className={mono ? "mono" : undefined}>{value}</strong>
+      <strong className={mono ? "mono" : undefined}>
+        {href ? <a href={href} target="_blank" rel="noreferrer">{value}</a> : value}
+      </strong>
     </div>
   );
 }
 
-function JoinKeys({ keys }) {
-  if (!keys?.length) return null;
-  return (
-    <div className="rd-v2-library-inspector-joins">
-      {keys.map((key) => <code key={key}>{key}</code>)}
-    </div>
-  );
+function sourceAuthorityLine(dataset) {
+  return sourceAuthorityValue(dataset) || "Source not recorded";
 }
 
-function sourceAuthorityLine(dataset, fields) {
+function askLabel(presentation, state) {
+  if (state.kind === "query-ready") return "Ask about this →";
+  if (presentation.kind === "scholarly_work") return "Ask about this work →";
+  if (presentation.kind === "operational") return "Ask about this record →";
+  return "Ask about access →";
+}
+
+function reproductionLabel(receipt) {
+  if (receipt.command) return "Reproduce command";
+  if (receipt.script) return "Script";
+  if (receipt.route) return "Route";
+  return "";
+}
+
+function reproductionValue(receipt) {
+  return receipt.command || receipt.script || receipt.route || "";
+}
+
+function provenanceBasis(dataset, receipt) {
   if (dataset?.self_provided || dataset?.upload) return "Self-provided";
-  if (fields.source || dataset?.source || dataset?.source_system) {
-    return fields.source || dataset.source || dataset.source_system;
-  }
-  if (dataset?.collect_via || dataset?.backend) return dataset.collect_via || dataset.backend;
-  return "Source authority absent";
+  if (receipt.sourceUrlKind === "Endpoint from saved recipe") return "Saved source recipe";
+  if (receipt.sourceUrl) return "Exact source recorded";
+  if (sourceAuthorityValue(dataset)) return "Source named";
+  return "Not established";
 }
 
-function verificationBlock(dataset) {
-  const kind = statusPillKind(dataset).kind;
-  if (kind === "query-ready") {
-    return {
-      headline: "Matched",
-      body: "Archive and registry correspondence supports query use.",
-      checks: ["Identifiers present", "Registry readiness declared", "Local query path available"],
-      unknowns: [],
-    };
+function nextMove({ state, presentation, previewOpen, receipt, verification, freshness, locked, downloadable }) {
+  const workWith = downloadable ? "View all rows or download it to work with it." : "View all rows to work with it.";
+  if (locked) {
+    return "Read what it holds here. Sign in with your Yuan Ze email to query the rows.";
   }
-  if (dataset?.archive_verified === true) {
-    return {
-      headline: "Archived",
-      body: "Vault archive confirmed. Query readiness may still be pending.",
-      checks: ["Archive verified"],
-      unknowns: ["Query readiness not confirmed"],
-    };
+  if (previewOpen) {
+    return "Review the expanded sample in the centre. Observed rows do not upgrade verification, provenance, or freshness.";
   }
-  if (kind === "connected") {
-    return {
-      headline: "Connected",
-      body: "Source route is connected. Full verification is not complete.",
-      checks: ["Route connected"],
-      unknowns: ["Row-level correspondence not established"],
-    };
+  if (freshness.stale) {
+    return "Refresh the evidence pipeline before using this copy for time-sensitive analysis; query readiness does not make stale data current.";
   }
-  return {
-    headline: "Unverified",
-    body: "Verification record is not established for this asset.",
-    checks: [],
-    unknowns: ["Source match", "Coverage correspondence", "Query readiness"],
-  };
+  if (state.kind === "query-ready") {
+    if (!hasReproductionMethod(receipt)) {
+      return `${workWith} Check the Source record before you rely on it for a paper.`;
+    }
+    if (verification.kind !== "verified" && verification.kind !== "matched") {
+      return workWith;
+    }
+    return "Use the sample for a quick value check. Open a query for analysis beyond the sample.";
+  }
+  if (state.kind === "available") {
+    return "Find it in Discover to request its collection. Once collected, its columns and a sample appear here.";
+  }
+  if (state.kind === "connected") {
+    return "Use the documented remote connection. Connected means the source is reachable. It does not confirm a local copy ready to query.";
+  }
+  if (state.kind === "registered") {
+    if (presentation.kind === "scholarly_work") {
+      return "Use the bibliographic record as evidence, then verify the stable source before making a stronger source claim.";
+    }
+    return "Inspect the source record and prepare a usable local copy before treating this data as ready to query.";
+  }
+  return "Resolve the readiness or source history gaps before relying on this data in analysis.";
 }
 
-export function LibraryDatasetRailPanel({ dataset, onPreview, onAskAbout }) {
+function DecisionBasis({ state, verification, dataset, receipt, previewOpen, presentation, freshness }) {
+  const rows = [
+    ["Readiness", state.label],
+    ["Verification", verification.label],
+    ["Provenance", provenanceBasis(dataset, receipt)],
+    ["Freshness", freshness.basisLabel],
+  ];
+  return (
+    <section className="rd-v2-library-inspector-basis" aria-label="Why this status" data-testid="library-decision-basis">
+      <p className="rd-v2-rail-section-label">Why this status</p>
+      <div className="rd-v2-library-inspector-basis-grid">
+        {rows.map(([label, value]) => (
+          <div key={label}>
+            <span>{label}</span>
+            <strong>{value}</strong>
+          </div>
+        ))}
+      </div>
+      <div className="rd-v2-library-inspector-next">
+        <span>{previewOpen ? "Sample state" : "Next move"}</span>
+        <p>{nextMove({ state, presentation, previewOpen, receipt, verification, freshness, locked: licensedRowsLocked(dataset), downloadable: Boolean(dataset?.full_download) })}</p>
+      </div>
+    </section>
+  );
+}
+
+function HoldingsBlock({ summary }) {
+  if (!summary.count) return null;
+  const focus = summary.focus;
+  const otherProviders = summary.providers.filter((provider) => provider !== focus?.provider);
+  const focusLabel = focus?.active ? "Using" : focus?.primary ? "Primary copy" : "Known copy";
+  const focusContext = focus ? [focus.custodian, holdingRoleLabel(focus)].filter(Boolean).join(" · ") : "";
+  return (
+    <section
+      className="rd-v2-library-inspector-block rd-v2-library-inspector-holdings"
+      aria-label="Your Library"
+      data-testid="library-rail-holdings"
+    >
+      <p className="rd-v2-rail-section-label">Your Library</p>
+      <h3 className="rd-v2-library-rail-module-title">{summary.headline}</h3>
+      {focus ? (
+        <div className="rd-v2-library-holding-focus">
+          <span>{focusLabel}</span>
+          <strong>{focus.provider}</strong>
+          {focusContext ? <small>{focusContext}</small> : null}
+        </div>
+      ) : null}
+      {otherProviders.length ? (
+        <p className="rd-v2-library-holdings-provider-line">{otherProviders.join(" · ")}</p>
+      ) : null}
+    </section>
+  );
+}
+
+/**
+ * The centre workspace owns asset substance (table/schema, coverage, grain,
+ * research use). The global situation strip owns selected-asset identity. The
+ * rail is therefore decisional: usability, freshness, provenance, verification,
+ * unresolved facts, and the next valid research move.
+ */
+export function LibraryDatasetRailPanel({ dataset, catalog = [], previewOpen = false, onAskAbout, onOpenDataset }) {
   if (!dataset) return null;
   const fields = detailFields(dataset);
+  const presentation = libraryAssetPresentation(dataset);
   const state = statusPillKind(dataset);
   const decision = decisionFor(dataset);
-  const missing = unknowns(dataset, fields);
-  const rowCount = dataset.rows || dataset.row_count || dataset.num_rows || dataset.records;
-  const columnCount = dataset.columns || dataset.column_count || dataset.num_columns;
-  const updated = dataset.updated_at || dataset.last_modified || dataset.as_of;
-  const route = dataset.collect_via || dataset.backend;
-  const canPreview = state.kind === "query-ready";
-  const verification = verificationBlock(dataset);
+  const receipt = librarySourceReceipt(dataset);
+  const upstream = libraryUpstreamDatasets(dataset, catalog);
+  const freshness = summarizeLibraryFreshness(dataset, { kind: presentation.kind });
+  const missing = unknowns(dataset, fields, presentation, receipt, freshness);
+  const boundaries = knownBoundaries(dataset, fields);
+  const verification = libraryVerification(dataset);
+  const holdings = summarizeLibraryHoldings(dataset);
+  const remedy = hydrateRemedy(dataset);
+  const archiveRef = String(dataset?.canonical_remote || dataset?.lineage?.canonical_remote || "").trim();
+  const accessRoute = accessRouteValue(dataset, fields);
+  const authority = sourceAuthorityValue(dataset);
+  const hasReceiptDetails = Boolean(
+    receipt.sourceUrl || receipt.method || reproductionValue(receipt) || receipt.upstream || accessRoute,
+  );
 
   return (
     <RailFrame>
-      <RailEntityHeader
-        title={displayName(dataset)}
-        description={assetTypeLabel(dataset)}
-        pills={<StatusPill dataset={dataset} />}
-      />
-
-      <section className={`rd-v2-library-inspector-decision rd-v2-library-inspector-decision-${state.kind}`} aria-label="Can I use this?">
+      <section
+        className={`rd-v2-library-inspector-decision rd-v2-library-inspector-decision-${state.kind}`}
+        aria-label="Can I use this?"
+        data-testid={demotionSentence(dataset) ? "library-demotion-sentence" : undefined}
+      >
         <p className="rd-v2-rail-section-label">Can I use this?</p>
         <h3>{decision.headline}</h3>
-        <p>{decision.body}</p>
+        <p>{uiVocabularyLabel(decision.body)}</p>
+        {freshness.stale ? (
+          <p data-testid="library-stale-warning">Freshness is stale even though the current copy may remain technically queryable.</p>
+        ) : null}
       </section>
 
+      {remedy ? (
+        <section
+          className="rd-v2-library-inspector-decision"
+          aria-label="Restore from archive"
+          data-testid="library-hydrate-remedy"
+        >
+          <p className="rd-v2-rail-section-label">Restore from archive</p>
+          <p>{remedy}</p>
+          {archiveRef ? <p className="rd-v2-library-inspector-prose muted mono">{archiveRef}</p> : null}
+        </section>
+      ) : null}
+
       <div className="rd-v2-rail-scroll rd-v2-library-inspector-scroll">
+        <DecisionBasis
+          state={state}
+          verification={verification}
+          dataset={dataset}
+          receipt={receipt}
+          previewOpen={previewOpen}
+          presentation={presentation}
+          freshness={freshness}
+        />
+
+        <HoldingsBlock summary={holdings} />
+
         <section className="rd-v2-library-inspector-block" aria-label="Source" data-testid="library-rail-source">
-          <p className="rd-v2-rail-section-label">Source</p>
-          <h3 className="rd-v2-library-rail-module-title">{sourceAuthorityLine(dataset, fields)}</h3>
-          <div className="rd-v2-library-inspector-facts">
-            <Fact label="Route" value={route} />
-            <Fact label="Vault" value={fields.vault ? "Archived in Library" : "Local archive not confirmed"} />
-            <Fact label="Updated" value={updated} />
-          </div>
+          <p className="rd-v2-rail-section-label">Source &amp; reproduce</p>
+          <h3 className="rd-v2-library-rail-module-title">{sourceAuthorityLine(dataset)}</h3>
+          {datasetDownloadHref(dataset) ? (
+            <p className="rd-v2-library-inspector-prose">
+              <a href={datasetDownloadHref(dataset)} download data-testid="library-rail-full-download">Download CSV</a>
+            </p>
+          ) : dataset?.download_requires_account ? (
+            <p className="rd-v2-library-inspector-prose">
+              <button type="button" className="rd-v2-btn sm" onClick={() => requestDeskSignIn("signup")}>Sign in to download</button>
+            </p>
+          ) : null}
+          {hasReceiptDetails ? (
+            <div className="rd-v2-library-inspector-facts rd-v2-library-provenance-facts">
+              <Fact label={receipt.sourceUrlKind || "Exact source URL"} value={receipt.sourceUrl} href={receipt.sourceUrl} mono />
+              <Fact label="Access" value={plainRoute(accessRoute)} />
+              <Fact label="Method" value={plainRoute(receipt.method)} />
+              <Fact label={reproductionLabel(receipt)} value={reproductionValue(receipt)} mono />
+              {upstream.length ? (
+                <div className="rd-v2-library-inspector-fact">
+                  <span>Upstream datasets</span>
+                  <strong className="rd-v2-library-upstream">{upstream.map((input) => <span key={input.id}>
+                    {input.dataset && onOpenDataset
+                      ? <button type="button" className="rd-v2-library-upstream-link" onClick={() => onOpenDataset(input.dataset)}>{input.name}</button>
+                      : input.name}
+                  </span>)}</strong>
+                </div>
+              ) : null}
+            </div>
+          ) : (
+            <p className="rd-v2-library-inspector-prose muted">
+              {authority
+                ? "The source is named, but no record of how to reproduce this dataset is saved."
+                : "No source verification or reproduction record is saved for this dataset."}
+            </p>
+          )}
         </section>
 
         <section className="rd-v2-library-inspector-block" aria-label="Verification" data-testid="library-rail-verification">
           <p className="rd-v2-rail-section-label">Verification</p>
-          <h3 className="rd-v2-library-rail-module-title">{verification.headline}</h3>
+          <h3 className="rd-v2-library-rail-module-title">{verification.label}</h3>
           <p className="rd-v2-library-inspector-prose">{verification.body}</p>
           {verification.checks.length ? (
             <ul className="rd-v2-library-verify-list known">
@@ -153,33 +347,21 @@ export function LibraryDatasetRailPanel({ dataset, onPreview, onAskAbout }) {
           ) : null}
         </section>
 
-        <section className="rd-v2-library-inspector-block" aria-label="Useful for">
-          <p className="rd-v2-rail-section-label">Useful for</p>
-          <p className="rd-v2-library-inspector-prose">{usefulFor(dataset)}</p>
-        </section>
-
-        {(fields.coverage || dataset.grain || rowCount || columnCount) ? (
-          <section className="rd-v2-library-inspector-block" aria-label="Coverage and grain">
-            <p className="rd-v2-rail-section-label">Coverage & grain</p>
-            <div className="rd-v2-library-inspector-facts">
-              <Fact label="Coverage" value={fields.coverage || dataset.coverage || dataset.date_range} />
-              <Fact label="Grain" value={dataset.grain} />
-              <Fact label="Rows" value={rowCount} />
-              <Fact label="Columns" value={columnCount} />
-            </div>
-          </section>
-        ) : null}
-
-        {fields.joinKeys?.length ? (
-          <section className="rd-v2-library-inspector-block" aria-label="Join keys">
-            <p className="rd-v2-rail-section-label">Join keys</p>
-            <JoinKeys keys={fields.joinKeys} />
+        {boundaries.length ? (
+          <section className="rd-v2-library-inspector-block" aria-label="Known boundary" data-testid="library-known-boundary">
+            <p className="rd-v2-rail-section-label">Known boundary</p>
+            <ul className="rd-v2-library-verify-list known">
+              {boundaries.map((item) => <li key={item}><span aria-hidden>•</span>{item}</li>)}
+            </ul>
           </section>
         ) : null}
 
         {missing.length ? (
           <section className="rd-v2-library-inspector-block rd-v2-library-inspector-unknown" aria-label="Still unknown">
             <p className="rd-v2-rail-section-label">Still unknown</p>
+            <h3 className="rd-v2-library-rail-module-title">
+              {missing.length} unresolved fact{missing.length === 1 ? "" : "s"}
+            </h3>
             <ul>
               {missing.map((item) => <li key={item}><span aria-hidden>?</span>{item}</li>)}
             </ul>
@@ -189,24 +371,36 @@ export function LibraryDatasetRailPanel({ dataset, onPreview, onAskAbout }) {
         <details className="rd-v2-library-inspector-tech">
           <summary>Technical details</summary>
           <div className="rd-v2-library-inspector-tech-body">
-            <Fact label="Dataset ID" value={dataset.dataset_id} mono />
+            <Fact label="Library ID" value={dataset.dataset_id} mono />
+            <Fact label="Upstream dataset IDs" value={receipt.upstream} mono />
+            {holdings.count ? <Fact label="Known holdings" value={String(holdings.count)} /> : null}
             <Fact label="Registry readiness" value={dataset.analysis_readiness || "not declared"} mono />
             <Fact label="Backend" value={dataset.backend} mono />
+            <Fact label="Source endpoint" value={receipt.sourceEndpoint} mono />
             <Fact label="Vault path" value={fields.vault} mono />
-            <Fact label="Query path" value={dataset.dataset_id ? `/query/${dataset.dataset_id}?limit=50` : null} mono />
+            <Fact label="Canonical archive" value={archiveRef || null} mono />
+            <Fact label="Data as of" value={freshness.dataAsOf ? freshnessDate(freshness.dataAsOf, { year: true }) : null} />
+            <Fact label="Last data refresh" value={freshness.lastRefreshedAt || null} />
+            <Fact label="Refresh cadence" value={freshness.cadenceLabel || null} />
+            <Fact label="Next expected refresh" value={freshness.nextRefreshAt || null} />
+            <Fact label="Refresh status" value={freshness.status || (freshness.stale ? "stale" : null)} />
+            <Fact label="Record updated" value={freshness.recordUpdatedAt || null} />
+            <Fact label="Fetched" value={receipt.fetchedAt} />
+            <Fact label="Content SHA-256" value={receipt.contentSha256} mono />
+            {state.kind === "query-ready" ? <Fact label="Query path" value={dataset.dataset_id ? `/query/${dataset.dataset_id}?limit=50` : null} mono /> : null}
           </div>
         </details>
       </div>
 
       <RailStickyFooter>
-        {canPreview ? (
-          <>
-            <button type="button" className="rd-v2-btn primary sm" onClick={onPreview}>Preview rows</button>
-            <button type="button" className="rd-v2-btn sm" onClick={onAskAbout}>Ask about this →</button>
-          </>
-        ) : (
-          <button type="button" className="rd-v2-btn primary sm" onClick={onAskAbout}>Ask about access →</button>
-        )}
+        {previewOpen ? (
+          <span className="rd-v2-library-preview-state" data-testid="library-preview-open-state">
+            Expanded sample open in centre
+          </span>
+        ) : null}
+        {onAskAbout ? <button type="button" className="rd-v2-btn primary sm" onClick={onAskAbout}>
+          {askLabel(presentation, state)}
+        </button> : <AskUnavailableNote className="rd-v2-library-inspector-prose muted" subject="this dataset" />}
       </RailStickyFooter>
     </RailFrame>
   );

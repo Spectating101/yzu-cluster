@@ -1,5 +1,7 @@
 # Research Drive v2 — forward plan (FROZEN)
 
+> **Historical composition notice (2026-08-20):** Cluster references below are superseded. The current navigation authority is [`UI_PRODUCT_AUTHORITY.md`](../UI_PRODUCT_AUTHORITY.md), which explicitly excludes Cluster as a faculty destination. Keep these passages only as design history; do not implement or restore that route.
+
 **Status:** FROZEN — 2026-06-28  
 **Purpose:** Single “how we go forward” doc — product frozen, implementation order, Preview contract, next step.  
 **Do not:** Redesign in chat; amend authority chain below first.

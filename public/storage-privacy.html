@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; base-uri 'none'; form-action 'none'">
+  <meta name="description" content="How the research-drive-platform storage connection handles Google Drive access, research archives and recovery backups.">
+  <title>Storage privacy notice · Research Drive</title>
+  <link rel="stylesheet" href="/storage-notice.css">
+  <link rel="canonical" href="https://rc3.easycamp.tech/storage-privacy.html">
+</head>
+<body>
+  <a class="skip" href="#content">Skip to content</a>
+  <header>
+    <a class="brand" href="/">Research Drive</a>
+    <nav aria-label="Storage information">
+      <a href="/storage.html">Storage connection</a>
+      <a href="/storage-privacy.html" aria-current="page">Privacy notice</a>
+    </nav>
+  </header>
+  <main id="content">
+    <h1>Storage privacy notice</h1>
+    <p class="meta">Google application: research-drive-platform · Effective 15 October 2026</p>
+    <h2>Purpose and scope</h2>
+    <p>This notice describes the operator-managed Google Drive storage connection used for Research Drive dataset archives and recovery backups. It does not describe every Research Drive feature or replace notices for email or model providers.</p>
+    <h2>Google access</h2>
+    <p>The connection uses Google OAuth to obtain access authorized by the account owner. The CMS connection requests <code>drive.file</code>, covering files used with this application. Other operator connections may have different scopes; their consent screens show the requested access.</p>
+    <p>The tools inspect the connected account’s identity and storage quota to confirm the intended destination.</p>
+    <h2>Data processed and stored</h2>
+    <p>Transfers handle selected research-file contents, filenames, sizes and content hashes. Backup snapshots can contain application configuration, account records, research history, job state and provider credentials needed for recovery.</p>
+    <p class="note">Recovery snapshots are encrypted locally by restic before upload. Selected dataset archive files are uploaded without that backup encryption unless a separate encryption layer is explicitly configured. Archive access therefore depends on the Google account’s access and sharing controls.</p>
+    <p>OAuth credentials and refresh tokens are stored in private local configuration files. Encrypted recovery snapshots can include those configuration files. The backup repository password is held separately from the uploaded snapshots.</p>
+    <h2>Processing destinations and access</h2>
+    <p>Local tools transfer selected data to and from Google Drive. Dataset checks and restore tests may download stored files for content verification. This storage connection does not itself send transferred research data to an inference model.</p>
+    <p>The operator controls dataset selection and access to the connected accounts. Adding a Research Drive user does not by itself share the Google Drive account or its OAuth credentials with that user.</p>
+    <h2>Retention, deletion and revocation</h2>
+    <p>Backups are versioned. Deleting a working file does not immediately erase prior backup snapshots. No automatic snapshot deletion is currently configured in this backup tool. The operator manages retention and requests to delete retained snapshots or archive objects.</p>
+    <p>The Google account owner can revoke this application’s access in <a href="https://myaccount.google.com/connections">Google Account connections</a>. Revoking access stops future authorized transfers; it does not itself delete files or snapshots already stored. Local credentials must also be removed or replaced when retiring a connection.</p>
+    <h2>Contact</h2>
+    <p>For questions about this connection or its handling of stored data, contact <!--email_off--><a href="mailto:christstrife@gmail.com">christstrife@gmail.com</a><!--/email_off-->, the support address shown on its Google consent screen.</p>
+  </main>
+  <footer><p><a href="/storage.html">About the storage connection</a> · <a href="/">Open Research Drive</a></p></footer>
+</body>
+</html>

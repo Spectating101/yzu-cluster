@@ -33,6 +33,27 @@ test("durableHistoryToEvents preserves candidate/source/connector/job identities
   assert.equal(event.job_id, "job-abc");
 });
 
+test("durable History preserves holding flags at the event boundary", () => {
+  const [event] = durableHistoryToEvents({
+    items: [
+      {
+        kind: "registered_asset",
+        id: "receipt-row",
+        title: "Receipt row",
+        status: "query_ready",
+        readiness: "query_ready",
+        holding_status: "held",
+        usable: true,
+        query_ready: true,
+      },
+    ],
+  });
+  assert.equal(event.readiness, "query_ready");
+  assert.equal(event.holding_status, "held");
+  assert.equal(event.usable, true);
+  assert.equal(event.query_ready, true);
+});
+
 test("historyHoldingTruth never promotes receipt_only to query-ready", () => {
   const [event] = durableHistoryToEvents({
     items: [
@@ -45,7 +66,7 @@ test("historyHoldingTruth never promotes receipt_only to query-ready", () => {
         readiness: "query_ready",
         dataset_id: "rev_live2",
         job_id: "042816e2f8af",
-        summary: "Archive verified · registry verified · query-ready on desk",
+        summary: "Archived copy verified · in the Library · ready to query",
         catalog_reconciliation: {
           state: "receipt_only",
           registry_row_loaded: false,
@@ -60,8 +81,8 @@ test("historyHoldingTruth never promotes receipt_only to query-ready", () => {
   assert.equal(truth.stages.registered, true);
   assert.equal(truth.stages.collected, true);
   assert.equal(truth.receiptOnly, true);
-  assert.match(truth.label, /Registered/);
-  assert.notEqual(truth.label, "Query-ready");
+  assert.match(truth.label, /In Library/);
+  assert.notEqual(truth.label, "Ready to query");
   // Triad stays distinct — collected does not imply query-ready.
   assert.notDeepEqual(
     { c: truth.stages.collected, r: truth.stages.registered, q: truth.stages.queryReady },

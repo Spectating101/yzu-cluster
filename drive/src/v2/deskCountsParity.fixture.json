@@ -1,0 +1,408 @@
+{
+ "heldReady": {
+  "dataset_id": "gdelt_asia_daily_country_panel",
+  "name": "Daily news shock panel for Asian countries (GDELT)",
+  "backend": "local_gdelt_panel_csv",
+  "access_shape": "local_derived_tables",
+  "analysis_readiness": "instant",
+  "grain": "country_day",
+  "time_field": "date",
+  "entity_fields": [
+   "country_iso3"
+  ],
+  "local_root": "data_lake/news_shock_taxonomy/processed",
+  "description": "This dataset tracks day-by-day changes in news intensity for countries in Asia using the GDELT global news database. Eac",
+  "capabilities": [
+   "filter_date_range",
+   "filter_country",
+   "order",
+   "limit",
+   "export_json"
+  ],
+  "join_keys": [
+   "date",
+   "country_iso3"
+  ],
+  "recommended_use": "Use it to study when and where news attention surges across Asian countries.",
+  "limitations": "Derived GDELT metadata signal, not ground truth article corpus; missing months until backfill finishes.",
+  "partition_id": "news.gdelt-asia",
+  "collection": {
+   "partition_id": "news.gdelt-asia",
+   "wired_at": "2026-07-06T15:51:38+00:00"
+  },
+  "source_id": "gdelt",
+  "source_system": "GDELT news graph",
+  "source_access_mode": "materialized_instant",
+  "materialization": {
+   "query_ready": true,
+   "probed_at": "2026-08-19T09:04:31+00:00",
+   "gdelt_month_hits": 104,
+   "resolved_root": "/home/phyrexian/Downloads/llm_automation/project_portfolio/Molina-Optiplex/Sharpe-Renaissance/data_lake/news_shock_taxon"
+  },
+  "collection_status": "active",
+  "field_coverage": "query-ready",
+  "display_name": "Daily news shock panel for Asian countries (GDELT)",
+  "one_line": "Daily country-level Asia news-shock scores from GDELT GKG for event studies and macro-news controls.",
+  "shelf_hint": "news_events",
+  "tags": [
+   "gdelt",
+   "asia",
+   "news-shock",
+   "country-panel"
+  ],
+  "professor_visible": true,
+  "coverage_metadata": {
+   "unit": {
+    "value": "country_day",
+    "evidence": "grain: country_day"
+   },
+   "frequency": {
+    "value": "daily",
+    "evidence": "description: Daily country-level"
+   },
+   "event_type": {
+    "value": "news_shock",
+    "evidence": "news shock panel"
+   },
+   "fields": {
+    "value": [
+     "country_iso3",
+     "date"
+    ],
+    "evidence": "entity_fields + time_field"
+   },
+   "provenance": {
+    "source_record_indices": [
+     2
+    ],
+    "method": "reviewed_label_migration",
+    "source_dataset_id": "gdelt_asia_daily_country_panel",
+    "source_label_sha256": "9d78f365c6bd43437e37043a334162a073de4643667a6f39f8ba841d1c8c24d4",
+    "_merged_values": {
+     "source_record_indices": [
+      [
+       2
+      ],
+      [
+       0
+      ]
+     ]
+    }
+   },
+   "universe/geography": {
+    "value": [
+     "AUS",
+     "CHN",
+     "HKG",
+     "IND",
+     "JPN",
+     "KOR",
+     "MYS",
+     "PHL",
+     "SGP",
+     "TWN"
+    ],
+    "evidence": "10 distinct ISO3 codes in country_iso3"
+   }
+  },
+  "title": "Daily news shock panel for Asian countries (GDELT)",
+  "aliases": [
+   "Daily news shock panel for Asian countries (GDELT)",
+   "GDELT Asia country-day news panel",
+   "Asia daily country news shocks",
+   "Asian country news intensity panel",
+   "GDELT Asia news attention dataset"
+  ],
+  "keywords": [
+   "gdelt",
+   "asia",
+   "country",
+   "daily",
+   "news",
+   "media",
+   "attention",
+   "shock",
+   "panel",
+   "time-series",
+   "country-day"
+  ],
+  "meaning_about": "This is a country-day panel built from the GDELT news graph focused on Asia. In plain terms, it captures how strongly ea",
+  "meaning": {
+   "labeled_at": "2026-08-06T15:52:11.654978+00:00",
+   "labeled_by": "copilot-ly",
+   "model": "copilot-ly",
+   "schema": "vault_meaning_v1"
+  }
+ },
+ "heldNotReady": {
+  "dataset_id": "spk_v1_payment_ledger",
+  "name": "SPK v1 USDT Payment Ledger on Ethereum",
+  "backend": "local_jsonl_payment_ledger",
+  "access_shape": "local_derived_tables",
+  "analysis_readiness": "metadata_search",
+  "grain": "payment_event",
+  "time_field": "block_number",
+  "entity_fields": [
+   "payer",
+   "payee",
+   "payment_kind"
+  ],
+  "local_path": "data_lake/spk_v1/spk_v1_payment_ledger.jsonl",
+  "description": "This dataset is a transaction-level ledger of USDT payment events on the Ethereum network for the SPK v1 stream. Each ro",
+  "capabilities": [
+   "filter_payment_kind",
+   "filter_payee",
+   "filter_payer",
+   "filter_min_spk",
+   "order",
+   "limit",
+   "export_json"
+  ],
+  "join_keys": [
+   "tx_hash",
+   "payment_id",
+   "block_number"
+  ],
+  "recommended_use": "Use it to analyze payment flow patterns and build transparent USDT transfer histories.",
+  "limitations": "Derived from Solarpunk chain indexer; Sepolia testnet only.",
+  "partition_id": "markets.ethereum-usdt",
+  "collection": {
+   "partition_id": "markets.ethereum-usdt",
+   "wired_at": "2026-07-06T15:51:38+00:00"
+  },
+  "source_id": "ethereum_onchain",
+  "source_system": "Ethereum / USDT on-chain",
+  "source_access_mode": "materialized_instant",
+  "materialization": {
+   "query_ready": false,
+   "probed_at": "2026-08-19T09:04:31+00:00",
+   "skipped": "backend_not_probed"
+  },
+  "promotion_target": "instant",
+  "display_name": "SPK v1 USDT Payment Ledger on Ethereum",
+  "one_line": "Indexed settleNetworkPayment events from SPK v1 Sepolia for payment-flow and counterparty analysis.",
+  "shelf_hint": "crypto_onchain",
+  "tags": [
+   "spk",
+   "payments",
+   "events",
+   "sepolia"
+  ],
+  "professor_visible": true,
+  "coverage_metadata": {
+   "unit": {
+    "value": "payment_event",
+    "evidence": "grain: payment_event"
+   },
+   "frequency": {
+    "value": "event_driven",
+    "evidence": "Indexed settleNetworkPayment events"
+   },
+   "event_type": {
+    "value": "settleNetworkPayment",
+    "evidence": "settleNetworkPayment events"
+   },
+   "fields": {
+    "value": [
+     "payer",
+     "payee",
+     "payment_kind",
+     "block_number"
+    ],
+    "evidence": "entity_fields + time_field"
+   },
+   "provenance": {
+    "source_record_indices": [
+     10
+    ],
+    "method": "reviewed_label_migration",
+    "source_dataset_id": "spk_v1_payment_ledger",
+    "source_label_sha256": "9d78f365c6bd43437e37043a334162a073de4643667a6f39f8ba841d1c8c24d4"
+   }
+  },
+  "title": "SPK v1 USDT Payment Ledger on Ethereum",
+  "aliases": [
+   "SPK v1 USDT Payment Ledger on Ethereum",
+   "SPK v1 payment ledger",
+   "SPK USDT payments",
+   "Ethereum USDT payment events",
+   "SPK on-chain payment log",
+   "USDT transfer ledger"
+  ],
+  "keywords": [
+   "payments",
+   "ledger",
+   "ethereum",
+   "usdt",
+   "on-chain",
+   "transactions",
+   "transfer-events",
+   "payment-history",
+   "crypto",
+   "token-flows"
+  ],
+  "meaning_about": "A plain-language description: this is a log of USDT payment activity on Ethereum tied to the SPK v1 stream, at one row p",
+  "meaning": {
+   "labeled_at": "2026-08-06T16:15:36.716836+00:00",
+   "labeled_by": "copilot-ly",
+   "model": "copilot-ly",
+   "schema": "vault_meaning_v1"
+  }
+ },
+ "reference": {
+  "dataset_id": "external_dataset_catalog",
+  "name": "External Research Dataset Catalog",
+  "backend": "local_jsonl_catalog",
+  "access_shape": "metadata_index",
+  "analysis_readiness": "metadata_search",
+  "grain": "dataset_record",
+  "time_field": "harvested_at",
+  "entity_fields": [
+   "source",
+   "domain",
+   "access_mode"
+  ],
+  "local_path": "data_lake/dataset_catalog/external_dataset_catalog_seed.jsonl",
+  "description": "This is a curated index of research datasets collected from sources like Zenodo, OpenAlex, and other public catalogs. Ea",
+  "capabilities": [
+   "search_text",
+   "filter_source",
+   "filter_domain",
+   "filter_access_mode",
+   "limit",
+   "export_json"
+  ],
+  "join_keys": [
+   "dataset_id",
+   "url"
+  ],
+  "recommended_use": "Use it to search, browse, and link to relevant external datasets by topic or source.",
+  "limitations": "Metadata only; most records are not analysis-ready until probed, queried, or downloaded.",
+  "partition_id": "catalog.curated-index",
+  "collection": {
+   "partition_id": "catalog.curated-index",
+   "wired_at": "2026-07-06T15:51:38+00:00"
+  },
+  "source_id": "open_research_catalogs",
+  "source_system": "Zenodo · OpenAlex · external catalogs",
+  "source_access_mode": "live_connector",
+  "materialization": {
+   "query_ready": false,
+   "probed_at": "2026-08-19T09:04:31+00:00",
+   "skipped": "backend_not_probed"
+  },
+  "display_name": "External Research Dataset Catalog",
+  "one_line": "Metadata-only seed index of external datasets to quickly discover candidate sources before procurement.",
+  "shelf_hint": "find_datasets",
+  "tags": [
+   "catalog",
+   "metadata",
+   "discovery",
+   "external-sources"
+  ],
+  "professor_visible": true,
+  "coverage_metadata": {
+   "unit": {
+    "value": "dataset_record",
+    "evidence": "grain: dataset_record"
+   },
+   "event_type": {
+    "value": "metadata_catalog",
+    "evidence": "Metadata-only catalogue seed"
+   },
+   "fields": {
+    "value": [
+     "source",
+     "domain",
+     "access_mode",
+     "harvested_at"
+    ],
+    "evidence": "entity_fields + time_field"
+   },
+   "provenance": {
+    "source_record_indices": [
+     4
+    ],
+    "method": "reviewed_label_migration",
+    "source_dataset_id": "external_dataset_catalog",
+    "source_label_sha256": "9d78f365c6bd43437e37043a334162a073de4643667a6f39f8ba841d1c8c24d4"
+   }
+  },
+  "title": "External Research Dataset Catalog",
+  "aliases": [
+   "External Research Dataset Catalog",
+   "external dataset catalog",
+   "research dataset index",
+   "dataset metadata catalog",
+   "curated dataset directory",
+   "external data registry"
+  ],
+  "keywords": [
+   "datasets",
+   "metadata",
+   "catalog",
+   "index",
+   "discovery",
+   "zenodo",
+   "openalex",
+   "research-data",
+   "search",
+   "registry",
+   "curation"
+  ],
+  "meaning_about": "A cross-source metadata catalog of dataset records. Think of it as a library card catalog for research datasets: it help",
+  "meaning": {
+   "labeled_at": "2026-08-06T16:08:28.973214+00:00",
+   "labeled_by": "copilot-ly",
+   "model": "copilot-ly",
+   "schema": "vault_meaning_v1"
+  }
+ },
+ "receipt": {
+  "dataset_id": "craft_api_coingecko_com_c7724c3de8",
+  "registry_id": "craft_api_coingecko_com_c7724c3de8",
+  "manifest_id": "collection_manifest_ef849e4e13ea",
+  "job_id": "ef849e4e13ea",
+  "name": "CoinGecko API ping",
+  "description": "Verified registered asset recovered from its durable registration receipt.",
+  "source": "registered_collection",
+  "grain": "procured_snapshot",
+  "coverage": "",
+  "analysis_readiness": "query_ready",
+  "backend": "registered_asset_receipt",
+  "access_shape": "registered_archive",
+  "canonical_remote": "gdrive:Machine_Archive/molina_workbench/Sharpe-Renaissance-data/collection/acquired/procured/craft_api_coingecko_com_c77",
+  "vault_path": "gdrive:Machine_Archive/molina_workbench/Sharpe-Renaissance-data/collection/acquired/procured/craft_api_coingecko_com_c77",
+  "archive_verified": true,
+  "registry_readback": true,
+  "lifecycle": "query_ready",
+  "legacy_status": "completed",
+  "created_at": "2026-07-23T12:24:28.482445+00:00",
+  "updated_at": "2026-07-23T12:31:56.139893+00:00",
+  "recommended_use": "Inspect provenance and prepare a query adapter; registration alone is not query readiness.",
+  "limitations": "The canonical registry row is not present in the currently loaded catalog. Query execution remains disabled until catalo",
+  "authority": {
+   "source": "registration_receipt",
+   "state": "verified",
+   "archive_verified": true,
+   "registry_readback": true,
+   "catalog_state": "reconciliation_required"
+  },
+  "catalog_reconciliation": {
+   "state": "receipt_only",
+   "registry_row_loaded": false,
+   "query_allowed": false
+  },
+  "registration_receipt": {
+   "dataset_id": "craft_api_coingecko_com_c7724c3de8",
+   "registry_id": "craft_api_coingecko_com_c7724c3de8",
+   "manifest_id": "collection_manifest_ef849e4e13ea",
+   "job_id": "ef849e4e13ea",
+   "archive_verified": true,
+   "registry_readback": true,
+   "readiness": "query_ready",
+   "vault_path": "gdrive:Machine_Archive/molina_workbench/Sharpe-Renaissance-data/collection/acquired/procured/craft_api_coingecko_com_c77"
+  }
+ },
+ "ops": null
+}

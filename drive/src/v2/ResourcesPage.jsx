@@ -15,6 +15,18 @@ import {
   workersToolbarFieldsFromRollup,
 } from "@/v2/workersToolbarStat";
 import { Chip, PageShell, StatementRow, StatementSection } from "@/v2/ui";
+import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
+import { DeskError } from "@/v2/DeskError";
+
+const SOURCE_AUTHORITY_TEXT = {
+  OBSERVED: "Observed",
+  UNAVAILABLE: "Unavailable",
+  CONDITIONAL: "Conditional",
+  "NOT CHECKED": "Not checked",
+  "ROUTE DEFINED": "Method documented",
+};
+
+const METER_ACTION_TEXT = { CHECK: "worth checking", NEED: "needs setup" };
 
 function shortText(value, max = 92) {
   const text = String(value || "");
@@ -122,7 +134,7 @@ function facultyOpsLabel(label, key) {
     "Ask / model turns": "Ask usage",
     Workers: "Collection workers",
     Vault: "Library vault",
-    "Query engine": "Desk connection",
+    "Query engine": "Research Drive connection",
   };
   return map[label] || label;
 }
@@ -133,10 +145,21 @@ function facultyOpsSub(label, key, sub) {
   return sub;
 }
 
-function CapacityAccessGrid({ rollup, health, selectedKey, onSelect }) {
-  const pairs = buildCapacityAccessPairs(rollup, health);
+function CapacityAccessGrid({ rollup, health, loading = false, selectedKey, onSelect }) {
+  const pairs = buildCapacityAccessPairs(rollup, health).map((pair) => ({
+    ...pair,
+    meters: loading
+      ? pair.meters.map((meter) => ({
+          ...meter,
+          metric: "Checking…",
+          available: "Waiting for live Research Drive telemetry",
+          pct: null,
+          warn: false,
+        }))
+      : pair.meters,
+  }));
   return (
-    <div className="rd-v2-res-capacity-pairs" data-testid="resources-capacity-grid" aria-label="Capacity and access">
+    <div className="rd-v2-res-capacity-pairs" data-testid="resources-capacity-grid" role="group" aria-label="Capacity and access">
       {pairs.map((pair) => (
         <section key={pair.id} className="rd-v2-res-capacity-pair" aria-label={pair.title}>
           <header className="rd-v2-res-capacity-pair-head">
@@ -182,7 +205,7 @@ function CapacityAccessGrid({ rollup, health, selectedKey, onSelect }) {
                   )}
                   <em>
                     {meter.available || (pct != null ? `${pct}%` : "—")}
-                    {meter.action ? ` · ${meter.action}` : ""}
+                    {meter.action ? ` · ${METER_ACTION_TEXT[meter.action] || meter.action}` : ""}
                   </em>
                 </button>
               );
@@ -200,14 +223,14 @@ function SourceCapabilityLedger({ panels, selectedKey, onSelect }) {
     { rows: panels?.layers || [] },
   ]);
   if (!families.length) {
-    return <p className="rd-v2-res-idle">Source capability rows appear when the desk reports routes.</p>;
+    return <p className="rd-v2-res-idle">Source capabilities appear when Research Drive reports collection methods.</p>;
   }
   return (
     <div className="rd-v2-res-source-ledger" data-testid="resources-source-ledger">
       <header className="rd-v2-res-source-ledger-head">
         <span>Source</span>
         <span>Access</span>
-        <span>Authority</span>
+        <span>Verification</span>
       </header>
       {families.map((family) => (
         <section key={family.id} className="rd-v2-res-source-family" aria-label={family.title}>
@@ -236,7 +259,7 @@ function SourceCapabilityLedger({ panels, selectedKey, onSelect }) {
                   <strong>{row.name}</strong>
                 </span>
                 <span>{row.access}</span>
-                <em data-authority={row.authority}>{row.authority}</em>
+                <em data-authority={row.authority}>{SOURCE_AUTHORITY_TEXT[row.authority] || row.authority}</em>
               </button>
             );
           })}
@@ -274,7 +297,7 @@ function ResourcesStatusStrip({ rollup }) {
         />
       ))}
       <StatusStripCell
-        label="Desk connection"
+        label="Research Drive connection"
         value={qe.up ? "Connected" : "Offline"}
         sub="Catalog and query service"
         tone={qe.up === false ? "off" : ""}
@@ -290,7 +313,7 @@ function ActivityUsageSummary({ rollup }) {
     ["Remote tables", fmtGiBValue(period.bq_gib_billed), `${fmtGiBValue(today.bq_gib_billed)} today`],
     ["Web search", fmtCount(period.tavily_calls, "call"), `${today.tavily_calls ?? 0} today`],
     ["Ask usage", fmtCount(period.composer_turns, "turn"), `${today.composer_turns ?? 0} today`],
-    ["Source probes", fmtCount(period.probe_calls, "probe"), `${today.probe_calls ?? 0} today`],
+    ["Connection tests", fmtCount(period.probe_calls, "connection test"), `${today.probe_calls ?? 0} today`],
   ];
   return (
     <section className="rd-v2-res-status-strip rd-v2-res-status-strip-activity" aria-label="Usage report">
@@ -342,7 +365,7 @@ function ActivityLog({ rows, selectedKey, onSelectRow }) {
                     </em>
                   </span>
                   <span className={`rd-v2-res-activity-meter${costLabel === "—" ? " empty" : ""}`}>
-                    {costLabel}
+                    {costLabel === "—" ? "" : costLabel}
                   </span>
                 </button>
               );
@@ -380,27 +403,6 @@ function ActivityFilterBar({ value, onChange }) {
   );
 }
 
-/** Terra donor: never invent schedulable capacity from joined/stale membership. */
-function WorkersToolbarStat({ rollup }) {
-  const fields = workersToolbarFieldsFromRollup(rollup);
-  const value = formatCollectorState(fields);
-  if (!value || value === "Not reported") return null;
-  const title = [
-    fields.online != null ? `online ${fields.online}` : null,
-    fields.stale != null ? `stale ${fields.stale}` : null,
-    fields.busy != null ? `busy ${fields.busy}` : null,
-  ]
-    .filter(Boolean)
-    .join(" · ");
-
-  return (
-    <span className="rd-v2-toolbar-stat" aria-label={`Collection workers ${value}`} title={title || undefined}>
-      <span>Collectors</span>
-      <strong>{value}</strong>
-    </span>
-  );
-}
-
 function resourceStatus(row) {
   if (row.warn) return "Check";
   if (row.ok === false) return "Offline";
@@ -426,7 +428,7 @@ function sourceGroupRow({ rows, keys, key, label, endpoint, metric, detail }) {
   return {
     kind: "source",
     key,
-    section: "Source routes",
+    section: "Collection methods",
     group: true,
     label,
     endpoint,
@@ -463,7 +465,7 @@ function buildPinnedSourceRows(providers = [], layers = []) {
       keys: ["layer-discover_search", "layer-web_discover", "layer-probe_url"],
       key: "route-discovery-intake",
       label: "Discovery & intake",
-      endpoint: "Discover search · Web discover · Source probe",
+      endpoint: "Discover search · Web discover · Connection test",
       metric: "Find candidates, classify URLs",
       detail: "Before collection",
     }),
@@ -473,7 +475,7 @@ function buildPinnedSourceRows(providers = [], layers = []) {
       key: "source-public-web",
       label: "Public web (craft)",
       endpoint: "Any public URL → generic collect plan",
-      metric: "Probe, craft plan, approve, then collect",
+      metric: "Test the connection, plan, approve, then collect",
       detail: "AI identify + custom HTTP/scrape — not a named vendor downloader",
     }),
     sourceGroupRow({
@@ -505,7 +507,7 @@ function resourceDetail(row) {
     if (row.key === "source-market-filings") return "Official market data and filings";
     if (row.key === "source-research-catalogs") return "Academic metadata and dataset APIs";
     if (row.key === "route-discovery-intake") return "Candidate discovery and URL classification";
-    if (row.key === "source-public-web") return "Probe and browser collect";
+    if (row.key === "source-public-web") return "Test connections and collect through the browser";
     if (row.key === "source-remote-tables") return "Dry-run protected remote query";
     if (row.key === "source-sec_edgar") return "Company filings";
     if (row.key === "source-twse") return "Taiwan market data";
@@ -565,8 +567,8 @@ function resourceQuota(row) {
   if (row.kind === "source") {
     if (row.key === "source-market-filings") return "Official feeds and queue scripts";
     if (row.key === "source-research-catalogs") return "DOI lookup and dataset import";
-    if (row.key === "route-discovery-intake") return "Search and probe before collect";
-    if (row.key === "source-public-web") return "Probe, then collect";
+    if (row.key === "route-discovery-intake") return "Search and test connections before collecting";
+    if (row.key === "source-public-web") return "Test the connection, then collect";
     if (row.key === "source-remote-tables") return "Query with dry-run limit";
     if (row.key === "source-sec_edgar") return "Download queue";
     if (row.key === "source-twse") return "Download queue";
@@ -575,7 +577,7 @@ function resourceQuota(row) {
     if (row.key === "source-bigquery") return "Remote query";
     if (row.key === "source-datacite") return "DOI lookup";
     if (row.key === "source-huggingface") return "Dataset import";
-    if (row.key === "source-web_generic") return "Probe, then collect";
+    if (row.key === "source-web_generic") return "Test the connection, then collect";
     return row.collect_via || row.layers || "Available";
   }
   return row.metric || row.routes || "—";
@@ -651,10 +653,10 @@ function buildResourceInventorySections(panels) {
     ),
     inventorySection(
       "sources",
-      "Source routes",
+      "Collection methods",
       sources,
       "Route",
-      "Routes the desk can use to find, probe, and collect missing data.",
+      "Methods Research Drive can use to find missing data, test connections, and collect it.",
     ),
   ].filter((section) => section.rows.length);
 }
@@ -672,8 +674,8 @@ function ResearchCapability({ cluster, panels, rollup, catalogSummary }) {
     workers.online != null || workers.idle != null
       ? `Online ${workers.online ?? 0} · idle ${workers.idle ?? 0}${
           workers.busy != null ? ` · busy ${workers.busy}` : ""
-        }. Discover can probe and collect within access rules.`
-      : "Discover can probe and collect within the available access rules.";
+        }. Discover can test connections and collect data within access rules.`
+      : "Discover can test connections and collect data within the available access rules.";
   const bigQuery = (panels.metered || []).find((row) => row.key === "bigquery");
 
   return (
@@ -681,25 +683,25 @@ function ResearchCapability({ cluster, panels, rollup, catalogSummary }) {
       <header>
         <div>
           <p>What this enables</p>
-          <span>Verified capability available to the lab today.</span>
+          <span>Capabilities and their latest observations, kept distinct.</span>
         </div>
       </header>
       <div className="rd-v2-res-capability-lines">
         <div>
           <span>Reusable research estate</span>
           <strong>
-            {registry != null ? `${registry} registered assets` : "Registered estate available"}
-            {instant != null ? ` · ${instant} query ready` : ""}
+            {registry != null ? `${registry} datasets saved to Library` : "Data saved to Library available"}
+            {instant != null ? ` · ${instant} ready to query` : ""}
           </strong>
           <em>
             {partitions != null
               ? `${partitions} organized collections available in Library.`
-              : "Registered assets remain available in Library."}
+              : "Saved datasets remain available in Library."}
           </em>
         </div>
         <div>
-          <span>Evidence acquisition reach</span>
-          <strong>{routeCount || "Configured"} source routes</strong>
+          <span>Evidence acquisition snapshot</span>
+          <strong>{routeCount ? `${routeCount} priority routes shown` : "No priority routes shown"}</strong>
           <em>
             {collectorLabel}. {collectorDetail}
           </em>
@@ -770,13 +772,13 @@ function ResourceInventory({ sections, selectedKey, onSelect }) {
         <details className="rd-v2-res-routes">
           <summary>
             <span>
-              <strong>Available source routes</strong>
+              <strong>Available collection methods</strong>
               <em>{sourceRoutes} configured routes used by Discover when evidence is missing.</em>
             </span>
             <b>Show routes</b>
           </summary>
           <div className="rd-v2-res-routes-body">
-            <p>Routes remain available for inspection here; sourcing choices and collection progress stay in Discover.</p>
+            <p>Review collection methods here. Choose where to get data and track collection in Discover.</p>
             {sourceSection.rows.map((item) => (
               <ResourceInventoryRow
                 key={item.id}
@@ -792,9 +794,32 @@ function ResourceInventory({ sections, selectedKey, onSelect }) {
   );
 }
 
+function MachineChecks({ operations }) {
+  const checks = Array.isArray(operations?.checks) ? operations.checks : [];
+  if (!checks.length) return null;
+  const failing = checks.filter((check) => check.ok === false).length;
+  return (
+    <div className="rd-v2-res-method-checks" data-testid="resources-machine-checks">
+      <h3>
+        Machine checks
+        <em>{failing ? `${failing} need${failing === 1 ? "s" : ""} attention` : "All passing"}</em>
+      </h3>
+      <ul>
+        {checks.map((check) => (
+          <li key={check.id} className={check.ok === false ? check.tone || "warn" : "ok"}>
+            <strong>{check.label}</strong>
+            <span>{check.detail}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 export function ResourcesPage({
   rollup,
   rollupLoading = false,
+  loadError = "",
   health,
   ops,
   jobs = [],
@@ -864,6 +889,11 @@ export function ResourcesPage({
 
   const freshness =
     refreshedAt != null ? `${Math.max(0, Math.round((Date.now() - refreshedAt) / 1000))}s ago` : null;
+  const surfaceState = resolveSurfaceLifecycle({
+    loading: syncing,
+    error: loadError || (rollup === null ? "Research Drive API unreachable" : ""),
+    hasData: Boolean(lastKnownRollup),
+  });
 
   const filterLabel =
     activityFilter?.meterId === "bigquery"
@@ -878,6 +908,7 @@ export function ResourcesPage({
     <PageShell
       title="Resources"
       lead="Capacity, licensed routes, and the usage ledger for this period."
+      surfaceState={surfaceState}
       toolbar={
         <>
           <Chip
@@ -895,7 +926,6 @@ export function ResourcesPage({
           <Chip active={mode === "method"} onClick={() => onModeChange?.("method")}>
             Method
           </Chip>
-          <WorkersToolbarStat rollup={lastKnownRollup} />
           {(mode === "sources" || mode === "spending") && periodLabel ? (
             <span className="rd-v2-toolbar-meta">{periodLabel}</span>
           ) : filterLabel ? (
@@ -919,9 +949,10 @@ export function ResourcesPage({
         </>
       }
     >
-      {rollup === null && !rollupLoading ? (
+      {loadError ? <DeskError raw={loadError} surface="resource telemetry" /> : null}
+      {rollup === null && !rollupLoading && !loadError ? (
         <p className="rd-v2-res-offline" role="status">
-          Desk API unreachable — start <code>python -m scripts.research_query_engine.server</code> on :8765.
+          Research Drive API unreachable — start <code>python -m scripts.research_query_engine.server</code> on :8765.
         </p>
       ) : null}
 
@@ -932,6 +963,7 @@ export function ResourcesPage({
             <CapacityAccessGrid
               rollup={lastKnownRollup}
               health={health}
+              loading={syncing && !lastKnownRollup && !health}
               selectedKey={selectedKey}
               onSelect={onSelectRow}
             />
@@ -961,15 +993,15 @@ export function ResourcesPage({
             </li>
             <li>
               <strong>Acquire</strong>
-              <span>Approved requests become durable collection jobs.</span>
+              <span>Approved requests are saved so collection can be tracked.</span>
             </li>
             <li>
               <strong>Execute</strong>
               <span>Workers run the chosen route under dry-run protection.</span>
             </li>
             <li>
-              <strong>Promote</strong>
-              <span>Archive + registry read-back yields a Library asset.</span>
+              <strong>Add to Library</strong>
+              <span>Archive checks and reading back the saved record confirm the dataset is in Library.</span>
             </li>
           </ol>
           <div className="rd-v2-res-method-progress">
@@ -978,7 +1010,7 @@ export function ResourcesPage({
               <li className={reviewRows.length ? "pending" : "idle"}>Find</li>
               <li className={reviewRows.length ? "active" : "idle"}>Acquire</li>
               <li className="idle">Execute</li>
-              <li className="idle">Promote</li>
+              <li className="idle">Add to Library</li>
             </ol>
             <p>
               {reviewRows.length
@@ -986,6 +1018,7 @@ export function ResourcesPage({
                 : "No method decisions waiting. Active routes appear here when collection is in flight."}
             </p>
           </div>
+          <MachineChecks operations={health?.desk?.operations} />
         </section>
       ) : (
         <>

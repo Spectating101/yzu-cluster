@@ -164,7 +164,7 @@ export function buildLab(profile) {
       const routeLabel = route === "bigquery" ? "BigQuery" : "Vaulted";
       return {
         id: item.id || item.partition_id || item.label,
-        label: item.label || item.id || "Holding",
+        label: item.label || item.id || "Library data",
         route,
         routeLabel,
         datasetIds: item.registry_dataset_ids || [],
@@ -179,6 +179,7 @@ export function buildLab(profile) {
 
   for (const rec of profile?.procurement_recommendations || []) {
     if (!rec || typeof rec !== "object") continue;
+    if (rec.family === "custom_pipeline" || rec.pipeline === "custom") continue;
     if (recAlreadyLinked(rec, linkedKeys)) continue;
     const label = recLabel(rec);
     if (!label) continue;
@@ -241,7 +242,7 @@ export function buildDeskRead(profile, { previewing = false } = {}) {
   const lab = buildLab(profile);
   const deskParts = [];
   if (lab.linked.length) {
-    deskParts.push(hasFintechDomain ? "FinTech panels linked." : `${lab.linked.length} holdings linked.`);
+    deskParts.push(hasFintechDomain ? "FinTech panels linked." : `${lab.linked.length} datasets linked.`);
   }
   if (lab.suggested.length) {
     deskParts.push(`${lab.suggested.length} suggested next.`);

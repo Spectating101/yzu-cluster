@@ -1,6 +1,7 @@
-import { candidateKey, discoverCandidateUrl } from "@/v2/candidateKey";
+import { candidateKey, discoverCandidateUrl } from "./candidateKey.js";
+import { cleanCollectVia, cleanDescription } from "./discoverAdapters.js";
 
-export { discoverCandidateUrl } from "@/v2/candidateKey";
+export { discoverCandidateUrl } from "./candidateKey.js";
 
 export function buildAddToLabPrompt(target, probeResult) {
   const label = target?.title || target?.dataset_id || target?.name || "this dataset";
@@ -28,10 +29,10 @@ export function buildAddToLabPrompt(target, probeResult) {
 
 export function buildAddToLabDisplayText(target, probeResult, jobId = "") {
   const label = target?.title || target?.dataset_id || target?.name || "this dataset";
-  const firstLine = `Add to lab vault: ${label}`;
+  const firstLine = `Add to Library: ${label}`;
   if (jobId) return `${firstLine}\nCollection job queued. Track it in Resources.`;
   if (probeResult?.summary) {
-    return `${firstLine}\nUse the probed source details to prepare a safe collection plan.`;
+    return `${firstLine}\nUse the connection test details to prepare a safe collection plan.`;
   }
   return `${firstLine}\nInspect the source if needed, then prepare a safe collection plan.`;
 }
@@ -43,6 +44,10 @@ export function webHitsToRows(data) {
       const url = hit.url || "";
       return {
         ...hit,
+        collect_via: cleanCollectVia(hit.collect_via)[0] || "",
+        description: cleanDescription(
+          hit.description || hit.snippet || hit.content || hit.public_summary || "",
+        ),
         kind: hit.kind || "web_hit",
         candidate_key: hit.candidate_key || (url ? `url:${url}` : ""),
         url,
@@ -56,7 +61,7 @@ export function webHitsToRows(data) {
       title: hit.title || hit.url || "Web source",
       url,
       source: hit.source || "web",
-      description: hit.snippet || hit.content || "",
+      description: cleanDescription(hit.snippet || hit.content || ""),
       publisher: hit.source || "web",
       candidate_key: hit.candidate_key || (url ? `url:${url}` : ""),
     };

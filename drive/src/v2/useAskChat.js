@@ -1,3 +1,5 @@
+import { uiVocabularyLabel } from "./uiVocabularyLabels.js";
+import { synthesisRailContextForRequest } from "@/v2/synthesisAssist.js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   deskWarm,
@@ -5,19 +7,27 @@ import {
   linkSynthesisThreadConversation,
   sendChatMessage,
 } from "@/v2/api";
+import { FOLLOW_UP_INTERVAL_MS, FOLLOW_UP_LIMIT_MS, awaitsFullAnswer, lateAssistantRows } from "./askFollowUp.js";
 import { normalizeActivityStep } from "@/v2/deskIntegration";
 import { clearChatSessionId, loadChatSessionId, loadUserEmail, saveChatSessionId } from "@/v2/deskSession";
 import { classifyAskIntent, shapeAskReplyForIntent } from "@/v2/askIntent";
+import { emitSynthesisAgentEvent } from "@/v2/synthesisAgentRun.js";
+import {
+  SYNTHESIS_OBJECT_CONTEXT_EVENT,
+  enrichSynthesisObjectContext,
+  synthesisActivityTarget,
+  synthesisObjectContextPrompt,
+} from "@/v2/synthesisObjectContext.js";
 
 function normalizeOutgoingMessage(value, fallback = "") {
   const raw = value ?? fallback;
   if (raw && typeof raw === "object") {
     const prompt = String(raw.prompt || raw.text || "").trim();
     const displayText = String(raw.displayText || raw.label || prompt).trim();
-    return { prompt, displayText };
+    return { prompt, displayText, explicit: true };
   }
   const prompt = String(raw || "").trim();
-  return { prompt, displayText: prompt };
+  return { prompt, displayText: prompt, explicit: false };
 }
 
 function restoredDisplayText(row) {
@@ -29,8 +39,9 @@ function restoredDisplayText(row) {
   // replay only the message they actually authored.
   value = value.replace(/^\[context:[^\n]*?\]\s*/i, "");
   value = value.split(/\n\nSynthesis thread:/i)[0];
+  value = value.split(/\n\nSelected Synthesis object context:/i)[0];
   value = value.split(/\n\nSynthesis workspace context\./i)[0];
-  return value.trim();
+  return uiVocabularyLabel(value.trim());
 }
 
 function restoreMessage(row) {
@@ -48,96 +59,227 @@ function restoreMessage(row) {
   };
 }
 
-export function useAskChat({ dataset, railContext, onCollected, onSynthesisChanged, onToast } = {}) {
+function contextPart(value) {
+  return String(value || "").trim().replace(/\s+/g, " ").slice(0, 240);
+}
+
+/**
+ * Durable Ask identity. The visible rail can change without changing React
+ * component identity, so conversation ownership must be explicit rather than
+ * inferred from whether the component remounted.
+ */
+const ASK_TURN_BUSY = /previous assistant request is still running|shared assistant is busy/i;
+const ASK_TURN_RETRY_MS = 5000;
+const ASK_TURN_RETRIES = 36;
+
+export function askContextKey(dataset = null, railContext = null) {
+  const kind = contextPart(dataset?.kind || railContext?.entity?.kind || "general") || "general";
+  if (kind === "synthesis_thread") {
+    return `synthesis:${contextPart(dataset?.thread_id || railContext?.entity?.id || dataset?.id || dataset?.title) || "thread"}`;
+  }
+
+  const candidate = contextPart(
+    dataset?.candidate_key ||
+      dataset?.row?.candidate_key ||
+      railContext?.selected?.candidate_key,
+  );
+  if (candidate) return `candidate:${candidate}`;
+
+  const datasetId = contextPart(dataset?.dataset_id || railContext?.dataset_id);
+  if (datasetId) return `dataset:${datasetId}`;
+
+  // A caller-provided dataset/object id is the explicit conversation owner.
+  // Rail context can hydrate asynchronously (for example Home's Pick Up card),
+  // so letting that passive entity replace the explicit id discards an
+  // otherwise successful in-flight answer.
+  const entityId = contextPart(dataset?.id || railContext?.entity?.id);
+  if (entityId) return `${kind}:${entityId}`;
+
+  const investigation = contextPart(
+    dataset?.search_query ||
+      dataset?.question ||
+      (kind === "discover_investigation" ? dataset?.title : "") ||
+      railContext?.search_query,
+  );
+  if (investigation) return `${kind}:${investigation}`;
+
+  const title = contextPart(dataset?.title || railContext?.entity?.title);
+  if (title) return `${kind}:${title}`;
+  return "general";
+}
+
+export function useAskChat({
+  dataset,
+  railContext,
+  contextKeyOverride,
+  onCollected,
+  onSynthesisChanged,
+  onToast,
+  warmEnabled = false,
+} = {}) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState("");
-  const generalSessionRef = useRef(loadChatSessionId());
-  const sessionRef = useRef(generalSessionRef.current);
-  const previousContextKindRef = useRef(dataset?.kind || "");
-  const warmStartedRef = useRef(false);
+  const sessionRef = useRef("");
   const railRef = useRef(railContext);
+  const contextRef = useRef(askContextKey(dataset, railContext));
   const busyRef = useRef(false);
-  const intentRef = useRef("general");
+  const requestEpochRef = useRef(0);
+  const warmPromiseRef = useRef(null);
+  const warmContextRef = useRef("");
+  const synthesisObjectContextRef = useRef(null);
   const synthesisThreadId =
     dataset?.kind === "synthesis_thread" ? String(dataset.thread_id || "") : "";
   const synthesisSessionId =
     dataset?.kind === "synthesis_thread" ? String(dataset.session_id || "") : "";
+  const contextKey = contextPart(contextKeyOverride) || askContextKey(dataset, railContext);
+
+  const beginWarm = useCallback(() => {
+    if (!warmEnabled) return Promise.resolve(null);
+    if (warmContextRef.current === contextKey) {
+      return warmPromiseRef.current || Promise.resolve({ session_id: sessionRef.current || "" });
+    }
+
+    const existingSessionId = synthesisThreadId
+      ? synthesisSessionId
+      : loadChatSessionId(contextKey);
+    if (existingSessionId) {
+      warmContextRef.current = contextKey;
+      sessionRef.current = existingSessionId;
+      return Promise.resolve({ session_id: existingSessionId });
+    }
+
+    warmContextRef.current = contextKey;
+    const warming = deskWarm({
+      sessionId: undefined,
+      userEmail: loadUserEmail() || undefined,
+      background: true,
+    })
+      .then((out) => {
+        const sessionId = String(out?.session_id || "").trim();
+        if (sessionId && contextRef.current === contextKey) {
+          sessionRef.current = sessionId;
+          if (!synthesisThreadId) saveChatSessionId(sessionId, contextKey);
+        }
+        return out;
+      })
+      .catch(() => null)
+      .finally(() => {
+        if (warmPromiseRef.current === warming) warmPromiseRef.current = null;
+      });
+    warmPromiseRef.current = warming;
+    return warming;
+  }, [contextKey, synthesisSessionId, synthesisThreadId, warmEnabled]);
 
   useEffect(() => {
     railRef.current = railContext;
   }, [railContext]);
 
   useEffect(() => {
-    if (warmStartedRef.current) return;
-    warmStartedRef.current = true;
-    deskWarm({
-      sessionId: sessionRef.current,
-      userEmail: loadUserEmail(),
-      background: true,
-    }).catch(() => {});
-  }, []);
+    synthesisObjectContextRef.current = null;
+    if (!synthesisThreadId || typeof document === "undefined") return undefined;
+    const onObjectContext = (event) => {
+      const next = enrichSynthesisObjectContext(event?.detail || {}, railRef.current?.selected || {});
+      if (!next) return;
+      if (next.thread_id && String(next.thread_id) !== String(synthesisThreadId)) return;
+      synthesisObjectContextRef.current = next;
+    };
+    document.addEventListener(SYNTHESIS_OBJECT_CONTEXT_EVENT, onObjectContext);
+    return () => document.removeEventListener(SYNTHESIS_OBJECT_CONTEXT_EVENT, onObjectContext);
+  }, [synthesisThreadId]);
 
   useEffect(() => {
-    const contextKind = dataset?.kind || "";
-    const leavingSynthesis =
-      previousContextKindRef.current === "synthesis_thread" && contextKind !== "synthesis_thread";
-    previousContextKindRef.current = contextKind;
-    if (contextKind !== "synthesis_thread" && !leavingSynthesis) return undefined;
-
     let cancelled = false;
+    contextRef.current = contextKey;
+    // Changing research object logically cancels the old rail request. The HTTP
+    // turn may still finish, but its epoch can no longer write into this view or
+    // release a newer request's busy lock.
+    requestEpochRef.current += 1;
+    busyRef.current = false;
+    setBusy(false);
     setMessages([]);
     setInput("");
     setStatus("");
 
-    const targetSessionId =
-      contextKind === "synthesis_thread" ? synthesisSessionId : generalSessionRef.current;
+    const targetSessionId = synthesisThreadId
+      ? synthesisSessionId
+      : loadChatSessionId(contextKey);
+    sessionRef.current = targetSessionId;
     if (!targetSessionId) {
-      sessionRef.current = "";
       return () => {
         cancelled = true;
       };
     }
 
-    sessionRef.current = targetSessionId;
     getChatSession(targetSessionId)
       .then((session) => {
-        if (cancelled) return;
+        if (cancelled || contextRef.current !== contextKey) return;
         const rows = Array.isArray(session?.messages) ? session.messages : [];
         setMessages(rows.map(restoreMessage));
       })
       .catch(() => {
-        if (!cancelled) setMessages([]);
+        if (!cancelled && contextRef.current === contextKey) setMessages([]);
       });
     return () => {
       cancelled = true;
     };
-  }, [dataset?.kind, synthesisThreadId, synthesisSessionId]);
+  }, [contextKey, synthesisThreadId, synthesisSessionId]);
 
-  const contextPrefix = dataset?.dataset_id
-    ? `[context: ${dataset.dataset_id}] `
-    : dataset?.title
-      ? `[context: ${dataset.title}] `
-      : "";
+  const followFullAnswer = useCallback((sessionId, quickReply, isCurrentRequest) => {
+    const started = Date.now();
+    const poll = () => {
+      if (!isCurrentRequest() || Date.now() - started > FOLLOW_UP_LIMIT_MS) return;
+      getChatSession(sessionId)
+        .then((session) => {
+          if (!isCurrentRequest()) return;
+          const rows = Array.isArray(session?.messages) ? session.messages : [];
+          const late = lateAssistantRows(rows, quickReply);
+          if (late.length) {
+            setMessages((m) => [...m, ...late.map(restoreMessage)]);
+            return;
+          }
+          setTimeout(poll, FOLLOW_UP_INTERVAL_MS);
+        })
+        .catch(() => setTimeout(poll, FOLLOW_UP_INTERVAL_MS));
+    };
+    setTimeout(poll, FOLLOW_UP_INTERVAL_MS);
+  }, []);
 
   const send = useCallback(
     async (text) => {
       const outgoing = normalizeOutgoingMessage(text, input);
       const prompt = outgoing.prompt;
       if (!prompt || busyRef.current) return;
+      const sendContextKey = contextKey;
+      const sendSynthesisThreadId = synthesisThreadId;
+      const sendSynthesisSessionId = synthesisSessionId;
+      const requestEpoch = requestEpochRef.current + 1;
+      requestEpochRef.current = requestEpoch;
+      const isCurrentRequest = () =>
+        contextRef.current === sendContextKey && requestEpochRef.current === requestEpoch;
       busyRef.current = true;
       const intent = classifyAskIntent(outgoing.displayText || prompt);
-      intentRef.current = intent;
-      const full =
-        contextPrefix && !prompt.startsWith("[context:")
-          ? `${contextPrefix}${prompt}`
-          : prompt;
+      const objectContext = sendSynthesisThreadId && !outgoing.explicit
+        ? synthesisObjectContextRef.current
+        : null;
+      const objectContextSuffix = objectContext ? synthesisObjectContextPrompt(objectContext) : "";
+      const groundedPrompt = objectContextSuffix ? `${prompt}\n\n${objectContextSuffix}` : prompt;
+      // Selection already travels in railContext. Display titles may contain
+      // unrelated dates; keep them out of the collection request parser.
+      const full = groundedPrompt;
+      const initialActivity = intent === "status" ? "Checking status…" : "Planning response…";
 
-      setMessages((m) => [...m, { role: "user", text: outgoing.displayText, intent }]);
+      setMessages((m) => [...m, { role: "user", text: text == null ? outgoing.displayText : uiVocabularyLabel(outgoing.displayText), intent }]);
       setInput("");
       setBusy(true);
-      setStatus(intent === "status" ? "Checking status…" : "Planning response…");
+      setStatus(initialActivity);
+      emitSynthesisAgentEvent(sendSynthesisThreadId, {
+        kind: "run_started",
+        text: initialActivity,
+        intent,
+        target: objectContext || undefined,
+      });
       setMessages((m) => [
         ...m,
         {
@@ -145,7 +287,7 @@ export function useAskChat({ dataset, railContext, onCollected, onSynthesisChang
           text: "",
           streaming: true,
           intent,
-          activity: intent === "status" ? "Checking status…" : "Planning response…",
+          activity: initialActivity,
           activityLog:
             intent === "status"
               ? []
@@ -154,11 +296,14 @@ export function useAskChat({ dataset, railContext, onCollected, onSynthesisChang
       ]);
 
       try {
-        const out = await sendChatMessage(full, {
+        if (warmEnabled && !sessionRef.current) await beginWarm();
+        else if (warmPromiseRef.current) await warmPromiseRef.current;
+        const chatOptions = {
           sessionId: sessionRef.current,
           userEmail: loadUserEmail(),
-          railContext: railRef.current,
+          railContext: synthesisRailContextForRequest(railRef.current),
           onDelta: (chunk) => {
+            if (!isCurrentRequest()) return;
             setStatus("");
             setMessages((m) =>
               m.map((item) =>
@@ -167,13 +312,23 @@ export function useAskChat({ dataset, railContext, onCollected, onSynthesisChang
             );
           },
           onActivity: (event) => {
-            if (intentRef.current === "status") {
+            if (!isCurrentRequest()) return;
+            if (intent === "status") {
               setStatus("Checking status…");
               return;
             }
             const line =
               event && typeof event === "object" ? String(event.text || "") : String(event || "");
+            const target = synthesisActivityTarget(event, railRef.current?.selected || {});
             setStatus(line);
+            emitSynthesisAgentEvent(sendSynthesisThreadId, {
+              kind: "activity",
+              text: line,
+              action: event && typeof event === "object" ? event.action || null : null,
+              elapsedSeconds: event && typeof event === "object" ? event.elapsed_seconds : undefined,
+              target: target || undefined,
+              selector: target?.selector || undefined,
+            });
             setMessages((m) =>
               m.map((item) =>
                 item.streaming
@@ -186,19 +341,36 @@ export function useAskChat({ dataset, railContext, onCollected, onSynthesisChang
               ),
             );
           },
-        });
-
+        };
+        let out;
+        for (let attempt = 0; ; attempt += 1) {
+          try {
+            out = await sendChatMessage(full, chatOptions);
+            break;
+          } catch (waitError) {
+            const waitMessage = String(waitError?.message || "");
+            if (!ASK_TURN_BUSY.test(waitMessage) || attempt >= ASK_TURN_RETRIES || !isCurrentRequest()) throw waitError;
+            const waiting = /shared assistant/i.test(waitMessage)
+              ? "Ask is busy with other researchers. Waiting for a free turn…"
+              : "Finishing your previous question first…";
+            setStatus(waiting);
+            setMessages((m) => m.map((item) => (item.streaming ? { ...item, activity: waiting } : item)));
+            await new Promise((resolve) => setTimeout(resolve, ASK_TURN_RETRY_MS));
+            if (!isCurrentRequest()) throw waitError;
+          }
+        }
         if (out.session_id) {
-          sessionRef.current = out.session_id;
-          if (synthesisThreadId) {
-            if (out.session_id !== synthesisSessionId) {
-              linkSynthesisThreadConversation(synthesisThreadId, {
+          if (sendSynthesisThreadId) {
+            if (out.session_id !== sendSynthesisSessionId) {
+              linkSynthesisThreadConversation(sendSynthesisThreadId, {
                 sessionId: out.session_id,
               }).catch(() => {});
             }
           } else {
-            generalSessionRef.current = out.session_id;
-            saveChatSessionId(out.session_id);
+            saveChatSessionId(out.session_id, sendContextKey);
+          }
+          if (isCurrentRequest()) {
+            sessionRef.current = out.session_id;
           }
         }
         const reply = out.reply || out.message || "Done.";
@@ -207,26 +379,24 @@ export function useAskChat({ dataset, railContext, onCollected, onSynthesisChang
           artifacts.synthesis_proposal ||
           out.synthesis_proposal ||
           (artifacts.proposal_recorded ? { recorded: true } : null);
-        if (synthesisThreadId && recordedProposal) {
+        if (sendSynthesisThreadId && recordedProposal) {
           onSynthesisChanged?.({
-            threadId: artifacts.synthesis_thread_id || synthesisThreadId,
+            threadId: artifacts.synthesis_thread_id || sendSynthesisThreadId,
             proposal: recordedProposal,
           });
         }
         const statePatch = artifacts.state_patch || out.state_patch || {};
-        // Stuck Composer resume targets poison the browser session — start fresh next send.
+        // Stuck Composer resume targets poison only the context that produced
+        // them. Never clear another research object's resumable conversation.
         const composerBroken =
           out.action === "composer_error" ||
           artifacts.action === "composer_error" ||
           /could not complete that turn|composer session expired|internal:\s*internal error/i.test(
             String(reply || ""),
           );
-        if (composerBroken) {
-          sessionRef.current = "";
-          if (!synthesisThreadId) {
-            generalSessionRef.current = "";
-            clearChatSessionId();
-          }
+        if (composerBroken && !sendSynthesisThreadId) {
+          clearChatSessionId(sendContextKey);
+          if (isCurrentRequest()) sessionRef.current = "";
         }
         const pendingJobId =
           artifacts.job?.id || statePatch.pending_job_id || out.pending_job_id || null;
@@ -247,33 +417,44 @@ export function useAskChat({ dataset, railContext, onCollected, onSynthesisChang
           jobStatus,
         });
 
-        setMessages((m) => {
-          const trimmed = m.filter((x) => !x.streaming);
-          return [
-            ...trimmed,
-            {
-              role: "assistant",
-              text: reply,
-              intent,
-              action: shaped.action,
-              toolName: shaped.toolName,
-              // Completed turns should not keep "Planning…" chrome in the card.
-              activityLog: [],
-              candidates: shaped.candidates || [],
-              suggestedPrompts: shaped.suggestedPrompts || [],
-              nextSteps: shaped.nextSteps || nextSteps || [],
-              pendingJobId: shaped.pendingJobId,
-              jobStatus: shaped.jobStatus,
-            },
-          ];
-        });
-        setStatus(
-          intent === "status"
-            ? ""
-            : out.campaign_id
-              ? `Campaign ${String(out.campaign_id).slice(0, 8)}…`
-              : "",
-        );
+        if (isCurrentRequest()) {
+          setMessages((m) => {
+            const trimmed = m.filter((x) => !x.streaming);
+            return [
+              ...trimmed,
+              {
+                role: "assistant",
+                text: reply,
+                intent,
+                action: shaped.action,
+                toolName: shaped.toolName,
+                // Completed turns should not keep "Planning…" chrome in the card.
+                activityLog: [],
+                candidates: shaped.candidates || [],
+                referencedDatasets: Array.isArray(out.referenced_datasets) ? out.referenced_datasets : [],
+                suggestedPrompts: shaped.suggestedPrompts || [],
+                nextSteps: shaped.nextSteps || nextSteps || [],
+                pendingJobId: shaped.pendingJobId,
+                jobStatus: shaped.jobStatus,
+              },
+            ];
+          });
+          setStatus(
+            intent === "status"
+              ? ""
+              : out.campaign_id
+                ? `Campaign ${String(out.campaign_id).slice(0, 8)}…`
+                : "",
+          );
+          if (awaitsFullAnswer(out) && out.session_id) {
+            followFullAnswer(out.session_id, reply, isCurrentRequest);
+          }
+          emitSynthesisAgentEvent(sendSynthesisThreadId, {
+            kind: "run_completed",
+            action: out.action || shaped.action || null,
+            target: objectContext || undefined,
+          });
+        }
         if (
           intent !== "status" &&
           ["collect", "acquire", "collect_doi", "approve_collect", "queue", "schedule_refresh"].includes(
@@ -283,7 +464,7 @@ export function useAskChat({ dataset, railContext, onCollected, onSynthesisChang
           onCollected?.();
           onToast?.(
             out.action === "schedule_refresh"
-              ? "Refresh registered in Discover History"
+              ? "Refresh saved in Discover History"
               : "Queued for collection",
           );
         }
@@ -295,7 +476,7 @@ export function useAskChat({ dataset, railContext, onCollected, onSynthesisChang
         if (intent !== "status" && (subId || out.action === "schedule_refresh")) {
           onCollected?.();
           if (out.action !== "schedule_refresh") {
-            onToast?.("Refresh registered in Discover History");
+            onToast?.("Refresh saved in Discover History");
           }
         }
         if (intent !== "status" && shaped.pendingJobId && shaped.jobStatus === "pending_approval") {
@@ -304,34 +485,45 @@ export function useAskChat({ dataset, railContext, onCollected, onSynthesisChang
       } catch (err) {
         const msg = err.message || String(err);
         const readOnlyReview = /review endpoint does not allow desk mutations|read[- ]only.*review/i.test(msg);
-        if (/composer|internal:\s*internal error|could not complete/i.test(msg)) {
-          sessionRef.current = "";
-          clearChatSessionId();
+        if (/composer|internal:\s*internal error|could not complete/i.test(msg) && !sendSynthesisThreadId) {
+          clearChatSessionId(sendContextKey);
+          if (isCurrentRequest()) sessionRef.current = "";
         }
-        setMessages((m) => [
-          ...m.filter((x) => !x.streaming),
-          {
-            role: readOnlyReview ? "notice" : "error",
-            text: readOnlyReview
-              ? "Ask is unavailable on this read-only review build. The question and visible results remain intact."
-              : msg,
-          },
-        ]);
-        setStatus(readOnlyReview ? "Read-only review" : (msg || "Chat failed"));
+        if (isCurrentRequest()) {
+          setMessages((m) => [
+            ...m.filter((x) => !x.streaming),
+            {
+              role: readOnlyReview ? "notice" : "error",
+              text: readOnlyReview
+                ? "Ask is unavailable on this read-only review build. The question and visible results remain intact."
+                : msg,
+            },
+          ]);
+          setStatus(readOnlyReview ? "Read-only review" : (msg || "Chat failed"));
+          emitSynthesisAgentEvent(sendSynthesisThreadId, {
+            kind: "run_failed",
+            text: readOnlyReview ? "Read-only review" : (msg || "Chat failed"),
+            target: objectContext || undefined,
+          });
+        }
       } finally {
-        busyRef.current = false;
-        setBusy(false);
-        intentRef.current = "general";
+        if (isCurrentRequest()) {
+          busyRef.current = false;
+          setBusy(false);
+        }
       }
     },
     [
-      contextPrefix,
+      contextKey,
+      beginWarm,
       input,
       onCollected,
       onSynthesisChanged,
       onToast,
       synthesisSessionId,
       synthesisThreadId,
+      warmEnabled,
+      followFullAnswer,
     ],
   );
 
@@ -342,9 +534,10 @@ export function useAskChat({ dataset, railContext, onCollected, onSynthesisChang
     busy,
     status,
     send,
+    prime: beginWarm,
     contextLabel:
       dataset?.kind === "external_candidate"
         ? dataset.title || dataset.row?.dataset_id || dataset.id || null
-        : dataset?.dataset_id || dataset?.title || null,
+        : dataset?.dataset_id || uiVocabularyLabel(dataset?.title) || null,
   };
 }

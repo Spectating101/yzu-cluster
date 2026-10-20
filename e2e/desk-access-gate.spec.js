@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
-import { mockV2Api } from "./fixtures/v2MockApi.js";
+import { MOCK_DATASETS, mockV2Api } from "./fixtures/v2MockApi.js";
 
-test("anonymous browser stays locked until a valid desk token is presented", async ({ page }) => {
+test("an unavailable desk session fails closed behind one honest access boundary", async ({ page }) => {
   await mockV2Api(page);
 
   await page.route("**/library/desk/capabilities", (route) => {
@@ -33,13 +33,96 @@ test("anonymous browser stays locked until a valid desk token is presented", asy
   });
 
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("heading", { name: "Research data stays inside the desk." })).toBeVisible();
-  await expect(page.locator("aside.yzu-sidebar")).toHaveCount(0);
-  await expect(page.getByText("faculty memory, credentials, jobs, and worker details")).toBeVisible();
+  await expect(page.getByTestId("desk-access-gate")).toBeVisible();
+  await expect(page.locator(".rd-v2-shell")).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Research data stays inside Research Drive." })).toBeVisible();
+  const boundary = page.getByLabel("Access boundary");
+  await expect(boundary).toContainText("Interface shell");
+  await expect(boundary).toContainText("Research data");
+  await expect(boundary).toContainText("Ask and collection");
+  await expect(boundary).toContainText("Operations");
+  await expect(page.getByRole("heading", { name: "Opening your desk…" })).toHaveCount(0);
+});
 
-  await page.getByLabel("Desk access token").fill("review-token-for-test");
-  await page.getByRole("button", { name: "Connect" }).click();
+test("protected Discover history waits for session bootstrap", async ({ page }) => {
+  await mockV2Api(page);
 
+  let releaseSession;
+  const sessionReady = new Promise((resolve) => { releaseSession = resolve; });
+  let sessionEstablished = false;
+  let historyRequests = 0;
+  await page.route("**/library/desk/capabilities", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({
+      version: 2,
+      authenticated: sessionEstablished,
+      server_configured: true,
+      access: sessionEstablished ? "operator" : "locked",
+      permissions: sessionEstablished
+        ? {
+            view_research_data: true,
+            view_faculty_profile: true,
+            view_operations: true,
+            use_ask: true,
+            submit_collection: true,
+            approve_jobs: true,
+          }
+        : {},
+    }),
+  }));
+  await page.route("**/library/desk/session", async (route) => {
+    await sessionReady;
+    sessionEstablished = true;
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ ok: true, authorized: true }),
+    });
+  });
+  await page.route("**/library/discover/history*", (route) => {
+    historyRequests += 1;
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ history: [] }),
+    });
+  });
+
+  await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+  await expect(page.getByTestId("desk-session-bootstrap")).toBeVisible();
+  await page.waitForTimeout(300);
+  expect(historyRequests).toBe(0);
+
+  releaseSession();
   await expect(page.locator(".rd-v2-shell")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Research data stays inside the desk." })).toHaveCount(0);
+  await expect.poll(() => historyRequests).toBeGreaterThan(0);
+});
+
+test("Library loading never presents a fabricated empty estate", async ({ page }) => {
+  await mockV2Api(page);
+
+  let releaseDatasets;
+  const datasetsReady = new Promise((resolve) => { releaseDatasets = resolve; });
+  await page.route("**/datasets", async (route) => {
+    await datasetsReady;
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(MOCK_DATASETS),
+    });
+  });
+
+  await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
+  await expect(page.locator(".rd-v2-shell")).toBeVisible();
+  await expect(page.getByText("Loading Library data…", { exact: true })).toBeVisible();
+  const rail = page.locator("aside.rd-v2-rail");
+  await expect(rail).toContainText("Reading your Library…");
+  await expect(rail).toContainText("Data saved to Library is still loading.");
+  await expect(rail).not.toContainText("0 datasets");
+  await expect(rail).not.toContainText("0 collections");
+
+  releaseDatasets();
+  await expect(rail).toContainText(`${MOCK_DATASETS.datasets.length} datasets`);
+  await expect(rail).not.toContainText("Reading your Library…");
 });

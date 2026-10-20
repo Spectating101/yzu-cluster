@@ -1,11 +1,15 @@
 import { Fragment } from "react";
+import { liveIdentityReadinessLabel } from "./liveIdentity.js";
+import { askDownloadLink } from "./askDownloadLink.js";
 
 /** Light Ask-rail formatting — bold, inline code, line breaks. No full markdown. */
 export function formatAskText(text) {
   const raw = String(text ?? "");
   if (!raw) return null;
-  const parts = raw.split(/(\*\*[^*]+\*\*|`[^`]+`|\n)/g).filter((part) => part !== "");
+  const parts = raw.split(/(\[[^\]\n]+\]\([^\s)]+\)|\*\*[^*]+\*\*|`[^`]+`|\n)/g).filter((part) => part !== "");
   return parts.map((part, i) => {
+    const download = askDownloadLink(part);
+    if (download) return <a key={`download-${i}`} href={download.href} download>{download.label}</a>;
     if (part === "\n") return <br key={`br-${i}`} />;
     if (part.startsWith("**") && part.endsWith("**") && part.length > 4) {
       return <strong key={`b-${i}`}>{part.slice(2, -2)}</strong>;
@@ -90,10 +94,13 @@ export function parseAskReply(text) {
 export function readinessLabel(value) {
   const key = String(value || "").toLowerCase().replace(/\s+/g, "_");
   if (!key) return "";
-  if (key.includes("query_ready") || key === "ready" || key === "instant") return "Query ready";
+  if (["registered", "registered_not_queryable", "query_ready_declared", "metadata_search", "metadata_only", "receipt_only"].includes(key)) {
+    return liveIdentityReadinessLabel({ readiness: key });
+  }
+  if (key.includes("query_ready") || key === "ready" || key === "instant") return "Ready to query";
   if (key.includes("review")) return "Needs review";
   if (key.includes("fail") || key.includes("error")) return "Not ready";
-  return key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  return liveIdentityReadinessLabel({ readiness: key });
 }
 
 export function readinessTone(value) {
@@ -104,8 +111,25 @@ export function readinessTone(value) {
   return "neutral";
 }
 
+const ACTION_LABELS = {
+  answer: "Answer",
+  query: "Query",
+  collect: "Collection",
+  procure: "Collection request",
+  intent: "Request",
+  collection_run: "Collection",
+  registered_asset: "Saved to Library",
+  source_probe: "Connection test",
+  probe: "Connection test",
+  submit_job: "Collection request",
+  yzu_submit_job: "Collection request",
+  register_asset: "Save to Library",
+  approve_job: "Approval decision",
+  reject_job: "Approval decision",
+};
+
 export function humanizeAction(action) {
   const key = String(action || "").toLowerCase();
   if (!key || /describe[_ ]?dataset|planning|working/.test(key)) return "";
-  return key.replace(/_/g, " ");
+  return ACTION_LABELS[key] || "Research step";
 }

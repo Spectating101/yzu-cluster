@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import {
   buildDiscoverEvaluation,
   evaluationActions,
+  researcherProbeError,
   usefulForLine,
 } from "./discoverEvaluation.js";
 import { classifyDiscoverResult } from "./discoverTaxonomy.js";
@@ -23,40 +24,57 @@ describe("usefulForLine", () => {
   });
 });
 
+describe("researcherProbeError", () => {
+  it("replaces a raw DNS/runtime exception with bounded access truth", () => {
+    const message = researcherProbeError("[Errno -3] Temporary failure in name resolution");
+    assert.match(message, /hostname could not be resolved/i);
+    assert.match(message, /access remains unverified/i);
+    assert.doesNotMatch(message, /Errno|name resolution/i);
+  });
+
+  it("does not expose unknown connector exceptions", () => {
+    const message = researcherProbeError("Traceback: connector_secret_path=/srv/private/foo");
+    assert.equal(
+      message,
+      "The connection test did not complete, so access has not been confirmed. Retry later or inspect the source directly.",
+    );
+  });
+});
+
 describe("evaluationActions", () => {
   it("local query-ready primary is Open in Library", () => {
-    const taxonomy = { key: "local-query-ready", label: "In Library · Query ready" };
+    const taxonomy = { key: "local-query-ready", label: "In Library · Query-ready" };
     const actions = evaluationActions({}, taxonomy);
     assert.equal(actions.primary.id, "open_library");
     assert.equal(actions.primary.label, "Open in Library");
   });
 
-  it("licensed/manual does not use Request this evidence as primary", () => {
+  it("licensed/manual does not use Request this data as primary", () => {
     const taxonomy = { key: "licensed-manual", label: "Licensed / manual access" };
     const actions = evaluationActions({}, taxonomy, { hasProbeUrl: true });
     assert.equal(actions.primary.id, "review_access");
     assert.ok(!actions.secondary.some((a) => a.id === "add_lab"));
   });
 
-  it("external discoverable with URL probes first; Request this evidence is secondary", () => {
+  it("external discoverable with URL probes first; Request this data is secondary", () => {
     const taxonomy = { key: "external-discoverable", label: "External · Available to inspect" };
     const actions = evaluationActions({}, taxonomy, { hasProbeUrl: true });
     assert.equal(actions.primary.id, "probe");
-    assert.ok(actions.secondary.some((a) => a.id === "add_lab" && a.label === "Request this evidence"));
+    assert.ok(actions.secondary.some((a) => a.id === "add_lab" && a.label === "Request this data"));
   });
 
-  it("external acquirable primary is Request this evidence", () => {
+  it("external acquirable primary is Request this data", () => {
     const taxonomy = { key: "external-acquirable", label: "External · Acquisition available" };
     const actions = evaluationActions({}, taxonomy, { hasProbeUrl: true, probed: false });
     assert.equal(actions.primary.id, "add_lab");
-    assert.equal(actions.primary.label, "Request this evidence");
+    assert.equal(actions.primary.label, "Request this data");
   });
 
-  it("external-probed primary is Preview, not Ask-as-review", () => {
+  it("external-probed primary opens the bounded source inspector, not Ask-as-review", () => {
     const taxonomy = { key: "external-probed", label: "External · Probed" };
     const actions = evaluationActions({}, taxonomy, { hasProbeUrl: true, probed: true });
     assert.equal(actions.primary.id, "preview");
-    assert.equal(actions.primary.label, "Preview source");
+    assert.equal(actions.primary.label, "Inspect source");
     assert.ok(actions.secondary.some((a) => a.id === "ask" && a.label === "Ask about this source"));
     assert.equal(actions.secondary.some((a) => /Review evidence/i.test(a.label)), false);
   });
@@ -77,7 +95,7 @@ describe("buildDiscoverEvaluation", () => {
     });
     assert.equal(evaluation.hasProbe, false);
     assert.deepEqual(evaluation.verified, []);
-    assert.ok(evaluation.unknowns.some((u) => /not probed/i.test(u)));
+    assert.ok(evaluation.unknowns.some((u) => /connection not tested/i.test(u)));
     assert.equal(evaluation.actions.primary.id, "probe");
     assert.match(evaluation.decision.headline, /Available to inspect/i);
   });
@@ -141,6 +159,6 @@ describe("buildDiscoverEvaluation", () => {
     assert.equal(taxonomy.key, "local-query-ready");
     const evaluation = buildDiscoverEvaluation(row, labIds, null);
     assert.equal(evaluation.actions.primary.label, "Open in Library");
-    assert.match(evaluation.decision.headline, /Query ready/i);
+    assert.match(evaluation.decision.headline, /Ready to query/i);
   });
 });

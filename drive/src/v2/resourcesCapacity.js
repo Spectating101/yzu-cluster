@@ -1,9 +1,15 @@
+import { storageFree, storageUsed } from "./storageFormat.js";
+import { plainIdentifiers } from "./plainText.js";
 /**
  * Resources · Capacity & access band
  * Storage (vault/cache) · Services (Cursor Ask / BigQuery) · Desk (query engine / Tavily)
  */
 
-import { composerRuntimeRead } from "./composerRuntimeStatus.js";
+import {
+  assistantProviderRead,
+  assistantRuntimeDetail,
+  composerRuntimeRead,
+} from "./composerRuntimeStatus.js";
 import { identifyProviderMarkId } from "./providerMarkIds.js";
 import { formatCollectorState, workersToolbarFieldsFromRollup } from "./workersToolbarStat.js";
 
@@ -54,6 +60,7 @@ export function buildCapacityAccessPairs(rollup, health) {
   // Reuse it here (same read as Settings/header) instead of re-deriving a
   // weaker signal from the rollup.
   const runtimeRead = composerRuntimeRead(health?.desk?.composer_runtime);
+  const provider = assistantProviderRead(health?.desk || {});
 
   const vaultPctRaw =
     vault.pct != null ? Number(vault.pct) : pctOf(vault.used_tb, vault.cap_tb);
@@ -92,14 +99,14 @@ export function buildCapacityAccessPairs(rollup, health) {
       metric: vaultObserved
         ? vaultUsed === 0 && Number.isFinite(vaultCap)
           ? `Empty · ${vaultCap} TB capacity`
-          : `${vaultUsed}/${Number.isFinite(vaultCap) ? vaultCap : "?"} TB`
+          : storageUsed(vaultUsed, vaultCap, "TB")
         : Number.isFinite(vaultCap)
           ? `${vaultCap} TB · use not observed`
           : "NOT OBSERVED",
       pct: vaultPct,
       available: vaultObserved
         ? Number.isFinite(vaultCap) && Number.isFinite(vaultUsed)
-          ? `${Math.max(0, vaultCap - vaultUsed).toFixed(1)} TB available`
+          ? storageFree(vaultCap - vaultUsed, "TB")
           : null
         : "NOT OBSERVED",
       warn: vaultPct != null && vaultPct >= 85,
@@ -110,25 +117,40 @@ export function buildCapacityAccessPairs(rollup, health) {
       name: cache.label || "USB bulk cache",
       metric:
         cache.used_gb != null || cache.total_gb != null
-          ? `${cache.used_gb ?? "?"}/${cache.total_gb ?? "?"} GB`
+          ? storageUsed(cache.used_gb, cache.total_gb, "GB")
           : cache.mounted
             ? "Mounted"
             : "Not mounted",
       pct: cachePct,
       available:
         cache.total_gb != null && cache.used_gb != null
-          ? `${Math.max(0, Number(cache.total_gb) - Number(cache.used_gb)).toFixed(0)} GB available`
+          ? storageFree(Number(cache.total_gb) - Number(cache.used_gb))
           : null,
       warn: cachePct != null && cachePct >= 85,
       action: cachePct != null && cachePct >= 85 ? "CHECK" : null,
     }),
   ];
+  const disk = health?.desk?.storage_tiers?.hot || rollup?.usage?.hot || {};
+  if (disk.headroom_ok === false) {
+    storage.push(
+      meter({
+        id: "desk-disk",
+        markId: "cache",
+        name: "This machine's disk",
+        metric: `${storageFree(disk.free_gb)}${disk.required_min_gb != null ? ` · needs ${disk.required_min_gb} GB` : ""}`,
+        pct: Number(disk.used_pct),
+        available: "Below Research Drive’s minimum free space",
+        warn: true,
+        action: "CHECK",
+      }),
+    );
+  }
 
   const services = [
     meter({
       id: "cursor",
-      markId: "cursor",
-      name: "Cursor Ask",
+      markId: provider.id === "cursor" ? "cursor" : "assistant",
+      name: provider.label,
       metric: runtimeRead
         ? runtimeRead.ready
           ? turnsToday > 0
@@ -138,19 +160,34 @@ export function buildCapacityAccessPairs(rollup, health) {
         : composerOk
           ? turnsToday > 0
             ? `${turnsToday} turns today`
-            : "Composer ready"
+            : "Unverified"
           : "Not configured",
       pct: null,
       available: runtimeRead
         ? runtimeRead.ready
-          ? `API key live · ${composer.model || ai.composer_model || "default"}`
+          ? assistantRuntimeDetail(
+              {
+                ...health?.desk,
+                composer_model: composer.model || ai.composer_model,
+              },
+              runtimeRead,
+            )
           : runtimeRead.status === "unavailable"
-            ? "Set CURSOR_API_KEY for Ask"
-            : `Key set · ${composer.model || ai.composer_model || "default"} · ${runtimeRead.why}`
+            ? "Configure a supported Ask provider"
+            : assistantRuntimeDetail(
+                {
+                  ...health?.desk,
+                  composer_model: composer.model || ai.composer_model,
+                },
+                runtimeRead,
+              )
         : composerOk
-          ? `API key live · ${composer.model || ai.composer_model || "default"}`
-          : "Set CURSOR_API_KEY for Ask",
-      warn: runtimeRead ? !runtimeRead.ready : !composerOk,
+          ? `${provider.runtimeLabel} · runtime not verified`
+          : "Configure a supported Ask provider",
+      // A configured key is not a live runtime observation. While /health is
+      // still loading, fail closed instead of briefly presenting "Ready" and
+      // then correcting the card to "Unverified" a few seconds later.
+      warn: runtimeRead ? !runtimeRead.ready : true,
       action: runtimeRead ? (runtimeRead.status === "unavailable" ? "NEED" : null) : composerOk ? null : "NEED",
     }),
     meter({
@@ -158,17 +195,12 @@ export function buildCapacityAccessPairs(rollup, health) {
       markId: "bigquery",
       name: "BigQuery",
       metric: bq.configured
-        ? [
-            bq.project || "ADC ok",
-            Number.isFinite(bqCapGiB) ? `${fmtGiB(bqCapGiB)} / query` : null,
-          ]
-            .filter(Boolean)
-            .join(" · ")
+        ? ["Connected", Number.isFinite(bqCapGiB) ? `${fmtGiB(bqCapGiB)} per query` : null].filter(Boolean).join(" · ")
         : "Not configured",
       pct: bqPct,
       available: bq.configured
-        ? `${fmtGiB(bqToday) || "0 GiB"} billed today`
-        : "ADC / project missing",
+        ? [`${fmtGiB(bqToday) || "0 GiB"} billed today`, bq.project ? `project ${bq.project}` : null].filter(Boolean).join(" · ")
+        : "Google Cloud project not set up",
       warn: !bq.configured,
       action: bq.configured ? null : "NEED",
     }),
@@ -218,7 +250,11 @@ export function buildCapacityAccessPairs(rollup, health) {
       id: "mcp",
       markId: "mcp",
       name: "Ask tools",
-      metric: mcpTotal > 0 ? `${mcpTotal} MCP tools` : composerOk ? "Composer ready" : "Not reported",
+      // The Composer runtime and the MCP tool inventory are independent
+      // observations. A configured Composer key cannot prove any tools were
+      // loaded, and calling it "Composer ready" here contradicted the
+      // adjacent runtime card whenever the provider was unverified.
+      metric: mcpTotal > 0 ? `${mcpTotal} research tools` : "Not reported",
       pct: null,
       available:
         mcpTotal > 0
@@ -229,17 +265,15 @@ export function buildCapacityAccessPairs(rollup, health) {
             ]
               .filter(Boolean)
               .join(" · ")
-          : composerOk
-            ? "Cursor Composer + desk MCP"
-            : "Wire desk MCP for Ask",
-      warn: mcpTotal <= 0 && !composerOk,
+          : "MCP inventory not reported",
+      warn: mcpTotal <= 0,
     }),
   ];
 
   return [
     { id: "storage", title: "Storage", meters: storage },
     { id: "services", title: "Services", meters: services },
-    { id: "desk", title: "Desk", meters: desk },
+    { id: "desk", title: "Research Drive", meters: desk },
   ];
 }
 
@@ -255,6 +289,8 @@ export function sourceAuthorityLabel(row) {
   if (row?.configured === true || row?.route) return "ROUTE DEFINED";
   return "NOT CHECKED";
 }
+
+export { plainIdentifiers as plainAccessText };
 
 export function groupSourceCapabilities(panels = []) {
   const families = {
@@ -272,13 +308,14 @@ export function groupSourceCapabilities(panels = []) {
       families[family].rows.push({
         id: row.key || row.id || label,
         name: label,
-        access:
+        access: plainIdentifiers(
           row.metric ||
           row.route ||
           row.access ||
           row.sublabel ||
           row.detail ||
           "Access not described",
+        ),
         authority: sourceAuthorityLabel(row),
         markId: identifyProviderMarkId(row),
         row,

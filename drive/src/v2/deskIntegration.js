@@ -4,6 +4,7 @@
  */
 
 import { composerRuntimeRead } from "./composerRuntimeStatus.js";
+import { humanizeDiscoverDescription } from "./browseMeta.js";
 
 function formatAge(ts) {
   if (!ts) return null;
@@ -25,10 +26,11 @@ export function buildDeskIntegrationChips(health) {
   if (!health?.desk) return [];
   const desk = health.desk;
   const chips = [];
+  const degraded = String(health.status || "").toLowerCase() === "degraded";
 
   // Desk status badge already lives in the header — only chip when degraded.
-  if (String(health.status || "").toLowerCase() === "degraded") {
-    chips.push({ id: "desk", label: "Desk degraded", tone: "warn" });
+  if (degraded) {
+    chips.push({ id: "desk", label: "Research Drive needs attention", tone: "warn" });
   }
 
   // composer_runtime is frequently the reason status flips to degraded —
@@ -36,8 +38,15 @@ export function buildDeskIntegrationChips(health) {
   // degraded" showed with no visible cause. "unavailable" (never configured)
   // is a normal, expected state, not worth a warning chip here.
   const runtimeRead = composerRuntimeRead(desk.composer_runtime);
-  if (runtimeRead && !runtimeRead.ready && runtimeRead.status !== "unavailable") {
+  const quietStates = degraded ? ["unavailable"] : ["unavailable", "unverified"];
+  if (runtimeRead && !runtimeRead.ready && !quietStates.includes(runtimeRead.status)) {
     chips.push({ id: "composer", label: runtimeRead.label, tone: "warn" });
+  }
+
+  for (const check of desk.operations?.checks || []) {
+    if (check?.ok === false && check.label) {
+      chips.push({ id: `ops-${check.id}`, label: check.label, tone: check.tone === "bad" ? "bad" : "warn", detail: check.detail || "" });
+    }
   }
 
   const gdrive = desk.gdrive;
@@ -91,8 +100,11 @@ export function buildObjectEstateCrumb(object, { probeState = null, searchMeta =
 
   let location = null;
   if (vault) location = `Vault · ${String(vault).slice(0, 64)}`;
-  else if (endpoint) location = `Remote · ${String(endpoint).replace(/^https?:\/\//, "").slice(0, 48)}`;
   else if (provider) location = `Provider · ${String(provider).slice(0, 40)}`;
+  // Product chrome names the source; its raw endpoint remains available under
+  // Technical evidence. A URL is an implementation reference, not research
+  // context a reader should have to parse at selection time.
+  else if (endpoint) location = "Remote source";
   else if (object.dataset_id) location = `Registry · ${object.dataset_id}`;
 
   const stamp =
@@ -104,9 +116,9 @@ export function buildObjectEstateCrumb(object, { probeState = null, searchMeta =
     null;
   let freshness = formatAge(stamp);
   if (probeState?.observedAt) {
-    freshness = `Probed ${formatAge(probeState.observedAt)}`;
+    freshness = `Connection tested ${formatAge(probeState.observedAt)}`;
   } else if (probeState?.loading) {
-    freshness = "Probe in flight";
+    freshness = "Connection test in flight";
   } else if (searchMeta?.search_mode) {
     const mode = String(searchMeta.search_mode);
     freshness =
@@ -116,7 +128,7 @@ export function buildObjectEstateCrumb(object, { probeState = null, searchMeta =
           ? "Live search"
           : `Search · ${mode}`;
   } else if (!freshness && object.access_mode) {
-    freshness = `Access · ${String(object.access_mode).replace(/_/g, " ")}`;
+    freshness = `Access · ${humanizeDiscoverDescription(object.access_mode)}`;
   }
 
   let authority = null;
@@ -128,7 +140,7 @@ export function buildObjectEstateCrumb(object, { probeState = null, searchMeta =
       object.analysis_readiness === "instant" ||
       object.analysis_readiness === "instant_or_minutes" ||
       object.analysis_readiness === "queryable";
-    authority = ready ? "Query-ready registry" : "Library registry";
+    authority = ready ? "Ready to query registry" : "Library registry";
   }
   if (object.cached === true) authority = (authority ? `${authority} · ` : "") + "Cached";
   if (object.demo || object._demo) authority = "Demo fixture — verify source";

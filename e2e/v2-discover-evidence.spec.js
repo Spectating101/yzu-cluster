@@ -13,6 +13,51 @@ async function search(page, query = "MOPS filings") {
 }
 
 test.describe("Discover adaptive Explore", () => {
+  test("keeps frozen Filters and Sort chrome on a full workstation", async ({ page }, testInfo) => {
+    await mockV2Api(page, { discoverBody: MOCK_DISCOVER_HIT });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await search(page, "MOPS filings");
+
+    await expect(page.locator(".rd-v2-discover-evidence-cockpit")).toHaveCount(0);
+    await expect(page.getByTestId("discover-filter-menu")).toBeVisible();
+    await expect(page.getByTestId("discover-sort-menu")).toBeVisible();
+    if (process.env.YZU_CAPTURE_VISUALS === "1") {
+      await page.screenshot({
+        path: testInfo.outputPath("discover-cockpit-workstation-1440x900.png"),
+        fullPage: false,
+      });
+    }
+  });
+
+  test("keeps results first at narrower widths", async ({ page }, testInfo) => {
+    await mockV2Api(page, { discoverBody: MOCK_DISCOVER_HIT });
+    for (const viewport of [
+      { width: 1180, height: 800 },
+      { width: 390, height: 844 },
+    ]) {
+      await page.setViewportSize(viewport);
+      await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+      await waitForShell(page);
+      await search(page, "MOPS filings");
+
+      await expect(page.locator(".rd-v2-discover-evidence-cockpit")).toBeHidden();
+      await expect(page.getByTestId("discover-filter-menu")).toBeVisible();
+      const firstResult = page.locator(".rd-v2-discover-candidate").first();
+      await expect(firstResult).toBeVisible();
+      const box = await firstResult.boundingBox();
+      expect(box, `${viewport.width}px must render a first result`).not.toBeNull();
+      expect(box.y, `${viewport.width}px must not bury the first result below the fold`).toBeLessThan(viewport.height);
+      if (process.env.YZU_CAPTURE_VISUALS === "1") {
+        await page.screenshot({
+          path: testInfo.outputPath(`discover-results-first-${viewport.width}x${viewport.height}.png`),
+          fullPage: false,
+        });
+      }
+    }
+  });
+
   test("plain lookup stays on the index path without starting assessment or Ask", async ({ page }) => {
     let deepCalls = 0;
     let assessmentCalls = 0;
@@ -33,7 +78,7 @@ test.describe("Discover adaptive Explore", () => {
 
     await expect(page.getByLabel("Public URL or DOI")).toBeVisible();
     await search(page);
-    await expect(page.getByTestId("discover-best-fit")).toContainText("MOPS financial statements");
+    await expect(page.getByTestId("discover-ranked-results")).toContainText("MOPS financial statements");
     expect(deepCalls).toBe(0);
     expect(assessmentCalls).toBe(0);
     await expect(page.locator("aside.rd-v2-rail").getByRole("tab", { name: "Ask" })).toHaveAttribute(
@@ -68,7 +113,7 @@ test.describe("Discover adaptive Explore", () => {
     await expect.poll(() => deepCalls).toBeGreaterThan(0);
   });
 
-  test("a research question keeps results visible, assesses automatically, and seeds Ask", async ({ page }) => {
+  test("a research question keeps results visible, assesses automatically, and leaves Ask to the researcher", async ({ page }) => {
     await mockV2Api(page, {
       discoverBody: MOCK_DISCOVER_HIT,
       assessmentBody: MOCK_DISCOVER_ASSESSMENT,
@@ -78,21 +123,57 @@ test.describe("Discover adaptive Explore", () => {
     await search(page, "Do we hold issuer-quarter governance data for Taiwan?");
 
     const rail = page.locator("aside.rd-v2-rail");
-    await expect(rail.getByRole("tab", { name: "Ask" })).toHaveAttribute("aria-selected", "true");
-    await expect(page.getByTestId("ask-messages")).toContainText(
-      "Do we hold issuer-quarter governance data for Taiwan?",
-    );
-    await rail.getByRole("tab", { name: "Detail" }).click();
-    const result = page.getByTestId("discover-assessment-result");
-    await expect(result).toBeVisible();
-    await expect(page.getByTestId("discover-verdict")).toHaveText("Partially covered");
-    await expect(page.getByTestId("discover-best-fit")).toContainText("MOPS financial statements");
     await expect(rail.getByRole("tab", { name: "Detail" })).toHaveAttribute("aria-selected", "true");
-    await result.locator("details.rd-v2-evidence-edit > summary").click();
-    await expect(result.getByLabel("Geography / universe value")).toHaveValue("Taiwan listed issuers");
-    await expect(result.getByLabel("Fields provenance")).toHaveValue("explicit");
+    await expect(page.getByTestId("ask-messages")).not.toContainText("Do we hold issuer-quarter governance data for Taiwan?");
+    const result = page.locator(".rd-v2-evidence-brief.is-workspace").getByTestId("discover-assessment-result");
+    await expect(result).toBeVisible();
+    await expect(page.getByTestId("discover-query-composer")).toHaveCount(1);
+    await expect(page.getByLabel("Explore question")).toHaveCount(0);
+    await expect(page.getByTestId("discover-interpreting")).toHaveCount(0);
+    await expect(page.getByTestId("discover-verdict")).toHaveText("Partially covered");
+    await expect(page.getByTestId("discover-ranked-results")).toContainText("MOPS financial statements");
+    await expect(rail.getByRole("tab", { name: "Detail" })).toHaveAttribute("aria-selected", "true");
+    // The workstation composition keeps refinement controls out of the scan
+    // path; verify the rendered assessment itself instead of clicking a
+    // deliberately hidden legacy editor.
+    await expect(result).toContainText("Taiwan listed issuers");
     await expect(page.getByTestId("discover-filter-menu")).toHaveCount(1);
     await expect(result).not.toContainText("[object Object]");
+  });
+
+  test("a Library dataset the assistant judged to cover the need is named above the results", async ({ page }) => {
+    const held = {
+      ...MOCK_DISCOVER_ASSESSMENT.held_evidence[0],
+      dataset_id: "twse_daily_market",
+      title: "TWSE daily market trading value, volume and TAIEX",
+      contribution: "Research assistant: covers. Daily TWSE trading value and TAIEX for 2024.",
+      judgement: "covers",
+    };
+    await mockV2Api(page, {
+      discoverBody: MOCK_DISCOVER_HIT,
+      assessmentBody: {
+        ...MOCK_DISCOVER_ASSESSMENT,
+        verdict: "covered",
+        verdict_basis: "model_judgement",
+        because: "The research assistant judged that TWSE daily market trading value, volume and TAIEX covers this request.",
+        gap: null,
+        held_evidence: [held, ...MOCK_DISCOVER_ASSESSMENT.held_evidence],
+      },
+    });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await search(page, "I need daily trading value and TAIEX for the Taiwan stock market in 2024");
+
+    const rail = page.locator("aside.rd-v2-rail");
+    await rail.getByRole("tab", { name: "Detail" }).click();
+    await expect(page.getByTestId("discover-verdict")).toHaveText("Likely covered");
+    const answer = page.getByTestId("discover-library-answer");
+    await expect(answer).toContainText("In your Library");
+    await expect(answer).toContainText("TWSE daily market trading value, volume and TAIEX");
+    await expect(answer).toContainText("Open in Library");
+    await answer.click();
+    await expect(page).toHaveURL(/tab=library/);
+    await expect(page).toHaveURL(/dataset=twse_daily_market/);
   });
 
   test("metadata gaps stay neutral and do not open procurement comparison", async ({ page }) => {
@@ -117,20 +198,39 @@ test.describe("Discover adaptive Explore", () => {
 
     await expect(page.getByTestId("discover-verdict")).toHaveText("Not yet recorded");
     await expect(page.getByTestId("discover-verdict")).toHaveClass(/insufficient_metadata/);
-    await expect(page.getByRole("button", { name: "Strategy needs context" })).toBeVisible();
+    await expect(page.getByTestId("discover-assess-coverage")).toHaveCount(0);
     await expect(page.getByTestId("discover-route-comparison")).toHaveCount(0);
   });
 
   test("a genuine evidence gap opens temporary route comparison and keeps approval downstream", async ({ page }) => {
     await mockV2Api(page, {
-      discoverBody: MOCK_DISCOVER_HIT,
+      discoverBody: {
+        sections: [{
+          title: "Registry",
+          rows: [
+            ...MOCK_DISCOVER_HIT.sections[0].rows,
+            {
+              dataset_id: "twse_governance_ext",
+              candidate_key: "dataset:twse_governance_ext",
+              title: "TWSE governance disclosures",
+              source: "TWSE",
+              collect_via: "twse_official",
+              url: "https://www.twse.com.tw/example",
+              coverage: "2018–2026",
+              grain: "issuer-year",
+              description: "Board composition and governance disclosures",
+            },
+          ],
+        }],
+        total: 2,
+      },
       assessmentBody: MOCK_DISCOVER_ASSESSMENT,
     });
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
     await search(page, "What data covers Taiwan issuer-quarter governance?");
 
-    await page.getByRole("button", { name: "Custom strategy ready" }).click();
+    await page.getByLabel("Discover next actions").getByRole("button", { name: "Review collection strategy" }).click();
     const comparison = page.getByTestId("discover-route-comparison");
     await expect(comparison).toBeVisible();
     await expect(comparison).toContainText("How it answers the question");
@@ -157,7 +257,7 @@ test.describe("Discover adaptive Explore", () => {
     await waitForShell(page);
     await search(page, "MOPS filings");
 
-    await page.getByTestId("discover-best-fit").getByRole("button", { name: "Add to collection" }).click();
+    await page.getByTestId("discover-ranked-results").getByRole("button", { name: "Add to collection" }).click();
 
     const workspace = page.getByTestId("discover-intent-workspace");
     await expect(workspace).toBeVisible();
@@ -170,18 +270,60 @@ test.describe("Discover adaptive Explore", () => {
     await expect(workspace.getByRole("button", { name: "Submit for approval" })).toHaveCount(0);
     await expect(page.getByTestId("discover-result-summary")).toBeVisible();
     await expect(page.getByRole("dialog", { name: "Review acquisition" })).toBeVisible();
-    await expect(page.locator("aside.rd-v2-rail")).toContainText("Durable Discover decision record");
-    await expect(page.locator("aside.rd-v2-rail").getByRole("button", { name: "Request this evidence" })).toHaveCount(0);
+    await expect(page.locator("aside.rd-v2-rail")).toContainText("Saved data request");
+    await expect(page.locator("aside.rd-v2-rail").getByRole("button", { name: "Request this data" })).toHaveCount(0);
 
-    await workspace.getByRole("button", { name: "Continue to route selection" }).click();
+    await workspace.getByRole("button", { name: /^(Use this route|Continue to route selection)$/ }).click();
     await expect(workspace).toContainText("Reviewed routes");
     await expect(workspace.getByRole("button", { name: "Submit for approval" })).toBeEnabled();
     await workspace.getByRole("button", { name: "Submit for approval" }).click();
 
-    await expect(workspace.getByTestId("discover-intent-collection")).toContainText("pending approval");
+    await expect(workspace.getByTestId("discover-intent-collection")).toContainText("Waiting for your approval");
     await expect(workspace.getByTestId("discover-intent-collection")).toContainText(
       "collection remains governed by History",
     );
+  });
+
+  test("compiled procurement engineering stays brief, truthful, and approval-gated", async ({ page }) => {
+    await mockV2Api(page, {
+      discoverBody: { sections: [], total: 0 },
+      discoverSourcesBody: {
+        results: [{
+          kind: "artifact",
+          source_id: "example_public",
+          candidate_key: "source:example_public",
+          title: "Example public research files",
+          description: "Public CSV files from a source that explicitly advertises acquisition availability.",
+          url: "https://example.com/data.csv",
+          access_mode: "public_http",
+          acquisition_available: true,
+          query_relevance: 2,
+        }],
+        total: 1,
+      },
+    });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await search(page, "example public research files");
+
+    const result = page.getByTestId("discover-ranked-results");
+    await expect(result).toContainText("Available to collect");
+    await result.getByRole("button", { name: "Add to collection" }).click();
+    const workspace = page.getByTestId("discover-intent-workspace");
+    await expect(workspace).toBeVisible();
+    const engineering = workspace.getByTestId("discover-procurement-engineering");
+    await expect(engineering).toBeVisible();
+    await expect(engineering).toContainText("Procurement engineering");
+    await expect(engineering).toContainText("Compiled · HTTP acquisition");
+    await expect(engineering).toContainText("http · runtime placement · baseline sizing");
+    await expect(engineering).toContainText("preflight recommended · single claim");
+    await expect(engineering).toContainText("Evidence fit will be rechecked after collection");
+    await expect(engineering).not.toContainText(/worker-[0-9]|assigned worker|contract hash/i);
+    await expect(workspace.getByRole("button", { name: "Submit for approval" })).toHaveCount(0);
+
+    await workspace.getByRole("button", { name: /^(Use this route|Continue to route selection)$/ }).click();
+    await expect(workspace.getByTestId("discover-procurement-engineering")).toBeVisible();
+    await expect(workspace.getByRole("button", { name: "Submit for approval" })).toBeEnabled();
   });
 
   test("mobile research brief, results, and bottom navigation do not collide", async ({ page }) => {
@@ -197,13 +339,13 @@ test.describe("Discover adaptive Explore", () => {
     const grip = page.locator(".rd-v2-rail-mobile-grip");
     if (await grip.getAttribute("aria-expanded") === "true") await grip.click();
 
-    const briefBox = await page.getByTestId("discover-interpreting").boundingBox();
     const filterBox = await page.getByTestId("discover-filter-menu").boundingBox();
-    expect(briefBox).not.toBeNull();
+    const workspaceBox = await page.locator(".rd-v2-evidence-brief.is-workspace").boundingBox();
     expect(filterBox).not.toBeNull();
-    expect(filterBox.y).toBeGreaterThanOrEqual(briefBox.y + briefBox.height - 1);
+    expect(workspaceBox).not.toBeNull();
+    expect(workspaceBox.y).toBeGreaterThanOrEqual(filterBox.y + filterBox.height - 1);
 
-    const rowBox = await page.getByTestId("discover-best-fit").locator(".rd-v2-discover-candidate").first().boundingBox();
+    const rowBox = await page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidate").first().boundingBox();
     expect(rowBox).not.toBeNull();
     expect(rowBox.x).toBeGreaterThanOrEqual(0);
     expect(rowBox.x + rowBox.width).toBeLessThanOrEqual(390);

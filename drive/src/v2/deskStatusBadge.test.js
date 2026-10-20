@@ -1,13 +1,13 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { deskStatusBadge, visibleIntegrationChips } from "./deskStatusBadge.js";
+import { deskStatusBadge, deskStatusSummary, visibleIntegrationChips } from "./deskStatusBadge.js";
 
 describe("deskStatusBadge", () => {
   it("maps each desk state to one label", () => {
-    assert.deepEqual(deskStatusBadge("ok"), { label: "Live registry", tone: "ok" });
+    assert.deepEqual(deskStatusBadge("ok"), { label: "Online", tone: "ok" });
     assert.deepEqual(deskStatusBadge("syncing"), { label: "Syncing…", tone: "muted" });
-    assert.deepEqual(deskStatusBadge("empty"), { label: "Empty registry", tone: "warn" });
-    assert.deepEqual(deskStatusBadge("degraded"), { label: "Desk degraded", tone: "warn" });
+    assert.deepEqual(deskStatusBadge("empty"), { label: "Library empty", tone: "warn" });
+    assert.deepEqual(deskStatusBadge("degraded"), { label: "Research Drive needs attention", tone: "warn" });
     assert.deepEqual(deskStatusBadge("demo"), { label: "Demo catalog", tone: "warn" });
   });
 
@@ -16,8 +16,8 @@ describe("deskStatusBadge", () => {
   });
 
   it("falls back to offline rather than claiming health for an unknown state", () => {
-    assert.equal(deskStatusBadge("nonsense").label, "Desk API offline");
-    assert.equal(deskStatusBadge(undefined).label, "Desk API offline");
+    assert.equal(deskStatusBadge("nonsense").label, "Research Drive API offline");
+    assert.equal(deskStatusBadge(undefined).label, "Research Drive API offline");
   });
 });
 
@@ -44,7 +44,7 @@ describe("visibleIntegrationChips", () => {
       { id: "b", label: "Broken", tone: "error" },
       { id: "c", label: "Quiet", tone: "muted" },
     ];
-    assert.deepEqual(visibleIntegrationChips(chips, "Live registry").map((c) => c.id), ["b"]);
+    assert.deepEqual(visibleIntegrationChips(chips, "Online").map((c) => c.id), ["b"]);
   });
 
   it("collapses chips duplicated among themselves", () => {
@@ -52,11 +52,37 @@ describe("visibleIntegrationChips", () => {
       { id: "a", label: "NVMe 87%", tone: "warn" },
       { id: "b", label: "NVMe 87%", tone: "warn" },
     ];
-    assert.deepEqual(visibleIntegrationChips(chips, "Live registry").map((c) => c.id), ["a"]);
+    assert.deepEqual(visibleIntegrationChips(chips, "Online").map((c) => c.id), ["a"]);
   });
 
   it("survives absent or malformed input", () => {
-    assert.deepEqual(visibleIntegrationChips(null, "Live registry"), []);
-    assert.deepEqual(visibleIntegrationChips([null, { tone: "warn" }], "Live registry"), []);
+    assert.deepEqual(visibleIntegrationChips(null, "Online"), []);
+    assert.deepEqual(visibleIntegrationChips([null, { tone: "warn" }], "Online"), []);
+  });
+});
+
+describe("deskStatusSummary", () => {
+  it("keeps a healthy desk to one quiet status", () => {
+    assert.deepEqual(
+      deskStatusSummary({ label: "Online", tone: "ok" }, []),
+      { label: "Online", tone: "ok", details: ["Online"] },
+    );
+  });
+
+  it("collapses integration warnings and leaves pending work to its own link", () => {
+    assert.deepEqual(
+      deskStatusSummary(
+        { label: "Research Drive needs attention", tone: "warn" },
+        [
+          { id: "composer", label: "Assistant unverified", tone: "warn" },
+          { id: "debt", label: "13 pending · 25d", tone: "warn" },
+        ],
+      ),
+      {
+        label: "1 Research Drive notice",
+        tone: "warn",
+        details: ["Research Drive needs attention", "Assistant unverified"],
+      },
+    );
   });
 });

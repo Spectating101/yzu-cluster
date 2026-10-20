@@ -2,6 +2,20 @@
 
 import { isReceiptOnlyAsset, isQueryReadyReadiness, statusPillKind } from "./datasetMeta.js";
 
+/** Reconcile indexed records by identity against the current returned catalog. */
+export function reconcileDiscoverRegistryRows(rows = [], catalog = [], catalogLoaded = false) {
+  const byId = new Map(catalog.map(row => [row.dataset_id, row]));
+  return rows.filter(row => {
+    if (row?.source === "procured" && !row.dataset_id && !row.doi && !row.url) return false;
+    if (row?.kind !== "registry_dataset" || !catalogLoaded) return true;
+    const current = byId.get(row.dataset_id);
+    if (current) return !isReceiptOnlyAsset(current);
+    // An index snapshot is not current possession evidence. Other live results
+    // can precede catalog hydration and must remain visible.
+    return row.source !== "collection_index";
+  });
+}
+
 export function normalizeDiscoverMode(raw = "") {
   const mode = String(raw || "").trim().toLowerCase();
   if (mode === "history") return "history";
@@ -29,7 +43,7 @@ export function normalizeDiscoverMode(raw = "") {
  * "mktcap < 5B and volume > 1M" would collapse to "mktcap 1M", silently
  * changing what the description says.
  */
-function cleanDescription(value) {
+export function cleanDescription(value) {
   return String(value || "")
     .replace(/<\/?[a-zA-Z][^<>]*>/g, " ")
     .replace(/&nbsp;/gi, " ")
@@ -40,6 +54,15 @@ function cleanDescription(value) {
     .replace(/&#39;/gi, "'")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+const ABSENT_ROUTE_SENTINELS = new Set(["none", "null", "unknown", "unavailable", "n/a", "na", "false"]);
+
+export function cleanCollectVia(value) {
+  const values = Array.isArray(value) ? value : [value];
+  return values
+    .map((item) => String(item ?? "").trim())
+    .filter((item) => item && !ABSENT_ROUTE_SENTINELS.has(item.toLowerCase()));
 }
 
 function endpointToUrl(endpoint) {
@@ -53,7 +76,7 @@ function endpointToUrl(endpoint) {
 export function sourceResultToCandidate(row = {}) {
   const label = row.title || row.label || row.name || row.source_id || "External source";
   const caps = Array.isArray(row.capabilities) ? row.capabilities : [];
-  const collect = Array.isArray(row.collect_via) ? row.collect_via : row.collect_via ? [row.collect_via] : [];
+  const collect = cleanCollectVia(row.collect_via);
   const url = row.url || endpointToUrl(row.endpoint);
   return {
     ...row,
@@ -64,9 +87,11 @@ export function sourceResultToCandidate(row = {}) {
     publisher: row.provider || row.publisher || row.source,
     description:
       cleanDescription(row.description) ||
+      cleanDescription(row.public_summary) ||
+      cleanDescription(row.notes) ||
       [row.access_mode, ...caps.slice(0, 3)].filter(Boolean).join(" · "),
     access_mode: row.access_mode || row.access || "",
-    collect_via: collect[0] || row.collect_via || "",
+    collect_via: collect[0] || "",
     url,
     external: true,
     preview_supported: Boolean(row.preview_supported),
@@ -96,6 +121,15 @@ function candidateDedupeKey(candidate, row = {}) {
     .toLowerCase();
 }
 
+export function partialFitLine(row) {
+  const fit = row?.partial_fit;
+  if (!fit) return null;
+  const covers = (fit.covers || []).join(" + ");
+  const missing = (fit.missing || []).join(" + ");
+  if (!missing) return covers ? `Partial match on ${covers}` : "Partial match";
+  return covers ? `Covers ${covers} · missing ${missing}` : `Missing ${missing}`;
+}
+
 export function sourcesResponseToRows(data) {
   const results = Array.isArray(data?.results) ? data.results : [];
   const searchMeta = {
@@ -109,9 +143,16 @@ export function sourcesResponseToRows(data) {
   // capability). Collapse on identity so Explore doesn't show visual duplicates
   // that would each queue a separate collection job. First occurrence wins —
   // later copies carry no extra information.
+  const partials = (Array.isArray(data?.partial_matches) ? data.partial_matches : []).map((row) => ({
+    ...row,
+    partial_fit: {
+      covers: Array.isArray(row.covers) ? row.covers : [],
+      missing: Array.isArray(row.missing) ? row.missing : [],
+    },
+  }));
   const seen = new Set();
   const out = [];
-  for (const row of results) {
+  for (const row of [...results, ...partials]) {
     const candidate = sourceResultToCandidate(row);
     const key = candidateDedupeKey(candidate, row);
     if (key && seen.has(key)) continue;
@@ -140,8 +181,12 @@ export function searchHitToCandidate(row = {}) {
   const url = row.url || endpointToUrl(row.endpoint);
   const candidateKey =
     row.candidate_key || (datasetId ? `dataset:${datasetId}` : "") || "";
+  const route = cleanCollectVia(row.collect_via)[0] || "";
+  const unsupportedDoiRoute = row.kind === "registry_dataset" && route === "datacite" && !row.doi;
   return {
     ...row,
+    collect_via: unsupportedDoiRoute ? "" : route,
+    ...(unsupportedDoiRoute ? { procureability_label: "Method not recorded", collectable: false } : {}),
     dataset_id: datasetId || row.dataset_id || "",
     title: row.title || row.name || row.label || datasetId || url || "Untitled",
     name: row.name || row.title || row.label || datasetId || "",
@@ -258,6 +303,10 @@ export function durableHistoryToEvents(data) {
         status: item.status,
         kind: item.kind,
         summary: item.summary,
+        readiness,
+        holding_status: item.holding_status,
+        usable: item.usable,
+        query_ready: item.query_ready,
         cadence: item.cadence,
         requested_schedule: item.requested_schedule,
         candidate_key: identity.candidate_key,
@@ -386,16 +435,16 @@ export function historyHoldingTruth(event = null) {
   );
 
   let label = "Recorded";
-  if (queryReady) label = "Query-ready";
-  else if (receiptOnly) label = "Registered · reconciliation pending";
-  else if (registered) label = "Registered";
+  if (queryReady) label = "Ready to query";
+  else if (receiptOnly) label = "In Library · being checked";
+  else if (registered) label = "Saved to Library";
   else if (completedOnly) label = "Completed";
   else if (/pending_approval|ready_for_review|awaiting|needs_approval/.test(status)) {
-    label = "Needs approval";
+    label = "Waiting for your approval";
   } else if (/queued|running|active|in_progress/.test(status)) {
     label = status === "running" ? "Collecting" : "Active";
   } else if (/failed|error|needs_recovery|blocked/.test(status)) {
-    label = "Needs recovery";
+    label = "Needs attention";
   } else if (collected) {
     label = "Collected";
   }
@@ -420,6 +469,38 @@ export function historyHoldingTruth(event = null) {
       queryReady,
     },
   };
+}
+
+/**
+ * Researcher-facing evidence summary for a durable History event.
+ *
+ * Registration receipts retain what was proven when the job completed.  A
+ * later catalog reconciliation can demote that asset on the current desk.  In
+ * that state the raw receipt summary (often "query-ready on desk") is useful
+ * technical history, but it is not current holding truth and must not be
+ * repeated as the primary row or rail evidence.
+ */
+export function historyEvidenceSummary(event = null) {
+  const meta = event?.meta || {};
+  const raw = String(meta.summary || event?.summary || "").trim();
+  const truth = historyHoldingTruth(event);
+  if (!truth.receiptOnly) return plainEvidenceSummary(raw);
+
+  const archiveVerified = meta.archive_verified ?? event?.archive_verified;
+  const receiptReadback = meta.registry_readback ?? event?.registry_readback;
+  return [
+    archiveVerified === true ? "Archived copy verified" : "Archive proof not confirmed",
+    receiptReadback === true ? "the save record includes evidence that the Library record was read back" : "record of saving to Library retained",
+    "current catalog reconciliation pending",
+  ].join(" · ");
+}
+
+export function plainEvidenceSummary(raw) {
+  return String(raw || "")
+    .replace(/\bArchive verified\b/g, "Archived copy verified")
+    .replace(/\barchive verified\b/g, "archived copy verified")
+    .replace(/\bregistry verified\b/g, "in the Library")
+    .replace(/\bquery-ready on desk\b/g, "ready to query");
 }
 
 /** Library / Explore handoff payload — preserves identities without inventing readiness. */
@@ -457,7 +538,10 @@ export function historyLifecycleBucket(event) {
     return "scheduled";
   }
   if (/pending_approval|ready_for_review|awaiting|needs_approval/.test(status)) return "needs_approval";
-  if (/cancelled|canceled/.test(status)) return "ready";
+  // Cancelled is a durable terminal record, but it is not a ready output and
+  // it does not need recovery. Keep it in the unfiltered lifecycle without
+  // inflating either the Ready or Recovery territory.
+  if (/cancelled|canceled/.test(status)) return "cancelled";
   if (/queued|running|active|in_progress/.test(status)) return "active";
   if (/failed|error|needs_recovery|blocked/.test(status)) return "needs_recovery";
   // Lifecycle "ready" means acquisition finished — not necessarily query-ready.

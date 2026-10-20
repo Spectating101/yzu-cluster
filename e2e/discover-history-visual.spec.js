@@ -83,28 +83,28 @@ test.describe("Discover History visual acceptance", () => {
     const ledger = page.getByTestId("discover-history");
     const rail = page.locator("aside.rd-v2-rail");
     await expect(ledger.getByRole("heading", { name: "Needs you" })).toBeVisible();
-    await expect(ledger.getByRole("heading", { name: "Research lifecycle" })).toBeVisible();
+    await expect(ledger.getByRole("heading", { name: "Request history" })).toBeVisible();
     await expect(rail).toContainText("Historical USDT transactions");
-    await expect(rail).toContainText("Approval required");
+    await expect(rail).toContainText("Waiting for your approval");
     await shot(page, "01-desktop-needs-you");
 
     await ledger.getByRole("button", { name: /Historical stablecoin attention/i }).click();
     await expect(rail).toContainText("Collecting");
     await shot(page, "02-desktop-active-detail");
 
-    await ledger.getByRole("button", { name: "Recovery", exact: true }).click();
+    await ledger.getByRole("button", { name: /^Recovery(\s|$)/ }).click();
     await expect(ledger).toContainText("Taiwan governance source");
-    await expect(rail).toContainText("Recovery required");
+    await expect(rail).toContainText(/needs attention/i);
     await shot(page, "03-desktop-recovery-detail");
 
-    await ledger.getByRole("button", { name: "Scheduled", exact: true }).click();
+    await ledger.getByRole("button", { name: /^Scheduled(\s|$)/ }).click();
     await expect(rail).toContainText("Scheduled refresh");
     await expect(rail).toContainText(/Automatic execution is not claimed/i);
     await shot(page, "04-desktop-scheduled-detail");
 
     await rail.getByRole("button", { name: "Ask about this" }).click();
     await expect(rail.getByRole("tab", { name: "Ask" })).toHaveAttribute("aria-selected", "true");
-    await expect(rail.locator(".rd-v2-ask-head")).toContainText("lifecycle item");
+    await expect(rail.locator(".rd-v2-ask-head")).toContainText("request");
     await expect(rail.getByTestId("ask-messages")).toContainText("Lifecycle context received for TWSE refresh");
     await shot(page, "05-desktop-history-ask");
   });

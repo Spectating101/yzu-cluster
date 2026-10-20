@@ -3,19 +3,54 @@
  * Taxonomy lives in discoverTaxonomy.js — this file adapts pills/actions without fit heuristics.
  */
 
+import { coverageSpan } from "./coverageText.js";
+import { plainIdentifiers } from "./plainText.js";
 import {
   classifyDiscoverResult,
+  exceptionalRowPill,
   isLocalHolding,
+  orderDiscoverResults as orderByTaxonomy,
+  taxonomyMatchesFilter,
   taxonomyStageCounts,
 } from "./discoverTaxonomy.js";
 
 export {
   classifyDiscoverResult,
   exceptionalRowPill,
-  orderDiscoverResults,
   taxonomyMatchesFilter,
   taxonomyStageCounts,
-} from "./discoverTaxonomy.js";
+};
+
+/**
+ * Preserve taxonomy authority first, then use only an explicit backend
+ * rank_score (or query_relevance) measurement to order peers inside the same taxonomy group.
+ * Unmeasured peers and ties preserve backend/API order. This is intentionally
+ * not a frontend fit heuristic.
+ */
+export function orderDiscoverResults(rows, labIds) {
+  const ordered = orderByTaxonomy(rows, labIds);
+  return ordered
+    .map((row, index) => ({ row, index }))
+    .sort((left, right) => {
+      const leftGroup = Number(left.row?.discover_taxonomy?.group ?? 99);
+      const rightGroup = Number(right.row?.discover_taxonomy?.group ?? 99);
+      if (leftGroup !== rightGroup) return leftGroup - rightGroup;
+
+      const leftRaw = left.row?.rank_score ?? left.row?.query_relevance;
+      const rightRaw = right.row?.rank_score ?? right.row?.query_relevance;
+      const leftMeasured = leftRaw !== null && leftRaw !== undefined && leftRaw !== "" && Number.isFinite(Number(leftRaw));
+      const rightMeasured = rightRaw !== null && rightRaw !== undefined && rightRaw !== "" && Number.isFinite(Number(rightRaw));
+
+      if (leftMeasured && rightMeasured) {
+        const delta = Number(rightRaw) - Number(leftRaw);
+        if (delta !== 0) return delta;
+      } else if (leftMeasured !== rightMeasured) {
+        return leftMeasured ? -1 : 1;
+      }
+      return left.index - right.index;
+    })
+    .map(({ row }) => row);
+}
 
 /**
  * Presentation state for pills and rail actions.
@@ -51,7 +86,7 @@ export function discoverCandidateState(row, labIds) {
       : taxonomy.key === "external-acquirable"
         ? "Review acquisition route"
         : taxonomy.key === "external-probed"
-          ? "Review probe, then decide"
+          ? "Review connection test, then decide"
           : taxonomy.key === "licensed-manual"
             ? "Manual / licensed path"
             : "Inspect source",
@@ -88,11 +123,11 @@ export function discoverStageCounts(rows, labIds) {
 
 export function coverageLine(row) {
   const parts = [
-    row?.coverage,
-    row?.date_range,
-    row?.temporal_coverage,
-    row?.geographic_coverage,
-    row?.grain,
+    coverageSpan(row?.coverage),
+    coverageSpan(row?.date_range),
+    coverageSpan(row?.temporal_coverage),
+    coverageSpan(row?.geographic_coverage),
+    plainIdentifiers(row?.grain),
   ]
     .map((p) => String(p || "").trim())
     .filter(Boolean);
@@ -110,7 +145,13 @@ export function coverageLine(row) {
 
 export function descriptiveLine(row) {
   const text = String(
-    row?.description || row?.recommended_use || row?.subtitle || row?.grain || "",
+    row?.description ||
+      row?.recommended_use ||
+      row?.subtitle ||
+      row?.public_summary ||
+      row?.notes ||
+      row?.grain ||
+      "",
   )
     .replace(/\s+/g, " ")
     .trim();
@@ -127,6 +168,7 @@ const DISCOVER_TERM_LABELS = Object.freeze({
   materialized_bulk: "Bulk archive route",
   procurement_catalog: "Procurement route",
   live_connector: "Connected route",
+  public_http: "Public HTTP",
   governance_regulatory: "governance and regulatory records",
   daily_prices: "daily market prices",
   index_pit_survivorship: "point-in-time index membership",

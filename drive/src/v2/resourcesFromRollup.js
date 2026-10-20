@@ -1,6 +1,8 @@
 /** Map GET /library/desk/resources rollup → Resources ledger rows. */
 
+import { storageFree, storageUsed } from "@/v2/storageFormat";
 import { buildLayerRows, buildProviderRows } from "@/v2/deskSourcesManifest";
+import { measuredComposerLabel } from "./resourcesTruth.js";
 import {
   buildRunningRows,
   buildStackRows,
@@ -70,7 +72,7 @@ export function buildAiRows(rollup) {
       section: "AI & tools",
       kind: "ai",
       key: "composer",
-      label: `Ask · ${ai.composer_model || "composer-2.5"}`,
+      label: `Ask · ${measuredComposerLabel(ai.composer_model)}`,
       metric: ai.composer_configured ? "Composer + MCP" : "Composer not configured",
       ok: ai.composer_configured,
       warn: !ai.composer_configured,
@@ -98,7 +100,7 @@ export function buildAiRows(rollup) {
       section: "AI & tools",
       kind: "ai",
       key: "desk-token",
-      label: "Desk token",
+      label: "Research Drive token",
       metric: ai.desk_token_required ? "required" : "open",
       ok: true,
       showStatus: false,
@@ -208,7 +210,7 @@ export function buildUsageRowsFromRollup(rollup) {
         kind: "usage",
         key: "vault",
         label: vault.label || "GDrive vault",
-        metric: `${vault.used_tb ?? "?"}/${vault.cap_tb ?? "?"} TB`,
+        metric: storageUsed(vault.used_tb, vault.cap_tb, "TB") || "Not observed",
         progress: pct,
         ok: vault.ok !== false,
         warn: pct != null && pct >= 75,
@@ -225,8 +227,8 @@ export function buildUsageRowsFromRollup(rollup) {
         section: "Usage",
         kind: "usage",
         key: "nvme",
-        label: hot.label || "NVMe hot desk",
-        metric: hot.free_gb != null ? `${hot.free_gb} GB free` : `${pct}% used`,
+        label: hot.label || "NVMe working storage",
+        metric: hot.free_gb != null ? storageFree(hot.free_gb) : `${pct}% used`,
         progress: Number.isFinite(pct) ? pct : null,
         ok: hot.headroom_ok !== false,
         warn: hot.headroom_ok === false || pct >= 85,
@@ -247,7 +249,7 @@ export function buildUsageRowsFromRollup(rollup) {
         label: cache.label || "USB bulk cache",
         metric: mounted
           ? cache.total_gb
-            ? `${cache.used_gb ?? "?"}/${cache.total_gb} GB`
+            ? storageUsed(cache.used_gb, cache.total_gb, "GB") || "mounted"
             : "mounted"
           : "offline",
         progress: pct,
@@ -512,7 +514,7 @@ export function buildFallbackPanels(ctx) {
       section: "AI & tools",
       kind: "ai",
       key: "desk-token",
-      label: "Desk token",
+      label: "Research Drive token",
       metric: desk.desk_token_required ? "required" : "open",
     }),
   ];

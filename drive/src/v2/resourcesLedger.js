@@ -1,5 +1,7 @@
 /** Resources — running jobs, stack, storage (sources/layers live in deskSourcesManifest.js). */
 
+import { storageFree, storageUsed } from "./storageFormat.js";
+import { measuredComposerLabel } from "./resourcesTruth.js";
 import { normalizeExecutionLifecycle } from "./executionLifecycle.js";
 import { evaluateJobRouting } from "./workerRouting.js";
 
@@ -118,10 +120,10 @@ export function buildStackRows({ health, catalogSummary, cluster }) {
   const composerOk = !!desk.composer_configured;
   list.push(
     rowBase({
-      section: "Desk stack",
+      section: "Research Drive stack",
       kind: "stack",
       key: "composer",
-      label: `Ask · ${desk.composer_model || "composer-2.5"}`,
+      label: `Ask · ${measuredComposerLabel(desk.composer_model)}`,
       metric: composerOk ? "Composer + MCP" : "Composer not configured",
       ok: composerOk,
       warn: !composerOk,
@@ -131,7 +133,7 @@ export function buildStackRows({ health, catalogSummary, cluster }) {
   if (mcp.total) {
     list.push(
       rowBase({
-        section: "Desk stack",
+        section: "Research Drive stack",
         kind: "stack",
         key: "mcp",
         label: "Procurement MCP",
@@ -143,7 +145,7 @@ export function buildStackRows({ health, catalogSummary, cluster }) {
   if (catalogSummary) {
     list.push(
       rowBase({
-        section: "Desk stack",
+        section: "Research Drive stack",
         kind: "stack",
         key: "connectors",
         label: "Saved connectors",
@@ -152,7 +154,7 @@ export function buildStackRows({ health, catalogSummary, cluster }) {
     );
     list.push(
       rowBase({
-        section: "Desk stack",
+        section: "Research Drive stack",
         kind: "stack",
         key: "queue-tasks",
         label: "Collection queue",
@@ -162,11 +164,11 @@ export function buildStackRows({ health, catalogSummary, cluster }) {
     if (catalogSummary.pipelines) {
       list.push(
         rowBase({
-          section: "Desk stack",
+          section: "Research Drive stack",
           kind: "stack",
           key: "pipelines",
           label: "Worker pipelines",
-          metric: `${catalogSummary.pipelines} registered`,
+          metric: `${catalogSummary.pipelines} saved`,
         }),
       );
     }
@@ -175,7 +177,7 @@ export function buildStackRows({ health, catalogSummary, cluster }) {
   const controller = cluster?.controller || "optiplex";
   list.push(
     rowBase({
-      section: "Desk stack",
+      section: "Research Drive stack",
       kind: "stack",
       key: "controller",
       label: `Controller · ${controller}`,
@@ -186,7 +188,7 @@ export function buildStackRows({ health, catalogSummary, cluster }) {
   if (pools?.total != null || pools?.busy != null) {
     list.push(
       rowBase({
-        section: "Desk stack",
+        section: "Research Drive stack",
         kind: "stack",
         key: "workers",
         label: "windows_lab",
@@ -200,7 +202,7 @@ export function buildStackRows({ health, catalogSummary, cluster }) {
   } else if (wl) {
     list.push(
       rowBase({
-        section: "Desk stack",
+        section: "Research Drive stack",
         kind: "stack",
         key: "workers",
         label: "windows_lab",
@@ -232,7 +234,7 @@ export function buildStorageRows({ health }) {
         kind: "usage",
         key: "vault",
         label: canonical.label || "GDrive vault",
-        metric: `${used ?? "?"}/${quota ?? "?"} TB`,
+        metric: storageUsed(used, quota, "TB") || "Not observed",
         progress: pct,
         ok: desk.gdrive?.ok !== false,
         warn: pct != null && pct >= 75,
@@ -247,8 +249,8 @@ export function buildStorageRows({ health }) {
         section: "Usage",
         kind: "usage",
         key: "nvme",
-        label: hot.label || "NVMe hot desk",
-        metric: hot.free_gb != null ? `${hot.free_gb} GB free` : `${pct}% used`,
+        label: hot.label || "NVMe working storage",
+        metric: hot.free_gb != null ? storageFree(hot.free_gb) : `${pct}% used`,
         progress: Number.isFinite(pct) ? pct : null,
         ok: hot.headroom_ok !== false,
         warn: hot.headroom_ok === false || pct >= 85,
@@ -266,7 +268,7 @@ export function buildStorageRows({ health }) {
         label: cache.label || "USB bulk cache",
         metric: mounted
           ? cache.total_gb
-            ? `${cache.used_gb ?? "?"}/${cache.total_gb} GB`
+            ? storageUsed(cache.used_gb, cache.total_gb, "GB") || "mounted"
             : "mounted"
           : "offline",
         ok: mounted,

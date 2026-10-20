@@ -1,24 +1,108 @@
-import { useMemo } from "react";
+import { uiVocabularyLabel } from "./uiVocabularyLabels.js";
+import { useEffect, useMemo, useState } from "react";
+import { fetchJson } from "@/v2/api";
 import { homeSuggestedPrompts } from "@/v2/homePrompts";
-import { Chip, ChipRow } from "@/v2/ui";
+import { Chip } from "@/v2/ui";
 
-export function HomeSuggestedAsks({ profile, onAskComposer }) {
-  const prompts = useMemo(() => homeSuggestedPrompts(profile, { limit: 4 }), [profile]);
-  const lead =
-    profile && !profile.unknown
-      ? "Suggested for your research profile"
-      : "Suggested asks — sign in with @yzu.edu.tw for profile-ranked prompts";
+function seedLead(seed, profile) {
+  if (seed?.bootstrap_mode === "faculty_profile") return "Research Drive seeded from your faculty profile";
+  if (seed?.bootstrap_mode === "yzu_profile_fallback") return "Research Drive is ready — review data you have, then find what is missing";
+  if (seed?.bootstrap_mode === "generic_cold_start") return "Research Drive is ready — review data you have, then find what is missing";
+  if (profile && !profile.unknown) return "Suggested for your research profile";
+  return "Research Drive is ready — review data you have, then find what is missing";
+}
+
+export function HomeSuggestedAsks({ profile, onAskComposer, allowPrincipalSeed = true, researchTopics = [] }) {
+  const [seed, setSeed] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!allowPrincipalSeed) {
+      setSeed(null);
+      return () => {
+        cancelled = true;
+      };
+    }
+    fetchJson("/library/seed", { timeoutMs: 8000 })
+      .then((payload) => {
+        if (!cancelled && payload && typeof payload === "object") setSeed(payload);
+      })
+      .catch(() => {
+        // Principal seeding is enrichment, not a Home availability dependency.
+        // Existing profile/cold-start prompts remain the truthful fallback.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [allowPrincipalSeed]);
+
+  const profilePrompts = useMemo(() => homeSuggestedPrompts(profile, { limit: 4 }), [profile]);
+  const prompts = useMemo(() => {
+    const seeded = Array.isArray(seed?.starter_prompts)
+      ? seed.starter_prompts.map((value) => String(value || "").trim()).filter(Boolean)
+      : [];
+    const own = researchTopics.slice(0, 2).flatMap((topic) => [
+      `Which datasets in my Library fit ${topic}?`,
+      `Find missing public datasets for ${topic}.`,
+    ]);
+    return [...own, ...(seeded.length ? seeded : profilePrompts)]
+      .filter((value, index, all) => all.indexOf(value) === index)
+      .slice(0, 4);
+  }, [profilePrompts, researchTopics, seed]);
+
+  const connectedSources = Array.isArray(seed?.connected_sources) ? seed.connected_sources : [];
+  const sourceSummary = seed?.source_summary && typeof seed.source_summary === "object" ? seed.source_summary : null;
+  const lead = researchTopics.length ? `Suggested for your research: ${researchTopics[0]}` : seedLead(seed, profile);
 
   return (
-    <section className="rd-v2-home-suggested" aria-label="Suggested asks">
+    <section
+      className="rd-v2-home-suggested"
+      aria-label="Suggested asks"
+      data-testid="home-research-seed"
+      data-bootstrap-mode={seed?.bootstrap_mode || "fallback"}
+    >
       <p className="muted small rd-v2-home-suggested-lead">{lead}</p>
-      <ChipRow>
+      <div className="muted small" data-testid="home-first-use-path" role="group" aria-label="Research path">
+        <p>
+          Start with <strong>Library</strong> when the data is already in your Library. Use <strong>Discover</strong> when evidence is missing.
+        </p>
+        <p>
+          {allowPrincipalSeed
+            ? <><strong>Ask</strong> reasons over the current research context. <strong>Synthesis</strong> saves approved methods and outputs for reuse.</>
+            : <>Sign in to use <strong>Ask</strong> and save research builds in <strong>Synthesis</strong>.</>}
+        </p>
+      </div>
+      {seed ? (
+        <p className="muted small" data-testid="home-research-seed-sources">
+          {connectedSources.length
+            ? `${connectedSources.length} verified connected ${connectedSources.length === 1 ? "source" : "sources"} · additive to your base research context`
+            : "No storage connection needed to start"}
+          {sourceSummary?.reference_holdings
+            ? ` · ${sourceSummary.reference_holdings} reference ${sourceSummary.reference_holdings === 1 ? "dataset" : "datasets"}`
+            : ""}
+        </p>
+      ) : null}
+      {connectedSources.length ? (
+        <p className="muted small" data-testid="home-research-seed-connected-labels">
+          {connectedSources.map((source) => source?.label || source?.provider || "Connected storage").join(" · ")}
+        </p>
+      ) : null}
+      {allowPrincipalSeed ? <div
+        className="rd-v2-chips-row"
+        data-testid="home-suggested-prompts"
+        style={{ flexWrap: "wrap", overflow: "visible" }}
+      >
         {prompts.map((prompt) => (
-          <Chip key={prompt} active onClick={() => onAskComposer?.(prompt)}>
-            {prompt.length > 72 ? `${prompt.slice(0, 69)}…` : prompt}
+          <Chip
+            key={prompt}
+            active
+            onClick={() => onAskComposer?.(prompt)}
+            style={{ maxWidth: "100%", whiteSpace: "normal", textAlign: "left" }}
+          >
+            {uiVocabularyLabel(prompt).length > 72 ? `${uiVocabularyLabel(prompt).slice(0, 69)}…` : uiVocabularyLabel(prompt)}
           </Chip>
         ))}
-      </ChipRow>
+      </div> : null}
     </section>
   );
 }

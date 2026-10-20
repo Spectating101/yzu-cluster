@@ -129,7 +129,7 @@ export function buildHomeBriefing({
     needsJudgment.push({
       id: `job-${job.id || jobTitle(job)}`,
       kind: "approval",
-      label: "Needs approval",
+      label: "Waiting for your approval",
       title: jobTitle(job),
       detail: "Review source, cost, and vault destination before collection starts.",
       metric: String(job.status || job.state || "pending").replace(/_/g, " "),
@@ -155,9 +155,9 @@ export function buildHomeBriefing({
     needsJudgment.push({
       id: `recover-${job.id || jobTitle(job)}`,
       kind: "recovery",
-      label: "Needs recovery",
+      label: "Needs attention",
       title: jobTitle(job),
-      detail: "Open Discover History to inspect the durable job record.",
+      detail: "Open Discover History to inspect the saved collection record.",
       metric: String(job.status || job.state || "failed").replace(/_/g, " "),
       warn: true,
       tab: "browse",
@@ -170,9 +170,9 @@ export function buildHomeBriefing({
     needsJudgment.push({
       id: "approval-count",
       kind: "approval",
-      label: "Needs approval",
+      label: "Waiting for your approval",
       title: "Procurement approval waiting",
-      detail: "Desk reports pending approval — open Discover to review.",
+      detail: "Research Drive reports a request waiting for approval. Open Discover to review.",
       metric: `${healthPending} pending`,
       warn: true,
       tab: "browse",
@@ -251,7 +251,7 @@ export function buildHomeBriefing({
     nextActions.push({
       id: "continue-library",
       label: `Continue ${continueWork.title}`,
-      detail: "Open the holding in Library.",
+      detail: "Open the dataset in Library.",
       tab: "library",
       dataset: continueWork.dataset,
     });
@@ -259,7 +259,7 @@ export function buildHomeBriefing({
     nextActions.push({
       id: "open-library",
       label: "Browse Library vault",
-      detail: `${datasets.length} registered holding${datasets.length === 1 ? "" : "s"}.`,
+      detail: `${datasets.length} dataset saved to Library${datasets.length === 1 ? "" : "s"}.`,
       tab: "library",
     });
   } else {

@@ -7,6 +7,7 @@ import {
   MOCK_DISCOVER_HIT,
   mockV2Api,
   waitForShell,
+  searchDiscover,
 } from "./fixtures/v2MockApi.js";
 import path from "node:path";
 import fs from "node:fs";
@@ -89,7 +90,7 @@ test("D0 desktop identity + exact queue + probe switch", async ({ page }) => {
   });
   await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
-  await page.locator(".rd-v2-search-pill input").fill("MOPS");
+  await searchDiscover(page, "MOPS");
   await expect(page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate')).toHaveCount(2);
   const rowA = page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate', {
     hasText: "MOPS financial statements",
@@ -107,7 +108,7 @@ test("D0 desktop identity + exact queue + probe switch", async ({ page }) => {
   await mockV2Api(page, { discoverBody: TWO_ROWS });
   await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
-  await page.locator(".rd-v2-search-pill input").fill("governance");
+  await searchDiscover(page, "governance");
   const mops = page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate', {
     hasText: "MOPS financial statements",
   });
@@ -116,7 +117,7 @@ test("D0 desktop identity + exact queue + probe switch", async ({ page }) => {
   });
   await mops.click();
   const rail = page.locator("aside.rd-v2-rail");
-  await rail.getByTestId("discover-eval-actions").getByRole("button", { name: "Probe source" }).click();
+  await rail.getByTestId("discover-eval-actions").getByRole("button", { name: "Test connection" }).click();
   await expect(rail.locator(".rd-v2-eval-verified")).toBeVisible();
   await shot(page, "desktop-1440x900__probe-candidate-a");
   await twse.click();
@@ -130,7 +131,7 @@ test("D0 tablet selected row and rail parity", async ({ page }) => {
   await mockV2Api(page, { discoverBody: MOCK_DISCOVER_HIT });
   await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
-  await page.locator(".rd-v2-search-pill input").fill("mops");
+  await searchDiscover(page, "mops");
   await page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate', { hasText: "MOPS" }).click();
   await expect(page.locator("aside.rd-v2-rail")).toContainText("MOPS financial statements");
   await shot(page, "tablet-900x1200__selected-row-rail-parity");
@@ -141,7 +142,7 @@ test("D0 mobile selected row + manual Detail sheet", async ({ page }) => {
   await mockV2Api(page, { discoverBody: MOCK_DISCOVER_HIT });
   await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
-  await page.locator(".rd-v2-search-pill input").fill("mops");
+  await searchDiscover(page, "mops");
   await page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate', { hasText: "MOPS" }).click();
   await shot(page, "mobile-390x1200__selected-row");
   const openDetail = page.getByRole("button", { name: /Detail|Open detail|View detail/i }).first();

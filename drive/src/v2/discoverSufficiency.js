@@ -1,3 +1,4 @@
+import { coverageSpan } from "./coverageText.js";
 /**
  * Discover local sufficiency / equivalence authority.
  *
@@ -25,7 +26,7 @@ const LABELS = Object.freeze({
   [SUFFICIENCY.EXACT_LOCAL]: "Exact local match",
   [SUFFICIENCY.LIKELY_EQUIVALENT]: "Likely equivalent",
   [SUFFICIENCY.PARTIAL_LOCAL]: "Partial local coverage",
-  [SUFFICIENCY.RELATED_LOCAL]: "Related Library asset",
+  [SUFFICIENCY.RELATED_LOCAL]: "Related Library dataset",
   [SUFFICIENCY.NO_LOCAL_ALTERNATIVE]: "No local alternative found",
   [SUFFICIENCY.COMPARISON_UNKNOWN]: "Local comparison unavailable",
 });
@@ -49,11 +50,50 @@ function normalizeGrain(v) {
 }
 
 function coverageText(row) {
-  return String(row?.coverage || row?.date_range || row?.temporal_coverage || "").trim();
+  return coverageSpan(row?.coverage || row?.date_range || row?.temporal_coverage).trim();
 }
 
 function sourceIdentity(row) {
   return lower(row?.source_system || row?.source_id || row?.source || row?.publisher || row?.collect_via);
+}
+
+/**
+ * Every identity a row carries, not the first one that happens to be set.
+ *
+ * Discover candidates arrive as sources (source_id only); Library rows carry a
+ * display source_system as well. Picking one field by precedence compared a
+ * stable id on one side against a human label on the other, so a dataset the
+ * desk already held read as "no Library alternative" despite an identical
+ * source_id.
+ */
+function sourceIdentitySet(row) {
+  const out = new Set();
+  for (const value of [
+    row?.source_id,
+    row?.connector_id,
+    row?.desk_connector_id,
+    row?.source_system,
+    row?.source,
+    row?.publisher,
+    row?.provider,
+    row?.collect_via,
+  ]) {
+    const text = lower(value);
+    if (text) out.add(text);
+  }
+  return out;
+}
+
+function sharedSourceIdentity(a, b) {
+  const left = sourceIdentitySet(a);
+  if (!left.size) return "";
+  for (const value of sourceIdentitySet(b)) {
+    if (left.has(value)) return value;
+    for (const candidate of left) {
+      if (candidate.includes(value) || value.includes(candidate)) return value;
+    }
+  }
+  return "";
 }
 
 function joinKeySet(row) {
@@ -81,7 +121,7 @@ export function candidateComparableSignals(candidate) {
   if (Array.isArray(candidate?.related_dataset_ids) && candidate.related_dataset_ids.length) {
     signals.push("related_dataset_ids");
   }
-  if (sourceIdentity(candidate)) signals.push("source_identity");
+  if (sourceIdentitySet(candidate).size) signals.push("source_identity");
   if (joinKeySet(candidate).size) signals.push("join_keys");
   if (normalizeGrain(candidate?.grain)) signals.push("grain");
   if (coverageText(candidate)) signals.push("temporal_coverage");
@@ -110,7 +150,7 @@ function noneResult() {
   return {
     state: SUFFICIENCY.NO_LOCAL_ALTERNATIVE,
     label: LABELS[SUFFICIENCY.NO_LOCAL_ALTERNATIVE],
-    summary: "The completed local comparison found no qualifying Library asset.",
+    summary: "The completed local comparison found no qualifying Library dataset.",
     localMatches: [],
     bestLocal: null,
     basis: [],
@@ -118,7 +158,7 @@ function noneResult() {
     comparisonComplete: true,
     browseLine: LABELS[SUFFICIENCY.NO_LOCAL_ALTERNATIVE],
     focusHeadline: LABELS[SUFFICIENCY.NO_LOCAL_ALTERNATIVE],
-    focusBody: "The completed local comparison found no qualifying Library asset.",
+    focusBody: "The completed local comparison found no qualifying Library dataset.",
     primaryActionHint: null,
     secondaryActionHint: null,
   };
@@ -131,7 +171,7 @@ function exactMatch(lab) {
     state: SUFFICIENCY.EXACT_LOCAL,
     label: LABELS[SUFFICIENCY.EXACT_LOCAL],
     summary: ready
-      ? "A query-ready dataset with the same canonical identity is already in your Library."
+      ? "A dataset with the same identifier is already in your Library and ready to query."
       : "A dataset with the same canonical identity is already in your Library.",
     localMatches: [lab],
     bestLocal: lab,
@@ -141,9 +181,9 @@ function exactMatch(lab) {
     browseLine: `${LABELS[SUFFICIENCY.EXACT_LOCAL]} · ${title}`,
     focusHeadline: LABELS[SUFFICIENCY.EXACT_LOCAL],
     focusBody: ready
-      ? "A query-ready dataset with the same canonical identity is already in your Library."
+      ? "A dataset with the same identifier is already in your Library and ready to query."
       : "A dataset with the same canonical identity is already in your Library.",
-    primaryActionHint: { id: "open_local", label: "Open local dataset" },
+    primaryActionHint: { id: "open_local", label: "Open in Library" },
     secondaryActionHint: null,
   };
 }
@@ -166,7 +206,7 @@ function grainGapSummary(localGrain, candGrain) {
     dimension: "grain",
     local: localGrain,
     candidate: candGrain,
-    summary: `Local grain: ${localGrain} · Candidate grain: ${candGrain}`,
+    summary: `Library unit of observation: ${localGrain} · Candidate unit of observation: ${candGrain}`,
   };
 }
 
@@ -189,7 +229,7 @@ function relatedOrPartial(lab, candidate, basis) {
     return {
       state: SUFFICIENCY.PARTIAL_LOCAL,
       label: LABELS[SUFFICIENCY.PARTIAL_LOCAL],
-      summary: `A related local asset covers part of this need. ${gapLine}`,
+      summary: `A related local dataset covers part of this need. ${gapLine}`,
       localMatches: [lab],
       bestLocal: lab,
       basis,
@@ -200,7 +240,7 @@ function relatedOrPartial(lab, candidate, basis) {
       focusBody: "Your Library covers part of this need. The known difference is shown below.",
       gapLines: diffs.map((d) => d.summary),
       primaryActionHint: null,
-      secondaryActionHint: { id: "open_local", label: "Open local dataset" },
+      secondaryActionHint: { id: "open_local", label: "Open in Library" },
     };
   }
 
@@ -223,7 +263,7 @@ function relatedOrPartial(lab, candidate, basis) {
     focusHeadline: LABELS[SUFFICIENCY.RELATED_LOCAL],
     focusBody: "The Library has a related dataset for the same research object. Equivalence is not established.",
     primaryActionHint: null,
-    secondaryActionHint: { id: "inspect_related", label: "Inspect related lab asset" },
+    secondaryActionHint: { id: "inspect_related", label: "Inspect related Library dataset" },
   };
 }
 
@@ -260,9 +300,7 @@ function relationBasis(candidate, lab) {
     });
   }
 
-  const candSrc = sourceIdentity(candidate);
-  const labSrc = sourceIdentity(lab);
-  if (candSrc && labSrc && (candSrc === labSrc || labSrc.includes(candSrc) || candSrc.includes(labSrc))) {
+  if (sharedSourceIdentity(candidate, lab)) {
     basis.push({
       dimension: "source_identity",
       relation: "same",
@@ -374,7 +412,7 @@ export function sufficiencyFromBackend(localComparison, catalog = []) {
       focusBody:
         localComparison.summary ||
         `${title} is treated as equivalent by an explicit backend relation.`,
-      primaryActionHint: { id: "open_local", label: "Open local dataset" },
+      primaryActionHint: { id: "open_local", label: "Open in Library" },
       secondaryActionHint: null,
     };
   }
@@ -531,7 +569,7 @@ export function sufficiencyAskPrompts(sufficiency, title) {
     return [
       {
         id: "compare_related",
-        label: "How is the local asset related?",
+        label: "How is the local dataset related?",
         prompt: `How is the local asset related to ${label}? Do not claim equivalence.`,
       },
     ];
@@ -540,7 +578,7 @@ export function sufficiencyAskPrompts(sufficiency, title) {
     return [
       {
         id: "use_local",
-        label: "Can I answer with the local asset?",
+        label: "Can I answer with the local dataset?",
         prompt: `Can I answer my research question with the local asset already matched to ${label}?`,
       },
     ];

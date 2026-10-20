@@ -4,9 +4,12 @@
  * this is presentation only.
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
+import { buildObjectEstateCrumb } from "@/v2/deskIntegration";
+import { plainIdentifiers } from "@/v2/plainText";
 import { applyLifecycleToEvaluation, LIFECYCLE } from "@/v2/discoverLifecycle";
 import { buildDiscoverEvaluation } from "@/v2/discoverEvaluation";
+import { buildDiscoverStrategyCard } from "@/v2/discoverStrategyCard";
 import {
   assessLocalSufficiency,
   applySufficiencyToActions,
@@ -18,21 +21,21 @@ import {
   RailField,
   RailFieldGrid,
   RailFrame,
+  RailStickyFooter,
 } from "@/v2/RailFrame";
 import { EmptyRailState } from "@/v2/EmptyRailState";
-import { buildObjectEstateCrumb } from "@/v2/deskIntegration";
 
 const PATH_STAGES = [
   { id: "submitted", label: "Submitted" },
   { id: "approval", label: "Approval" },
   { id: "queue", label: "Queue" },
   { id: "running", label: "Running" },
-  { id: "registered", label: "Registered" },
+  { id: "registered", label: "Saved to Library" },
 ];
 
 const SUFFICIENCY_DIMENSION_LABELS = Object.freeze({
   temporal_coverage: "Time coverage",
-  grain: "Grain",
+  grain: "Unit of observation",
   geographic_coverage: "Geography",
   variables: "Variables",
   entity_universe: "Entity universe",
@@ -49,12 +52,162 @@ function sufficiencyLocalTitle(sufficiency) {
   return String(local?.title || local?.name || local?.dataset_id || "").trim();
 }
 
+function RestingSearchRail({ summary, onOpenInLibrary }) {
+  const routeLine = (summary.routes || [])
+    .slice(0, 3)
+    .map((route) => `${route.label}${route.count > 1 ? ` · ${route.count}` : ""}`)
+    .join(" · ");
+  const unknownLine = (summary.unknowns || []).slice(0, 2).join(" · ");
+  return (
+    <RailFrame>
+      <div className="rd-v2-rail-scroll rd-v2-resting-rail" data-testid="discover-resting-summary">
+        <section className="rd-v2-eval-block" aria-label="Discover search summary">
+          <p className="rd-v2-eval-section-label">Search</p>
+          <p className="rd-v2-eval-question">{summary.query || "Discover"}</p>
+          <p className="rd-v2-eval-prose">{summary.landscapeLine || summary.heldLine || summary.foundLine}</p>
+          {routeLine ? (
+            <p className="rd-v2-eval-prose">
+              <b>Ways to collect</b><br />{routeLine}
+            </p>
+          ) : null}
+          {unknownLine ? (
+            <p className="rd-v2-eval-prose muted">
+              <b>Not yet checked</b><br />{unknownLine}
+            </p>
+          ) : null}
+          <p className="rd-v2-eval-prose muted">
+            {summary.found
+              ? "Select a result to see its coverage, how to collect it, and what is still unknown."
+              : "Inspect data in your Library and the references. No external source is confirmed as ready to collect yet."}
+          </p>
+        </section>
+      </div>
+      <RailStickyFooter>
+        <button
+          type="button"
+          className="rd-v2-btn"
+          data-testid="discover-resting-open-library"
+          onClick={() => onOpenInLibrary?.({ library_search: true, query: summary.query || "" })}
+        >
+          Open Library results
+        </button>
+      </RailStickyFooter>
+    </RailFrame>
+  );
+}
+
+// The card renders only the blocks the surface does not already own: "Still
+// unknown" and the next valid action stay in the evidence grid and the footer.
+const STRATEGY_CARD_BLOCK_IDS = new Set([
+  "what_you_will_get",
+  "how_it_answers",
+  "how_we_build",
+  "source_check",
+]);
+
+function StrategyBlockBody({ block }) {
+  if (block.id === "what_you_will_get") {
+    return (
+      <>
+        {block.line ? <p className="rd-v2-eval-prose">{block.line}</p> : null}
+        {block.fields.length ? (
+          <ul className="rd-v2-strategy-fields">
+            {block.fields.map((field) => (
+              <li key={field}>{field}</li>
+            ))}
+          </ul>
+        ) : (
+          <p className="rd-v2-eval-prose muted">Field shape not recorded.</p>
+        )}
+      </>
+    );
+  }
+  if (block.id === "how_it_answers") {
+    return <p className="rd-v2-eval-prose">{block.need}</p>;
+  }
+  if (block.id === "how_we_build") {
+    return (
+      <>
+        <ol className="rd-v2-strategy-chain">
+          {block.steps.map((step) => (
+            <li key={step.label} data-evidence={step.evidence}>
+              {step.label}
+            </li>
+          ))}
+        </ol>
+        {block.boundary ? <p className="rd-v2-eval-prose muted">{block.boundary}</p> : null}
+      </>
+    );
+  }
+  return (
+    <dl className="rd-v2-strategy-check">
+      <div>
+        <dt>Source</dt>
+        <dd>{block.row.source}</dd>
+      </div>
+      <div>
+        <dt>Access</dt>
+        <dd>
+          <span className="rd-v2-strategy-access" data-access={block.row.access}>
+            {block.row.access}
+          </span>
+          {block.row.accessDetail ? <small>{block.row.accessDetail}</small> : null}
+        </dd>
+      </div>
+      <div>
+        <dt>Coverage</dt>
+        <dd>{block.row.coverage}</dd>
+      </div>
+      <div>
+        <dt>Next check</dt>
+        <dd>{block.row.nextCheck}</dd>
+      </div>
+    </dl>
+  );
+}
+
+function StrategyCard({ card }) {
+  const blocks = (card?.blocks || []).filter((b) => STRATEGY_CARD_BLOCK_IDS.has(b.id));
+  if (!blocks.length) return null;
+  const gaps = (card.omitted || []).filter((b) => STRATEGY_CARD_BLOCK_IDS.has(b.id));
+
+  return (
+    <section
+      className="rd-v2-eval-block rd-v2-strategy-card"
+      aria-label="Strategy"
+      data-testid="discover-strategy-card"
+      data-has-strategy={card.hasStrategy ? "true" : "false"}
+    >
+      <p className="rd-v2-eval-section-label">{card.kicker}</p>
+      {blocks.map((block) => (
+        <div key={block.id} className="rd-v2-strategy-block" data-block={block.id}>
+          <p className="rd-v2-strategy-label">{block.label}</p>
+          <StrategyBlockBody block={block} />
+        </div>
+      ))}
+      {gaps.length ? (
+        <ul className="rd-v2-strategy-gaps" aria-label="Not recorded">
+          {gaps.map((gap) => (
+            <li key={gap.id}>
+              <b>{gap.label}</b> {gap.reason}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </section>
+  );
+}
+
 export function DiscoverEvaluationSurface({
   target,
   labIds,
   catalog = [],
+  restingSummary = null,
+  intentRecord = null,
   onAskAbout,
   onAddToLab,
+  hasMemberSession = false,
+  onRequireMemberAccess,
   onPreviewExternal,
   onProbeSource,
   probeState,
@@ -83,14 +236,12 @@ export function DiscoverEvaluationSurface({
     }
     return buildDiscoverEvaluation(sufficiency.bestLocal, labIds, null);
   }, [lifecycle, sufficiency, labIds]);
-  const [requestConfirm, setRequestConfirm] = useState(false);
-
-  useEffect(() => {
-    setRequestConfirm(false);
-  }, [target]);
 
   if (!target || !evaluation) {
     if (variant === "workspace") return null;
+    if (restingSummary?.hasResults) {
+      return <RestingSearchRail summary={restingSummary} onOpenInLibrary={onOpenInLibrary} />;
+    }
     return (
       <RailFrame>
         <div className="rd-v2-rail-scroll">
@@ -130,7 +281,7 @@ export function DiscoverEvaluationSurface({
         lifecycle.state === LIFECYCLE.QUERY_READY
           ? {
               id: "what_registered",
-              label: "What will be registered?",
+              label: "What will be saved to Library?",
               prompt: `What was or will be registered from collecting ${evaluation.title}?`,
             }
           : null,
@@ -153,7 +304,7 @@ export function DiscoverEvaluationSurface({
         },
         {
           id: "probe_next",
-          label: "What should I probe next?",
+          label: "Which connection should I test next?",
           prompt: `Given ${evaluation.title}, what should I probe next, and what would still remain unknown after a successful probe?`,
         },
       ];
@@ -172,6 +323,10 @@ export function DiscoverEvaluationSurface({
   const secondary = lifecycle?.primaryAction
     ? lifecycle.secondaryActions || []
     : actions.secondary;
+  const strategyCard = buildDiscoverStrategyCard(target, evaluation, {
+    intent: intentRecord,
+    primaryAction: primary,
+  });
   // Ask has its own persistent rail tab. Keep the footer about the next
   // research action, rather than duplicating chat as a competing CTA.
   const footerSecondary = secondary.filter((action) => action.id !== "ask").slice(0, 2);
@@ -197,6 +352,18 @@ export function DiscoverEvaluationSurface({
     (difference) => difference?.local || difference?.candidate,
   );
   const localDatasetTitle = sufficiencyLocalTitle(sufficiency);
+
+  const actionLabel = (action) =>
+    action?.id === "add_lab" && !onAddToLab
+      ? hasMemberSession
+        ? "Yuan Ze members only"
+        : "Sign in to request evidence"
+      : action?.label;
+
+  const actionDisabled = (action) =>
+    probeLoading ||
+    submitting ||
+    (action?.id === "add_lab" && !onAddToLab && hasMemberSession);
 
   const openLocal = () => {
     const local = sufficiency?.bestLocal;
@@ -248,7 +415,8 @@ export function DiscoverEvaluationSurface({
       const datasetId = lifecycle?.registeredDatasetId || target?.dataset_id;
       onOpenInLibrary?.(datasetId ? { ...target, dataset_id: datasetId } : target);
     } else if (id === "add_lab") {
-      setRequestConfirm(true);
+      if (onAddToLab) onAddToLab(target);
+      else if (!hasMemberSession) onRequireMemberAccess?.();
     } else if (id === "probe") onProbeSource?.(target);
     else if (id === "preview") onPreviewExternal?.();
     else if (id === "review_approval") onReviewApproval?.(lifecycle?.job || target);
@@ -256,24 +424,18 @@ export function DiscoverEvaluationSurface({
     else if (id === "ask" || id === "review_access") askWithSufficiency();
   };
 
-  const confirmRequestEvidence = () => {
-    setRequestConfirm(false);
-    onAddToLab?.(target);
-  };
-
   const reachedStages = new Set(lifecycle?.stages || []);
   const shellClass = variant === "workspace" ? "rd-v2-eval-workspace" : "rd-v2-eval-rail";
-  const estate = buildObjectEstateCrumb(target, {
-    probeState: probeState
-      ? {
-          loading: Boolean(probeLoading),
-          observedAt: probeState.observed_at || probeState.observedAt || probeState.at || null,
-        }
-      : probeLoading
-        ? { loading: true }
-        : null,
-    searchMeta: target?.search_meta || target?._search_meta || null,
-  });
+  const accessLine = (() => {
+    const { freshness } = buildObjectEstateCrumb(target, {
+      probeState: probeState
+        ? { loading: Boolean(probeLoading), observedAt: probeState.observed_at || probeState.observedAt || probeState.at || null }
+        : probeLoading
+          ? { loading: true }
+          : null,
+    });
+    return /^(Access|Connection)/.test(String(freshness || "")) ? freshness : "";
+  })();
 
   const body = (
     <>
@@ -289,16 +451,8 @@ export function DiscoverEvaluationSurface({
         <header className="rd-v2-eval-identity">
           <p className="rd-v2-eval-kicker">Selected candidate</p>
           <h2 className="rd-v2-eval-title">{evaluation.title}</h2>
-          <p className="rd-v2-eval-source">
-            {evaluation.sourceLine}
-            <span aria-hidden="true"> · </span>
-            {evaluation.taxonomyLabel}
-          </p>
-          {estate.location || estate.freshness || estate.authority ? (
-            <p className="rd-v2-estate-crumb" data-testid="object-estate-crumb">
-              {[estate.authority, estate.location, estate.freshness].filter(Boolean).join(" · ")}
-            </p>
-          ) : null}
+          <p className="rd-v2-eval-source">{evaluation.sourceLine}</p>
+          {accessLine ? <p className="rd-v2-estate-crumb" data-testid="object-estate-crumb">{accessLine}</p> : null}
         </header>
 
         <section className="rd-v2-eval-decision" aria-label="Can I use this">
@@ -333,7 +487,7 @@ export function DiscoverEvaluationSurface({
                 ))}
               </ul>
             ) : null}
-            <ol className="rd-v2-eval-lifecycle-path" aria-label="Lifecycle path">
+            <ol className="rd-v2-eval-lifecycle-path" aria-label="Request stages">
               {PATH_STAGES.map((stage) => (
                 <li
                   key={stage.id}
@@ -367,7 +521,7 @@ export function DiscoverEvaluationSurface({
             </div>
 
             {sufficiencyDifferences.length ? (
-              <div className="rd-v2-eval-sufficiency-compare" aria-label="Library coverage comparison">
+              <div className="rd-v2-eval-sufficiency-compare" role="group" aria-label="Library coverage comparison">
                 {sufficiencyDifferences.map((difference) => (
                   <div
                     key={`${difference.dimension}-${difference.local}-${difference.candidate}`}
@@ -378,14 +532,14 @@ export function DiscoverEvaluationSurface({
                     </span>
                     <span className="rd-v2-eval-sufficiency-side">
                       <small>In Library</small>
-                      <strong>{difference.local || "Not described"}</strong>
+                      <strong>{plainIdentifiers(difference.local) || "Not described"}</strong>
                     </span>
                     <span className="rd-v2-eval-sufficiency-arrow" aria-hidden="true">
                       →
                     </span>
                     <span className="rd-v2-eval-sufficiency-side">
                       <small>Candidate</small>
-                      <strong>{difference.candidate || "Not described"}</strong>
+                      <strong>{plainIdentifiers(difference.candidate) || "Not described"}</strong>
                     </span>
                   </div>
                 ))}
@@ -394,7 +548,7 @@ export function DiscoverEvaluationSurface({
 
             {localDatasetTitle ? (
               <p className="rd-v2-eval-sufficiency-reference">
-                <span>Local asset</span>
+                <span>Local dataset</span>
                 <strong>{localDatasetTitle}</strong>
               </p>
             ) : null}
@@ -402,67 +556,33 @@ export function DiscoverEvaluationSurface({
         ) : null}
 
         <div className="rd-v2-rail-scroll rd-v2-eval-scroll">
-          <section className="rd-v2-eval-block" aria-label="Useful for">
-            <p className="rd-v2-eval-section-label">Useful for</p>
+          <section className="rd-v2-eval-block" aria-label="In plain terms">
+            <p className="rd-v2-eval-section-label">In plain terms</p>
             <p className="rd-v2-eval-prose">{evaluation.usefulFor}</p>
           </section>
 
-          {evaluation.coverage.length ? (
-            <section className="rd-v2-eval-block" aria-label="Coverage">
-              <p className="rd-v2-eval-section-label">Coverage</p>
-              <ul className="rd-v2-eval-list">
-                {evaluation.coverage.map((line) => (
-                  <li key={line}>{line}</li>
-                ))}
-              </ul>
-            </section>
-          ) : (
-            <section className="rd-v2-eval-block" aria-label="Coverage">
-              <p className="rd-v2-eval-section-label">Coverage</p>
-              <p className="rd-v2-eval-prose muted">Coverage not described</p>
-            </section>
-          )}
+          <section className="rd-v2-eval-block rd-v2-eval-unknown" aria-label="Still unknown">
+            <p className="rd-v2-eval-section-label">Still unknown</p>
+            <ul className="rd-v2-eval-checklist">
+              {displayUnknowns.map((item) => (
+                <li key={item}>
+                  <span className="rd-v2-eval-mark unknown" aria-hidden="true">
+                    ?
+                  </span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </section>
 
-          <div className="rd-v2-eval-evidence-grid">
-            {evaluation.hasProbe && evaluation.verified.length ? (
-              <section className="rd-v2-eval-block rd-v2-eval-verified" aria-label="Verified">
-                <p className="rd-v2-eval-section-label">Verified</p>
-                <ul className="rd-v2-eval-checklist">
-                  {evaluation.verified.map((item) => (
-                    <li key={item}>
-                      <span className="rd-v2-eval-mark ok" aria-hidden="true">
-                        ✓
-                      </span>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            ) : null}
-
-            <section className="rd-v2-eval-block rd-v2-eval-unknown" aria-label="Still unknown">
-              <p className="rd-v2-eval-section-label">Still unknown</p>
+          {evaluation.hasProbe && evaluation.verified.length ? (
+            <section className="rd-v2-eval-block rd-v2-eval-verified" aria-label="Verified">
+              <p className="rd-v2-eval-section-label">Verified</p>
               <ul className="rd-v2-eval-checklist">
-                {displayUnknowns.map((item) => (
+                {evaluation.verified.map((item) => (
                   <li key={item}>
-                    <span className="rd-v2-eval-mark unknown" aria-hidden="true">
-                      ?
-                    </span>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </section>
-          </div>
-
-          {evaluation.inferred.length ? (
-            <section className="rd-v2-eval-block rd-v2-eval-inferred" aria-label="Inferred">
-              <p className="rd-v2-eval-section-label">Inferred</p>
-              <ul className="rd-v2-eval-checklist">
-                {evaluation.inferred.map((item) => (
-                  <li key={item}>
-                    <span className="rd-v2-eval-mark infer" aria-hidden="true">
-                      ~
+                    <span className="rd-v2-eval-mark ok" aria-hidden="true">
+                      ✓
                     </span>
                     {item}
                   </li>
@@ -475,16 +595,46 @@ export function DiscoverEvaluationSurface({
             <p className="rd-v2-discover-probe-error">{evaluation.probeError}</p>
           ) : null}
 
-          {evaluation.technical.length || evaluation.modelNotes.length ? (
-            <details key={targetKey} className="rd-v2-eval-tech">
-              <summary>Technical evidence</summary>
-              <div className="rd-v2-eval-tech-body">
-                {evaluation.modelNotes.map((note) => (
-                  <p key={note.label} className="rd-v2-eval-model-note">
-                    <span className="rd-v2-eval-section-label">Model interpretation</span>
-                    {note.detail || note.label}
-                  </p>
-                ))}
+          <details key={targetKey} className="rd-v2-eval-tech" data-testid="discover-eval-source-details">
+            <summary>Source details</summary>
+            <div className="rd-v2-eval-tech-body">
+              {evaluation.coverage.length ? (
+                <section className="rd-v2-eval-block" aria-label="Coverage">
+                  <p className="rd-v2-eval-section-label">Coverage</p>
+                  <ul className="rd-v2-eval-list">
+                    {evaluation.coverage.map((line) => (
+                      <li key={line}>{line}</li>
+                    ))}
+                  </ul>
+                </section>
+              ) : null}
+
+              <StrategyCard card={strategyCard} />
+
+
+              {evaluation.inferred.length ? (
+                <section className="rd-v2-eval-block rd-v2-eval-inferred" aria-label="Inferred">
+                  <p className="rd-v2-eval-section-label">Inferred</p>
+                  <ul className="rd-v2-eval-checklist">
+                    {evaluation.inferred.map((item) => (
+                      <li key={item}>
+                        <span className="rd-v2-eval-mark infer" aria-hidden="true">
+                          ~
+                        </span>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ) : null}
+
+              {evaluation.modelNotes.map((note) => (
+                <p key={note.label} className="rd-v2-eval-model-note">
+                  <span className="rd-v2-eval-section-label">Model interpretation</span>
+                  {note.detail || note.label}
+                </p>
+              ))}
+              {evaluation.technical.length ? (
                 <RailFieldGrid>
                   {evaluation.technical.map((fact) => (
                     <RailField
@@ -495,16 +645,13 @@ export function DiscoverEvaluationSurface({
                     />
                   ))}
                 </RailFieldGrid>
-              </div>
-            </details>
-          ) : (
-            <details key={targetKey} className="rd-v2-eval-tech">
-              <summary>Technical evidence</summary>
-              <p className="rd-v2-eval-prose muted">
-                No probe evidence yet. Probe the source to collect endpoint facts.
-              </p>
-            </details>
-          )}
+              ) : (
+                <p className="rd-v2-eval-prose muted">
+                  No connection test evidence yet. Test the connection to check the source.
+                </p>
+              )}
+            </div>
+          </details>
 
           <section className="rd-v2-eval-ask-chips" aria-label="Ask about this source">
             <p className="rd-v2-eval-section-label">Ask about this source</p>
@@ -529,54 +676,42 @@ export function DiscoverEvaluationSurface({
           <p className="rd-v2-eval-action-status">{submitting ? "Submitting…" : "Probing source…"}</p>
         ) : null}
 
-        {requestConfirm ? (
-          <div className="rd-v2-eval-confirm" data-testid="discover-request-confirm">
-            <p>Open a durable acquisition intent for review? No collection starts from this action.</p>
-            <div className="rd-v2-eval-confirm-actions">
-              <button type="button" className="rd-v2-btn primary" disabled={probeLoading || submitting} onClick={confirmRequestEvidence}>
-                Open acquisition review
-              </button>
-              <button type="button" className="rd-v2-btn" onClick={() => setRequestConfirm(false)}>
-                Cancel
-              </button>
-            </div>
-          </div>
-        ) : (
+        {(
           <button
             type="button"
             className="rd-v2-btn primary rd-v2-eval-primary-action"
-            disabled={probeLoading || submitting}
+            disabled={actionDisabled(primary)}
             onClick={() => runAction(primary.id)}
           >
-            {primary.label}
+            {actionLabel(primary)}
           </button>
         )}
 
-        <div className="rd-v2-eval-actions-wide" aria-label="Additional candidate actions">
+        <div className="rd-v2-eval-actions-wide" role="group" aria-label="Additional candidate actions">
           {footerSecondary.map((action) => (
             <button
               key={action.id}
               type="button"
               className="rd-v2-btn"
-              disabled={probeLoading || submitting || requestConfirm}
+              disabled={actionDisabled(action)}
               onClick={() => runAction(action.id)}
             >
-              {action.label}
+              {actionLabel(action)}
             </button>
           ))}
         </div>
 
-        <div className="rd-v2-eval-actions-mobile" aria-label="Additional focused candidate actions">
+        <div className="rd-v2-eval-actions-mobile" role="group" aria-label="Additional focused candidate actions">
           {mobileSecondary || mobileOverflowActions.length ? (
             <div className="rd-v2-eval-mobile-secondary-row">
               {mobileSecondary ? (
                 <button
                   type="button"
                   className="rd-v2-eval-mobile-secondary"
-                  disabled={probeLoading || submitting}
+                  disabled={actionDisabled(mobileSecondary)}
                   onClick={() => runAction(mobileSecondary.id)}
                 >
-                  {mobileSecondaryLabel}
+                  {actionLabel({ ...mobileSecondary, label: mobileSecondaryLabel })}
                 </button>
               ) : (
                 <span />
@@ -590,13 +725,13 @@ export function DiscoverEvaluationSurface({
                       <button
                         key={action.id}
                         type="button"
-                        disabled={probeLoading || submitting}
+                        disabled={actionDisabled(action)}
                         onClick={(event) => {
                           runAction(action.id);
                           event.currentTarget.closest("details")?.removeAttribute("open");
                         }}
                       >
-                        {action.label}
+                        {actionLabel(action)}
                       </button>
                     ))}
                   </div>

@@ -1,9 +1,19 @@
+import { uiVocabularyLabel } from "./uiVocabularyLabels.js";
 import { useEffect, useMemo, useState } from "react";
+import { listSynthesisThreads } from "@/v2/api";
 import { resolveCapacityMark } from "@/v2/capacityMarks";
 import { GuidedState, Skeleton } from "@/v2/InteractionFeedback";
 import { HomeSuggestedAsks } from "@/v2/HomeSuggestedAsks";
 import { readResourcesRollupCache, writeResourcesRollupCache } from "@/v2/resourcesRollupCache";
 import { PageShell } from "@/v2/ui";
+import { DeskError } from "@/v2/DeskError";
+import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
+import { displayName, statusPillKind } from "@/v2/datasetMeta";
+import { featuredRows, matchedRows, profileFocus } from "@/v2/libraryFocus";
+import { libraryHoldings } from "@/v2/deskCounts";
+import { licensedRowsLocked } from "@/v2/licensedAccess";
+import { topicCounts } from "@/v2/libraryTopics";
+import { barBox, filesLabel, glanceTitle, rowsLabel, spanAxis, spanOf, spanText } from "@/v2/libraryGlance";
 import {
   buildPickUp,
   buildRecentTrail,
@@ -11,16 +21,6 @@ import {
   buildResourceHeadroom,
   projectRollupFromHealth,
 } from "@/v2/homeIteration10";
-
-/**
- * Home — Iteration 10 freeze
- * docs/HOME_FULL_SCALE_FREEZE_2026-07-16.md
- *
- * TOP: Pick Up (~65%) | Resource Headroom (~35%)
- * MIDDLE: Recommended Evidence (≤2)
- * BOTTOM: Recent Trail (≤3)
- * No desktop page scroll. No three-lane action strip.
- */
 
 function HeadroomBar({ pct, warn }) {
   if (pct == null || !Number.isFinite(pct)) return null;
@@ -42,42 +42,216 @@ function HomeHeadroomMark({ markId }) {
   );
 }
 
-function PickUpCard({ point, loading, onContinue, onReview }) {
+function resolveHomePosture({ loading, point }) {
+  if (loading) {
+    return {
+      id: "loading",
+      eyebrow: "Pick up · Loading",
+      lead: "Resume · capacity · saved outcomes",
+    };
+  }
+  if (!point) {
+    return {
+      id: "cold",
+      eyebrow: "Pick up · Start",
+      lead: "Start with data you have · find what is missing · save your work",
+    };
+  }
+  if (point.kind === "decision") {
+    return {
+      id: "decision",
+      eyebrow: "Pick up · Decision",
+      lead: "A researcher decision is waiting before work can continue",
+    };
+  }
+  if (point.kind === "synthesis_thread") {
+    return {
+      id: point.warn ? "recovery" : "synthesis",
+      eyebrow: point.warn ? "Pick up · Recovery" : "Pick up · Synthesis",
+      lead: point.warn
+        ? "A saved build needs review before continuing"
+        : "Saved research work is ready to resume",
+    };
+  }
+  if (point.kind === "discover_work") {
+    return {
+      id: point.warn ? "recovery" : "acquisition",
+      eyebrow: point.warn ? "Pick up · Recovery" : "Pick up · Acquisition",
+      lead: point.warn
+        ? "An acquisition needs review before evidence can move forward"
+        : "Collection is in progress · History shows the current state",
+    };
+  }
+  if (point.kind === "library_asset" && point.start) {
+    return {
+      id: "start-evidence",
+      eyebrow: "Start with",
+      lead: "Nothing opened yet · a good first dataset for your work",
+    };
+  }
+  if (point.kind === "library_asset") {
+    return {
+      id: "held-evidence",
+      eyebrow: "Pick up · Evidence",
+      lead: "Evidence is on hand · inspect it · continue the research",
+    };
+  }
+  return {
+    id: "active",
+    eyebrow: "Pick up · Continue",
+    lead: "Resume the most consequential saved research state",
+  };
+}
+
+function WelcomeCard({ onGoTab, onSignIn, onCreateAccount, topics = [] }) {
+  const busiest = topics.reduce((most, topic) => Math.max(most, topic.count), 1);
+  return (
+    <article className="rd-v2-home-pickup-card rd-v2-home-welcome" data-testid="home-welcome">
+      <div className="rd-v2-home-welcome-main">
+        <span className="rd-v2-home-eyebrow">Welcome to Research Drive</span>
+        <h2>Research data you can use, with where it came from</h2>
+        <ol className="rd-v2-home-welcome-steps">
+          <li><strong>Browse the Library.</strong> Preview datasets that are ready to query, see their source, and download them as CSV.</li>
+          <li><strong>Describe what you need in Discover.</strong> See what the Library already covers and where the rest can be collected.</li>
+          <li><strong>{onCreateAccount ? "Create an account to do more." : "Sign in to do more."}</strong> Ask the research assistant, request new collections, and save builds.</li>
+        </ol>
+        <div className="rd-v2-home-welcome-actions">
+          <button type="button" className="rd-v2-btn primary" onClick={() => onGoTab?.("library")}>Browse the Library</button>
+          <button type="button" className="rd-v2-btn" onClick={() => onGoTab?.("browse")}>Find data</button>
+          {onCreateAccount ? <button type="button" className="rd-v2-btn" onClick={onCreateAccount}>Create account</button> : null}
+          {onSignIn && !onCreateAccount ? <button type="button" className="rd-v2-btn" onClick={onSignIn}>Sign in</button> : null}
+        </div>
+        {onSignIn && onCreateAccount ? (
+          <p className="rd-v2-home-welcome-signin">Already have an account? <button type="button" onClick={onSignIn}>Sign in</button></p>
+        ) : null}
+      </div>
+      {topics.length ? (
+        <div className="rd-v2-home-welcome-covers" role="group" aria-label="What the Library covers" data-testid="home-welcome-covers">
+          <span className="rd-v2-home-eyebrow">In the Library</span>
+          <ul>
+            {topics.map((topic) => (
+              <li key={topic.id}>
+                <span><b>{topic.label}</b><em>{topic.count}</em></span>
+                <i style={{ width: `${Math.max(6, Math.round((topic.count / busiest) * 100))}%` }} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+    </article>
+  );
+}
+
+export function codeLikeTitle(value) {
+  return /\b(?=[A-Z0-9]*\d)[A-Z0-9]{6,}\b/.test(String(value || ""));
+}
+
+function firstSentence(value) {
+  const textValue = String(value || "").replace(/\s+/g, " ").trim();
+  const end = textValue.search(/(?<!\b(?:St|Mr|Mrs|Ms|Dr|Inc|Co|Corp|Ltd|Jr|vs|No|U\.S|e\.g|i\.e))[.!?](?=\s+[A-Z0-9]|$)/);
+  return end > 0 ? textValue.slice(0, end + 1) : textValue;
+}
+
+function HomeGlance({ span, axis }) {
+  const rows = rowsLabel(span.rows) || filesLabel(span.files);
+  const box = barBox(span, axis);
+  if (!rows && !box) return null;
+  return (
+    <span className="rd-v2-home-glance" data-testid="home-glance" title={glanceTitle(span)}>
+      <b>{rows}</b>
+      {box ? (
+        <span className="rd-v2-cap-glance-track" role="img" aria-label={`Covers ${spanText(span)}`}>
+          <i style={{ left: `${box.left}%`, width: `${box.width}%` }} />
+        </span>
+      ) : <span />}
+      <em>{spanText(span)}</em>
+    </span>
+  );
+}
+
+function GuestReadyDatasets({ datasets, onGoTab, onSelectDataset }) {
+  const featured = featuredRows(datasets).filter((row) => statusPillKind(row).kind === "query-ready");
+  const ready = (featured.length
+    ? featured
+    : datasets
+      .filter((row) => row?.dataset_id && statusPillKind(row).kind === "query-ready")
+      .sort((a, b) => Number(codeLikeTitle(displayName(a))) - Number(codeLikeTitle(displayName(b)))
+        || String(b.retrieved_at || "").localeCompare(String(a.retrieved_at || "")))
+  ).slice(0, 4);
+  if (!ready.length) return null;
+  const axis = spanAxis(ready.map(spanOf));
+  return (
+    <section className="rd-v2-home-guest-ready" aria-label="Ready to use now" data-testid="home-guest-ready">
+      <div className="rd-v2-home-section-head">
+        <h2>{datasets.some((row) => Number(row?.featured_rank) > 0) ? "Start with these" : "Ready to use now"}</h2>
+        <button type="button" className="rd-v2-linkish" onClick={() => onGoTab?.("library")}>All datasets →</button>
+      </div>
+      <ul>
+        {ready.map((row) => (
+          <li key={row.dataset_id}>
+            <button type="button" onClick={() => onSelectDataset?.(row)}>
+              <strong>{displayName(row)}</strong>
+              {row.description && !/^collected from https?:/i.test(String(row.description).trim()) ? <span className="rd-v2-home-guest-desc">{firstSentence(row.description)}</span> : null}
+              <HomeGlance span={spanOf(row)} axis={axis} />
+            </button>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function PickUpCard({ point, loading, posture, onContinue, onReview }) {
+  const eyebrow = posture?.eyebrow || "Pick up";
   if (loading) {
     return (
-      <div className="rd-v2-home-pickup-card" data-testid="home-continue" aria-busy="true">
-        <span className="rd-v2-home-eyebrow">Pick up</span>
+      <div
+        className="rd-v2-home-pickup-card"
+        data-testid="home-continue"
+        data-posture={posture?.id || "loading"}
+        aria-busy="true"
+      >
+        <span className="rd-v2-home-eyebrow">{eyebrow}</span>
         <Skeleton lines={3} label="Loading resume point" />
       </div>
     );
   }
   if (!point) {
     return (
-      <div className="rd-v2-home-pickup-card" data-testid="home-continue">
-        <span className="rd-v2-home-eyebrow">Pick up</span>
+      <div
+        className="rd-v2-home-pickup-card"
+        data-testid="home-continue"
+        data-posture={posture?.id || "cold"}
+      >
+        <span className="rd-v2-home-eyebrow">{eyebrow}</span>
         <GuidedState
           eyebrow="No resume point"
-          title="Open the vault or find missing evidence"
-          detail="Home has no typed resume object in this session yet."
-          checks={["Library holds registered assets", "Discover searches beyond holdings"]}
+          title="Open the Library or find missing evidence"
+          detail="No saved research work needs to be resumed."
+          checks={["Library stores your saved data", "Discover finds data beyond your Library", "Synthesis stores your saved builds"]}
         />
       </div>
     );
   }
+  const location = point.pill && String(point.location || "").endsWith(point.pill)
+    ? String(point.location).slice(0, -point.pill.length).replace(/\s*·\s*$/, "")
+    : point.location;
   return (
     <article
       className={`rd-v2-home-pickup-card${point.warn ? " warn" : ""}`}
       data-testid="home-continue"
       data-kind={point.kind}
+      data-posture={posture?.id || "active"}
+      data-resume-id={point.id || ""}
       aria-label={`Pick up: ${point.title}`}
     >
-      <span className="rd-v2-home-eyebrow">Pick up</span>
+      <span className="rd-v2-home-eyebrow">{eyebrow}</span>
       <h2>{point.title}</h2>
-      <p className="rd-v2-home-pickup-state">{point.stateSummary}</p>
+      <p className="rd-v2-home-pickup-state">{uiVocabularyLabel(point.stateSummary)}</p>
       <div className="rd-v2-home-pickup-foot">
         <div>
           {point.pill ? <span className="rd-v2-pill">{point.pill}</span> : null}
-          <span className="rd-v2-home-pickup-loc">{point.location}</span>
+          {location ? <span className="rd-v2-home-pickup-loc">{location}</span> : null}
         </div>
         {point.action === "review" ? (
           <button type="button" className="rd-v2-btn sm primary" onClick={() => onReview?.(point)}>
@@ -85,33 +259,76 @@ function PickUpCard({ point, loading, onContinue, onReview }) {
           </button>
         ) : (
           <button type="button" className="rd-v2-btn sm primary" onClick={() => onContinue?.(point)}>
-            Continue
+            {point.start ? "Open dataset" : "Continue"}
           </button>
         )}
       </div>
       {point.dataset?.dataset_id ? (
         <p className="rd-v2-home-continue-id mono">{point.dataset.dataset_id}</p>
+      ) : point.thread?.id ? (
+        <p className="rd-v2-home-continue-id mono">{point.thread.id}</p>
       ) : null}
     </article>
   );
 }
 
+function threadRows(payload) {
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.threads)) return payload.threads;
+  if (Array.isArray(payload?.items)) return payload.items;
+  return [];
+}
+
 export function HomePage({
+  welcome = null,
   datasets = [],
+  researchTopics = [],
+  catalogLoading = false,
   health,
   jobs = [],
   profile,
   acquisitions = [],
   resourcesRollup,
+  showOperationalHeadroom = true,
+  canUseSynthesis = true,
+  isGuest = false,
+  onSignIn,
+  onCreateAccount,
+  loadError = "",
+  onRetryLoad,
   onGoTab,
   onOpenAttention,
   onSelectDataset,
   onPreviewDataset,
+  onPrimaryResume,
+  onResumeSynthesisThread,
   onSuggestSearch,
   onAskComposer,
 }) {
-  const loading = health == null && datasets.length === 0;
-  // Mirror Resources cache-first: never block Home headroom on a cold /desk/resources round-trip.
+  const loading = catalogLoading || (health == null && datasets.length === 0);
+  const surfaceState = resolveSurfaceLifecycle({ loading, error: loadError, count: datasets.length });
+  const [synthesisThreads, setSynthesisThreads] = useState([]);
+
+  // Home consumes the durable Synthesis authority directly. Failure is soft:
+  // Library/Discover continuity remains truthful even if Synthesis is temporarily unavailable.
+  useEffect(() => {
+    if (!canUseSynthesis) {
+      setSynthesisThreads([]);
+      return undefined;
+    }
+    let cancelled = false;
+    listSynthesisThreads({ limit: 20 })
+      .then((payload) => {
+        if (!cancelled) setSynthesisThreads(threadRows(payload));
+      })
+      .catch(() => {
+        if (!cancelled) setSynthesisThreads([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [canUseSynthesis]);
+
   const [cachedRollup, setCachedRollup] = useState(() => readResourcesRollupCache());
   useEffect(() => {
     if (resourcesRollup && typeof resourcesRollup === "object") {
@@ -125,13 +342,30 @@ export function HomePage({
     return projectRollupFromHealth(health);
   }, [resourcesRollup, cachedRollup, health]);
   const headroomLoading = headroomRollup == null && resourcesRollup === undefined && health == null;
+  const suggested = useMemo(() => {
+    if (isGuest) return [];
+    const { terms } = profileFocus({ principal: true, profile: { research_topics: researchTopics } });
+    const matched = terms.length ? matchedRows(datasets, terms) : [];
+    return matched.length ? matched : featuredRows(datasets);
+  }, [isGuest, datasets, researchTopics]);
   const pickUp = useMemo(
-    () => buildPickUp({ datasets, jobs, health, acquisitions, profile }),
-    [datasets, jobs, health, acquisitions, profile],
+    () => buildPickUp({ datasets, jobs, health, acquisitions, profile, synthesisThreads, suggested }),
+    [datasets, jobs, health, acquisitions, profile, synthesisThreads, suggested],
   );
+  const guestTopics = useMemo(
+    () => (isGuest ? topicCounts(libraryHoldings(datasets).filter((row) => !licensedRowsLocked(row))) : []),
+    [isGuest, datasets],
+  );
+  const homePosture = useMemo(
+    () => resolveHomePosture({ loading, point: pickUp.primary }),
+    [loading, pickUp.primary],
+  );
+  useEffect(() => {
+    if (!loading) onPrimaryResume?.(isGuest ? null : pickUp.primary || null);
+  }, [isGuest, loading, onPrimaryResume, pickUp.primary]);
   const headroom = useMemo(
-    () => buildResourceHeadroom(headroomRollup),
-    [headroomRollup],
+    () => buildResourceHeadroom(headroomRollup, health),
+    [headroomRollup, health],
   );
   const recommended = useMemo(
     () => buildRecommendedEvidence(profile, { limit: 2 }),
@@ -143,12 +377,18 @@ export function HomePage({
   );
 
   const continuePrimary = (point) => {
-    if (!point?.dataset) {
-      onGoTab(point?.tab || "library");
+    if (point?.thread?.id) {
+      // Navigation remains a shell responsibility; the typed callback only
+      // binds the exact durable Synthesis object. Keeping these authorities
+      // separate prevents Home from inventing a second navigation path.
+      onResumeSynthesisThread?.(point.thread);
+      onGoTab?.("synthesis");
       return;
     }
-    // Home is a resume surface, not a second Library. Keep the researcher
-    // oriented here while exposing the dataset preview and grounded rail.
+    if (!point?.dataset) {
+      onGoTab?.(point?.tab || "library");
+      return;
+    }
     if (onPreviewDataset) {
       onPreviewDataset(point.dataset);
       return;
@@ -157,11 +397,10 @@ export function HomePage({
   };
 
   const reviewDecision = (point) => {
-    // Freeze: approvals / Needs you live on Discover History, not Resources Usage.
     if (onOpenAttention) {
       onOpenAttention({
         id: point.id,
-        kind: "approval",
+        kind: point.kind || "attention",
         tab: "browse",
         discoverMode: "history",
         title: point.title,
@@ -178,21 +417,30 @@ export function HomePage({
       });
       return;
     }
-    onGoTab("browse");
+    onGoTab?.("browse");
   };
 
   return (
     <PageShell
       className="rd-v2-home-page rd-v2-home-i10"
       title="Home"
-      lead="Resume · headroom · durable consequences"
+      lead={isGuest ? "Start here" : homePosture.lead}
       footer={null}
+      surfaceState={surfaceState}
     >
-      <div className="rd-v2-home-topband">
-        <section className="rd-v2-home-pickup" aria-label="Pick up">
+      {welcome}
+      {loadError ? <DeskError raw={loadError} surface="Home's Library briefing" onRetry={onRetryLoad} /> : null}
+      <div className="rd-v2-home-topband" data-home-posture={isGuest ? "welcome" : homePosture.id}>
+        {isGuest ? (
+          <section className="rd-v2-home-pickup" aria-label="Welcome">
+            <WelcomeCard onGoTab={onGoTab} onSignIn={onSignIn} onCreateAccount={onCreateAccount} topics={guestTopics} />
+            <GuestReadyDatasets datasets={datasets} onGoTab={onGoTab} onSelectDataset={onSelectDataset} />
+          </section>
+        ) : <section className="rd-v2-home-pickup" aria-label="Pick up">
           <PickUpCard
             point={pickUp.primary}
             loading={loading}
+            posture={homePosture}
             onContinue={continuePrimary}
             onReview={reviewDecision}
           />
@@ -207,19 +455,19 @@ export function HomePage({
               }
             >
               <strong>{pickUp.secondary.title}</strong>
-              <span>{pickUp.secondary.stateSummary}</span>
+              <span>{uiVocabularyLabel(pickUp.secondary.stateSummary)}</span>
               <em>
                 {pickUp.secondary.location}
-                {pickUp.secondary.action === "review" ? " · Review" : " · Continue →"}
+                {pickUp.secondary.action === "review" ? " · Review" : pickUp.secondary.start ? " · Open →" : " · Continue →"}
               </em>
             </button>
           ) : null}
-        </section>
+        </section>}
 
-        <section className="rd-v2-home-headroom" aria-label="Resource headroom">
+        {showOperationalHeadroom ? <section className="rd-v2-home-headroom" aria-label="Resource headroom">
           <div className="rd-v2-home-headroom-head">
             <span className="rd-v2-home-eyebrow">Resource headroom</span>
-            <button type="button" className="rd-v2-linkish" onClick={() => onGoTab("resources")}>
+            <button type="button" className="rd-v2-linkish" onClick={() => onGoTab?.("resources")}>
               Resources →
             </button>
           </div>
@@ -239,13 +487,15 @@ export function HomePage({
                   <HeadroomBar pct={slot.pct} warn={slot.warn} />
                   <div className="rd-v2-home-headroom-meta">
                     <span>{slot.headroom}</span>
-                    <button
-                      type="button"
-                      className="rd-v2-linkish"
-                      onClick={() => onGoTab("resources")}
-                    >
-                      {slot.action === "check" ? "Check →" : "Resources →"}
-                    </button>
+                    {slot.action === "check" ? (
+                      <button
+                        type="button"
+                        className="rd-v2-linkish"
+                        onClick={() => onGoTab?.("resources")}
+                      >
+                        Check →
+                      </button>
+                    ) : null}
                   </div>
                 </li>
               ))}
@@ -253,7 +503,7 @@ export function HomePage({
           ) : (
             <p className="rd-v2-home-headroom-empty">Capacity signals load with Resources.</p>
           )}
-        </section>
+        </section> : null}
       </div>
 
       {recommended.length ? (
@@ -269,14 +519,14 @@ export function HomePage({
                   className="rd-v2-home-recommended-row"
                   onClick={() => {
                     if (item.action === "library" && item.datasetId) {
-                      onGoTab("library");
+                      onGoTab?.("library");
                       return;
                     }
                     if (item.query && onSuggestSearch) {
                       onSuggestSearch(item.query);
                       return;
                     }
-                    onGoTab("browse");
+                    onGoTab?.("browse");
                   }}
                 >
                   <div>
@@ -294,13 +544,13 @@ export function HomePage({
         </section>
       ) : null}
 
-      <section className="rd-v2-home-trail" aria-label="Recent trail">
+      {isGuest ? null : <section className="rd-v2-home-trail" aria-label="Recent trail">
         <div className="rd-v2-home-section-head">
           <h2>Recent trail</h2>
           <button
             type="button"
             className="rd-v2-linkish"
-            onClick={() => onGoTab("browse")}
+            onClick={() => onGoTab?.("browse")}
           >
             View all →
           </button>
@@ -318,13 +568,13 @@ export function HomePage({
                       return;
                     }
                     if (item.dest === "history") {
-                      onGoTab("browse");
+                      onGoTab?.("browse");
                       return;
                     }
-                    onGoTab(item.dest === "library" ? "library" : "browse");
+                    onGoTab?.(item.dest === "library" ? "library" : "browse");
                   }}
                 >
-                  <span className="rd-v2-home-trail-kind">{item.kind}</span>
+                  <span className="rd-v2-home-trail-kind">{item.kind === "REGISTERED ASSET" ? "Library dataset" : item.kind}</span>
                   <strong>{item.title}</strong>
                   <span>{item.summary}</span>
                   <em>{item.dest === "library" ? "Library →" : "History →"}</em>
@@ -333,16 +583,19 @@ export function HomePage({
             ))}
           </ul>
         ) : (
-          // VC-8: a sparse trail offers the existing profile-aware suggested
-          // questions rather than a dead line of system language.
           <div className="rd-v2-home-section-empty-actions">
             <p className="rd-v2-home-section-empty">
-              Nothing durable yet — recent work will collect here.
+              Nothing opened recently. Datasets you open and searches you run appear here.
             </p>
-            <HomeSuggestedAsks profile={profile} onAskComposer={onAskComposer || onSuggestSearch} />
+            <HomeSuggestedAsks
+              profile={profile}
+              researchTopics={researchTopics}
+              onAskComposer={onAskComposer || onSuggestSearch}
+              allowPrincipalSeed={canUseSynthesis}
+            />
           </div>
         )}
-      </section>
+      </section>}
     </PageShell>
   );
 }

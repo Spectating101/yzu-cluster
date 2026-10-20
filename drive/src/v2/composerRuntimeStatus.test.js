@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { composerRuntimeRead } from "./composerRuntimeStatus.js";
+import { composerRuntimeFromSources, composerRuntimeRead } from "./composerRuntimeStatus.js";
 
 describe("composerRuntimeRead", () => {
   it("returns null when no runtime object is present", () => {
@@ -52,4 +52,35 @@ describe("composerRuntimeRead", () => {
     assert.equal(read.ready, false);
     assert.equal(read.warn, true);
   });
+});
+
+describe("composerRuntimeFromSources", () => {
+  it("lets an ordinary Ask member use the sanitized capability observation", () => {
+    const read = composerRuntimeFromSources(null, {
+      assistant_runtime: { status: "ready", verified: true, configured: true },
+    });
+    assert.equal(read.ready, true);
+    assert.equal(read.short, "Ready");
+  });
+
+  it("prefers operator health when both sources are present", () => {
+    const read = composerRuntimeFromSources(
+      { desk: { composer_runtime: { status: "degraded", verified: true } } },
+      { assistant_runtime: { status: "ready", verified: true } },
+    );
+    assert.equal(read.ready, false);
+    assert.equal(read.short, "Degraded");
+  });
+});
+
+describe("Ask usability", () => {
+  it("a failed or stale check keeps Ask usable; only a missing assistant withdraws it", () => {
+  assert.equal(composerRuntimeRead({ status: "ready" }).usable, true);
+  assert.equal(composerRuntimeRead({ status: "degraded" }).usable, true);
+  assert.equal(composerRuntimeRead({ status: "stale" }).usable, true);
+  assert.equal(composerRuntimeRead({ status: "unverified" }).usable, true);
+  assert.equal(composerRuntimeRead({ status: "unavailable" }).usable, false);
+  assert.equal(composerRuntimeRead({ status: "mystery" }).usable, false);
+  assert.equal(composerRuntimeRead({ status: "degraded" }).ready, false);
+});
 });

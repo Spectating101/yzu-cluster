@@ -1,5 +1,7 @@
 import { test, expect } from "@playwright/test";
+import { mkdirSync } from "node:fs";
 import {
+  MOCK_DATASETS,
   MOCK_DISCOVER_HIT,
   mockV2Api,
   waitForShell,
@@ -17,6 +19,12 @@ async function searchDiscover(page, query = "MOPS") {
   await expect(page.getByTestId("discover-result-summary")).toBeVisible();
 }
 
+async function captureWorkflow(page, name) {
+  const dir = "artifacts/frontend-workflow";
+  mkdirSync(dir, { recursive: true });
+  await page.screenshot({ path: `${dir}/${name}.png`, fullPage: true });
+}
+
 test.describe("v2 Discover tab", () => {
   test.beforeEach(async ({ page }) => {
     await mockV2Api(page);
@@ -25,38 +33,555 @@ test.describe("v2 Discover tab", () => {
     await waitForShell(page);
   });
 
-  test("empty state offers one adaptive entrance and quiet intake", async ({ page }) => {
+  test("empty state offers one evidence entrance with two first-use examples", async ({ page }) => {
     await expect(page.getByTestId("discover-empty")).toBeVisible();
     await expect(page.getByLabel("Search or describe a research need")).toBeVisible();
     await expect(page.getByRole("button", { name: "Explore", exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: /mode/i })).toHaveCount(0);
     await expect(page.getByLabel("Public URL or DOI")).toBeVisible();
-    // VC-5: two compact examples teach the one-composer behaviour, and the
-    // curated-source block collapses to a single quiet line when it has no
-    // routes rather than filling the canvas with an empty section.
     const examples = page.getByTestId("discover-composer-examples");
-    await expect(examples).toBeVisible();
     await expect(examples.getByText("Try a keyword")).toBeVisible();
     await expect(examples.getByText("Ask a research need")).toBeVisible();
     await expect(
-      page.getByRole("heading", { name: "Sources the desk already knows how to investigate" }),
+      page.getByRole("heading", { name: "Sources Research Drive knows how to investigate" }),
     ).toHaveCount(0);
-    await expect(page.getByText("No curated source routes yet")).toBeVisible();
+    await expect(page.getByText("No collection methods are listed yet")).toBeVisible();
+  });
+
+  test("mobile landing keeps retrieval ahead of workstation capacity context", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(page.getByLabel("Search or describe a research need")).toBeVisible();
+    await expect(page.getByTestId("discover-coverage")).toBeVisible();
+    await expect(page.locator(".rd-v2-discover-radar-panel--execution")).toBeHidden();
+  });
+
+  test("idle state leads with live coverage and does not invent a search summary", async ({ page }) => {
+    await mockV2Api(page, {
+      datasetsBody: {
+        datasets: [
+          ...MOCK_DATASETS.datasets,
+          {
+            dataset_id: "declared_stablecoin_catalogue",
+            name: "Declared stablecoin catalogue",
+            source_access_mode: "catalog_only",
+            access_shape: "catalog_reference",
+            registry_id: "declared-stablecoin-catalogue",
+          },
+        ],
+      },
+      libraryNavBody: {
+        partitions: [],
+        shelves: [{ id: "markets", label: "Markets", dataset_count: 4, query_ready_count: 3 }],
+      },
+    });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+
+    const coverage = page.getByTestId("discover-coverage");
+    const knownRoutes = page.getByText("No collection methods are listed yet");
+    await expect(coverage).toBeVisible();
+    await expect(knownRoutes).toBeVisible();
+    await expect(page.getByTestId("discover-resting-summary")).toHaveCount(0);
+    await expect(page.getByRole("status")).toContainText("No candidate selected");
+
+    const coverageBox = await coverage.boundingBox();
+    const routesBox = await knownRoutes.boundingBox();
+    expect(coverageBox?.y).toBeLessThan(routesBox?.y ?? Number.POSITIVE_INFINITY);
   });
 
   test("keyword search renders the external result composition", async ({ page }) => {
+    await mockV2Api(page, { discoverBody: MOCK_DISCOVER_HIT });
+    let externalDescribeRequests = 0;
+    await page.route("**/datasets/mops_financial_statements_ext", (route) => {
+      externalDescribeRequests += 1;
+      return route.fulfill({ status: 404, contentType: "application/json", body: "{}" });
+    });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
     await searchDiscover(page, "TWSE governance");
     await expect(page.locator('button.rd-v2-discover-candidate').first()).toBeVisible({ timeout: 10_000 });
     await expect(page.locator('button.rd-v2-discover-candidate')).not.toHaveCount(0);
-    await expect(page.getByTestId("discover-best-fit")).toContainText(/TWSE Open\s*API|TWSE|MOPS|candidate/i);
+    // BEST FIT was a ranking with no measured score behind it and is withdrawn;
+    // the candidates themselves carry the composition now.
+    await expect(page.locator(".rd-v2-catalog")).toContainText(/TWSE Open\s*API|TWSE|MOPS|candidate/i);
+    await expect(page.getByTestId("discover-best-fit")).toHaveCount(0);
     await expect(page.getByTestId("discover-interpreting")).toBeVisible();
-    await expect(page.getByLabel("Discover next actions")).toContainText(/\d+ result/i);
-    await expect(page.getByTestId("discover-rank-foot")).toContainText(/Ranked using active research/i);
+    // "N results" was replaced by the chrome row plus an offering breakdown:
+    //   Available · N   Library evidence · N   Web context · N
+    await expect(page.getByTestId("discover-result-summary")).toContainText(/\d+ sources?/i);
+    await expect(page.getByTestId("discover-result-summary")).toContainText(/\d+ in your Library/i);
+    await expect(page.getByLabel("Discover next actions")).toContainText(/Search wider/i);
+    await expect(page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-ranked-results-head strong")).toHaveCount(0);
+    await expect(page.getByTestId("discover-resting-summary")).toContainText(/sources? to collect/i);
+    await expect(page.getByTestId("discover-resting-summary")).toContainText(/Library results/i);
+    await expect(page.getByTestId("discover-resting-summary")).toContainText(/Ways to collect/i);
+    await expect(page.getByTestId("discover-rank-foot")).toContainText(/Ranked by fit to your question/i);
     await expect(page.getByTestId("discover-filter-menu")).toBeVisible();
+    await expect(page.getByTestId("discover-sort-menu")).toBeVisible();
+    await expect(page.getByRole("navigation", { name: "Evidence facets" })).toHaveCount(0);
     await expect(page.getByTestId("discover-browse-mode")).not.toContainText(/process overview/i);
+    await page.locator("button.rd-v2-discover-candidate").first().click();
+    await expect(page.getByTestId("rail-pane-detail")).toContainText(/selected candidate/i);
+    expect(externalDescribeRequests).toBe(0);
+  });
+
+  test("stale index records and collected receipts do not become external offers", async ({ page }) => {
+    const title = "County unemployment trend";
+    const held = ["county_current", "county_other"].map(dataset_id => ({
+      dataset_id, name: title, analysis_readiness: "instant", local_root: "research_panels/county",
+    }));
+    await mockV2Api(page, {
+      datasetsBody: { datasets: held },
+      discoverSourcesBody: { results: [{
+        kind: "source", source_id: "bls", provider: "U.S. Bureau of Labor Statistics",
+        title: "County unemployment official source", collect_via: ["public_api_collect"],
+      }] },
+      discoverBody: { sections: [{ id: "discover", rows: [
+        ...held.map(row => ({
+          kind: "registry_dataset", dataset_id: row.dataset_id, title,
+          source: "registry", local_ready: true, collect_via: "local_open",
+        })),
+        { kind: "registry_dataset", dataset_id: "county_old", title,
+          source: "collection_index", local_ready: false, collect_via: "datacite" },
+        { kind: "registry_dataset", dataset_id: "county_old_ready", title,
+          source: "collection_index", local_ready: true, collect_via: "local_open" },
+        { kind: "catalog", title, source: "procured", collect_via: "none" },
+        { kind: "datacite", title: "County unemployment published dataset",
+          source: "DataCite", doi: "10.1234/county", collect_via: "datacite" },
+      ] }], total: 6 },
+    });
+    await page.goto("/?tab=discover", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await searchDiscover(page, "county unemployment");
+    const summary = page.getByTestId("discover-result-summary");
+    await expect(summary).toContainText("2 sources");
+    await expect(summary).toContainText("2 in your Library");
+    const results = page.getByTestId("discover-ranked-results");
+    await expect(results.locator(".rd-v2-discover-candidate")).toHaveCount(2);
+    await expect(results.locator(".rd-v2-source-ribbon").filter({ hasText: /^BLS$/ })).toBeVisible();
+    await expect(results).not.toContainText("PROCURED");
+    await expect(results).toContainText("County unemployment published dataset");
+  });
+
+  test("late Library hydration never erases a painted candidate field", async ({ page }) => {
+    // Production can return the first Discover leg before the larger Library
+    // registry has finished hydrating. Updating possession IDs legitimately
+    // re-runs classification, but the same-query refresh must retain the field
+    // and the selected row instead of flashing a false zero-result state.
+    const secondCandidate = {
+      ...MOCK_DISCOVER_HIT.sections[0].rows[0],
+      dataset_id: "forest_fire_economic_route",
+      candidate_key: "dataset:forest_fire_economic_route",
+      title: "Forest fire economic impact panel",
+    };
+    await mockV2Api(page, {
+      discoverBody: {
+        sections: [{
+          ...MOCK_DISCOVER_HIT.sections[0],
+          rows: [...MOCK_DISCOVER_HIT.sections[0].rows, secondCandidate],
+        }],
+        total: 2,
+      },
+      discoverSourcesBody: { results: [], total: 0 },
+      discoverSourcesDelayMs: 4_000,
+    });
+    let releaseDatasets;
+    const datasetsReady = new Promise((resolve) => { releaseDatasets = resolve; });
+    await page.unroute("**/datasets**");
+    await page.route("**/datasets**", async (route) => {
+      await datasetsReady;
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          datasets: [{
+            ...MOCK_DISCOVER_HIT.sections[0].rows[0],
+            analysis_readiness: "instant",
+            local_root: "data_lake/mops",
+          }],
+        }),
+      });
+    });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await searchDiscover(page, "forest fire economic changes");
+
+    const field = page.getByTestId("discover-ranked-results");
+    const first = field.locator(".rd-v2-discover-candidate").first();
+    await expect(first).toBeVisible({ timeout: 10_000 });
+    await first.click();
+    await expect(page.getByTestId("rail-pane-detail")).toContainText(/selected candidate/i);
+
+    releaseDatasets();
+    await page.waitForTimeout(800);
+    await expect(page.getByTestId("discover-result-summary")).toContainText("1 in your Library");
+    await expect(field.getByText("Forest fire economic impact panel")).toBeVisible();
+    await expect(page.locator(".rd-v2-discover-miss")).toHaveCount(0);
+  });
+
+  test("a completed miss is honest, actionable, and offers Search wider only once", async ({ page }) => {
+    await mockV2Api(page, {
+      discoverBody: { sections: [], total: 0, index_miss: true, weak_match: true },
+      discoverSourcesBody: {
+        results: [],
+        total: 0,
+        index_miss: true,
+        weak_match: true,
+        no_supported_route: true,
+      },
+      discoverWebBody: { sections: [], total: 0, index_miss: true },
+    });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    const missingNeed = "forest fire and economic changes";
+    await searchDiscover(page, missingNeed);
+
+    const summary = page.getByTestId("discover-result-summary");
+    await expect(summary).toContainText("0 sources");
+    await expect(summary).toContainText("0 in your Library");
+    await expect(page.locator(".rd-v2-discover-miss")).toContainText(
+      `No matches for “${missingNeed}” in the current research index.`,
+    );
+    await expect(page.getByText("Global ocean temperature anomaly")).toHaveCount(0);
+    await expect(page.getByText("Refinitiv Asia equity fundamentals")).toHaveCount(0);
+    await expect(page.getByLabel("Discover next actions")).toContainText("No offering found yet");
+    await expect(page.getByRole("button", { name: "Search wider", exact: true })).toHaveCount(1);
+  });
+
+  test("relevant web references replace the false no-matches state without claiming an acquisition route", async ({ page }) => {
+    await mockV2Api(page, {
+      discoverBody: { sections: [], total: 0, index_miss: true, weak_match: true },
+      discoverSourcesBody: {
+        results: [],
+        total: 0,
+        index_miss: true,
+        weak_match: true,
+        no_supported_route: true,
+      },
+    });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await searchDiscover(page, "forest fire and economic changes");
+
+    const context = page.getByTestId("discover-context-results");
+    await expect(context.getByText("Example open dataset")).toBeVisible();
+    await expect(page.locator(".rd-v2-discover-miss")).toHaveCount(0);
+    await expect(page.getByLabel("Discover next actions")).toContainText("1 reference to inspect");
+    await expect(page.getByLabel("Discover next actions")).toContainText("No collection method is documented as ready yet");
+    await expect(page.getByText("No collection-ready route yet")).toHaveCount(0);
+  });
+
+  test("reference-only routes can be inspected but never claim an acquisition review route", async ({ page }, testInfo) => {
+    await mockV2Api(page, {
+      discoverBody: {
+        sections: [{
+          rows: [
+            {
+              kind: "source",
+              candidate_key: "source:coingecko:example",
+              title: "CoinGecko example route",
+              access_mode: "catalog_reference",
+              status: "example_reference",
+              collect_via: ["http_manifest"],
+            },
+            {
+              kind: "source",
+              candidate_key: "source:datacite:live",
+              title: "DataCite live catalogue",
+              access_mode: "procurement_catalog",
+              collect_via: "datacite",
+            },
+          ],
+        }],
+        total: 2,
+      },
+    });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await searchDiscover(page, "stablecoin");
+
+    await expect(page.getByTestId("discover-result-summary")).toContainText("1 source");
+    await expect(page.getByTestId("discover-result-summary")).toContainText("1 web result");
+    await expect(page.getByRole("button", { name: /^Add to collection/ })).toHaveCount(1);
+    const context = page.getByTestId("discover-context-results");
+    await expect(context.getByText("CoinGecko example route")).toBeVisible();
+    await expect(context.getByRole("button", { name: /^Add to collection/ })).toHaveCount(0);
+    await page.screenshot({ path: testInfo.outputPath("discover-reference-context-desktop.png"), fullPage: true });
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(context).toBeVisible();
+    const overflows = await page.locator("main.yzu-main").evaluate((node) => node.scrollWidth > node.clientWidth + 1);
+    expect(overflows, "reference context must not introduce horizontal overflow on mobile").toBe(false);
+    await context.scrollIntoViewIfNeeded();
+    await page.screenshot({ path: testInfo.outputPath("discover-reference-context-mobile.png"), fullPage: true });
+  });
+
+  test("Search wider retains held evidence and trusts the federator's semantic relevance", async ({ page }) => {
+    const localBody = {
+      sections: [{
+        id: "discover",
+        rows: [{
+          kind: "registry_dataset",
+          dataset_id: "stablecoin_local",
+          candidate_key: "dataset:stablecoin_local",
+          title: "Stablecoin transfer event sample",
+          local_ready: true,
+          collect_via: "local_open",
+        }],
+      }],
+      total: 1,
+    };
+    const semanticSources = {
+      results: [{
+        kind: "source",
+        source_id: "bigquery_public",
+        candidate_key: "source:google_cloud:bigquery_public",
+        provider: "Google Cloud",
+        title: "Google BigQuery (public datasets)",
+        access_mode: "live_connector",
+        collect_via: ["bigquery"],
+        capabilities: ["onchain_crypto"],
+        query_relevance: 2,
+        relevance_evidence: [{ type: "preferred_source_capability", concept: "stablecoin_onchain_transactions" }],
+      }],
+      total: 1,
+    };
+    await mockV2Api(page, {
+      discoverBody: localBody,
+      discoverSourcesBody: { results: [] },
+      discoverLiveSourcesBody: semanticSources,
+      discoverLiveSourcesDelayMs: 1_000,
+    });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await searchDiscover(page, "stablecoin");
+
+    const summary = page.getByTestId("discover-result-summary");
+    await expect(summary).toContainText("0 sources");
+    await expect(summary).toContainText("1 in your Library");
+    await page.getByRole("button", { name: "Search wider", exact: true }).click();
+    await expect(summary).toContainText("Searching wider sources…");
+    await expect(summary).toContainText("1 source");
+    await expect(summary).toContainText("1 in your Library");
+    await expect(summary).toContainText("1 web result");
+    await expect(page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidate")).toHaveCount(1);
+  });
+
+  test("Search wider preserves a partially painted route field", async ({ page }) => {
+    const route = {
+      kind: "source",
+      source_id: "twse_openapi",
+      candidate_key: "source:twse:twse_openapi",
+      provider: "TWSE",
+      title: "TWSE OpenAPI",
+      access_mode: "public_api",
+      collect_via: ["queue"],
+    };
+    await mockV2Api(page, {
+      discoverBody: { sections: [], total: 0 },
+      discoverSourcesBody: { results: [route], total: 1 },
+      discoverSourcesDelayMs: 1_500,
+      discoverLiveSourcesBody: { results: [], total: 0 },
+      discoverLiveSourcesDelayMs: 400,
+    });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await searchDiscover(page, "TWSE");
+
+    const candidates = page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidate");
+    await expect(candidates).toHaveCount(1);
+    await page.getByRole("button", { name: "Search wider", exact: true }).click();
+    await expect(page.getByText("Searching wider sources…", { exact: false })).toBeVisible();
+    await expect(candidates).toHaveCount(1);
+    await expect(candidates.first()).toContainText("TWSE OpenAPI");
+  });
+
+  test("explicit Search wider paints live routes before optional web context settles", async ({ page }) => {
+    const localRoute = {
+      kind: "source",
+      source_id: "twse_openapi",
+      candidate_key: "source:twse:twse_openapi",
+      provider: "TWSE",
+      title: "TWSE OpenAPI",
+      access_mode: "public_api",
+      collect_via: ["queue"],
+    };
+    const widerRoute = {
+      kind: "source",
+      source_id: "twse_dataset_catalogue",
+      candidate_key: "source:twse:dataset_catalogue",
+      provider: "TWSE",
+      title: "TWSE dataset catalogue",
+      access_mode: "public_api",
+      collect_via: ["queue"],
+      query_relevance: 2,
+    };
+    await mockV2Api(page, {
+      discoverBody: { sections: [], total: 0 },
+      discoverSourcesBody: { results: [localRoute], total: 1 },
+      discoverLiveSourcesBody: { results: [widerRoute], total: 1 },
+      discoverLiveSourcesDelayMs: 80,
+    });
+    await page.route("**/library/discover/web*", async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 2_500));
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ sections: [] }) });
+    });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await searchDiscover(page, "TWSE");
+
+    const candidates = page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidate");
+    await expect(candidates).toHaveCount(1);
+    await page.getByRole("button", { name: "Search wider", exact: true }).click();
+    await expect(candidates).toHaveCount(2, { timeout: 1_500 });
+    await expect(page.getByTestId("discover-ranked-results")).toContainText("TWSE dataset catalogue");
+    await expect(page.getByText("Searching wider sources…", { exact: false })).toBeVisible();
+  });
+
+  test("paints held evidence while the slower source-route lookup continues", async ({ page }) => {
+    await mockV2Api(page, {
+      discoverBody: {
+        sections: [{
+          id: "library",
+          rows: [{
+            kind: "registry_dataset",
+            dataset_id: "issuer_weekly_panel",
+            candidate_key: "dataset:issuer_weekly_panel",
+            title: "Issuer weekly fundamentals",
+            local_ready: true,
+            collect_via: "local_open",
+          }],
+        }],
+        total: 1,
+      },
+      discoverSourcesBody: {
+        results: [{
+          kind: "source",
+          source_id: "mops_route",
+          candidate_key: "source:mops_route",
+          title: "MOPS filings route",
+          provider: "MOPS",
+          url: "https://mops.twse.com.tw/",
+          access_mode: "public",
+          collect_via: ["http_manifest"],
+        }],
+      },
+      discoverSourcesDelayMs: 5_000,
+    });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await searchDiscover(page, "issuer fundamentals");
+
+    const progress = page.getByTestId("discover-lookup-progress");
+    await expect(progress).toContainText("Current evidence is visible");
+    await expect(progress).toContainText("Your Library · checked");
+    await expect(progress).toContainText("Known collection methods · checking");
+    await expect(page.getByTestId("discover-result-summary")).toContainText("1 in your Library");
+    await expect(page.getByLabel("Discover next actions")).toContainText("1 Library match");
+    await expect(page.getByLabel("Discover next actions")).not.toContainText("0 offerings");
+    // Held evidence remains immediately inspectable through the frozen bounded
+    // control while the slower external route is still being discovered.
+    await page.getByTestId("discover-library-evidence").locator("summary").click();
+    await expect(page.getByText("Issuer weekly fundamentals", { exact: true })).toBeVisible();
+    await captureWorkflow(page, "discover-progressive-1440x900");
+    await page.setViewportSize({ width: 390, height: 844 });
+    await captureWorkflow(page, "discover-progressive-390x844");
+
+    await expect(page.getByTestId("discover-ranked-results")).toContainText("MOPS filings route");
+    await expect(progress).toHaveCount(0);
+  });
+
+  test("does not report zero held evidence while the registry is still loading", async ({ page }) => {
+    let releaseCatalog;
+    const catalogReady = new Promise((resolve) => {
+      releaseCatalog = resolve;
+    });
+    await page.route("**/datasets", async (route) => {
+      await catalogReady;
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ datasets: [] }),
+      });
+    });
+
+    const catalogRequest = page.waitForRequest((request) =>
+      new URL(request.url()).pathname.endsWith("/datasets"),
+    );
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await catalogRequest;
+    await waitForShell(page);
+
+    try {
+      await searchDiscover(page, "stablecoin");
+      const summary = page.getByTestId("discover-result-summary");
+      await expect(summary).toContainText("Checking your Library…");
+      await expect(summary).not.toContainText("0 in your Library");
+    } finally {
+      releaseCatalog();
+    }
+  });
+
+  test("idle Discover does not fabricate an empty estate while loading", async ({ page }) => {
+    let releaseCatalog;
+    const catalogReady = new Promise((resolve) => {
+      releaseCatalog = resolve;
+    });
+    await page.route("**/datasets", async (route) => {
+      await catalogReady;
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ datasets: [] }),
+      });
+    });
+
+    const catalogRequest = page.waitForRequest((request) =>
+      new URL(request.url()).pathname.endsWith("/datasets"),
+    );
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await catalogRequest;
+    await waitForShell(page);
+
+    try {
+      await expect(page.getByTestId("discover-query-composer")).toBeVisible();
+      await expect(page.getByTestId("discover-coverage")).toHaveCount(0);
+      await expect(page.getByTestId("discover-empty")).not.toContainText(/\b0 held\b/);
+    } finally {
+      releaseCatalog();
+    }
+  });
+
+  test("does not report zero held evidence while the Library search is still running", async ({ page }) => {
+    await mockV2Api(page, {
+      discoverBody: { sections: [], total: 0 },
+      discoverDelayMs: 2_000,
+      discoverSourcesBody: {
+        results: [{
+          kind: "source",
+          source_id: "fast-known-route",
+          candidate_key: "source:fast-known-route",
+          title: "Fast known route",
+          provider: "Known source",
+          access_mode: "public",
+          collect_via: ["http_manifest"],
+        }],
+      },
+    });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await searchDiscover(page, "stablecoin");
+
+    const summary = page.getByTestId("discover-result-summary");
+    await expect(summary).toContainText("Checking your Library…");
+    await expect(summary).not.toContainText("0 in your Library");
+    await expect(summary).toContainText("0 in your Library", { timeout: 4_000 });
   });
 
   test("selecting a discover row keeps Explore visible and updates the Detail rail", async ({ page }) => {
+    await mockV2Api(page, { discoverBody: MOCK_DISCOVER_HIT });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
     await searchDiscover(page);
     await page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate').first().click();
     const surface = page.locator("aside.rd-v2-rail").getByTestId("discover-eval-surface");
@@ -66,13 +591,13 @@ test.describe("v2 Discover tab", () => {
     await expect(page.locator(".rd-v2-shell")).not.toHaveClass(/no-rail/);
     await expect(surface.locator(".rd-v2-eval-title")).toContainText(/MOPS|Taiwan/i);
     await expect(surface).toContainText("Can I use this?");
-    await expect(surface).toContainText("Useful for");
+    await expect(surface).toContainText("In plain terms");
     await expect(surface).toContainText("Still unknown");
     await expect(surface.locator(".rd-v2-eval-tech")).toBeVisible();
     await expect(surface.locator(".rd-v2-eval-tech")).not.toHaveAttribute("open");
     await expect(
       page.locator('[data-testid="discover-eval-actions"] .rd-v2-btn.primary', {
-        hasText: /Request this evidence|Open in Library/,
+        hasText: /Request this data|Open in Library/,
       }),
     ).toBeVisible();
     await expect(surface).not.toContainText("What we know");
@@ -93,12 +618,101 @@ test.describe("v2 Discover tab", () => {
     await expect(page.locator(".rd-v2-discover-candidate.selected")).toHaveCount(1);
     await expect(shell).not.toHaveClass(/no-rail/);
     await expect(rail).toHaveClass(/rd-v2-rail-collapsed/);
-    await rail.getByRole("button", { name: /Show Detail/ }).click();
+    await rail.getByRole("button", { name: /Show research context|Show Detail/ }).click();
     await expect(rail).not.toHaveClass(/rd-v2-rail-collapsed/);
     await rail.getByRole("tab", { name: "Ask" }).click();
     await expect(shell).not.toHaveClass(/no-rail/);
     await expect(rail).toBeVisible();
     await expect(rail.getByRole("tab", { name: "Ask" })).toHaveAttribute("aria-selected", "true");
+  });
+
+  test("mobile keeps retrieval controls and results reachable without the workstation cockpit", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await mockV2Api(page, { discoverBody: MOCK_DISCOVER_HIT });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await searchDiscover(page, "stablecoin");
+
+    // The evidence cockpit is a high-density workstation aid. On phone width it
+    // must not be stacked above retrieval; the compact filter menu carries the
+    // same decision without consuming the first result viewport.
+    await expect(page.getByRole("navigation", { name: "Evidence facets" })).toBeHidden();
+    const filterMenu = page.getByTestId("discover-filter-menu");
+    await expect(filterMenu).toBeVisible();
+    const menuBox = await filterMenu.boundingBox();
+    expect(menuBox).not.toBeNull();
+    expect(menuBox.x).toBeGreaterThanOrEqual(0);
+    expect(menuBox.x + menuBox.width).toBeLessThanOrEqual(390);
+
+    const firstResult = page.locator(".rd-v2-discover-candidate").first();
+    await expect(firstResult).toBeVisible();
+    const resultBox = await firstResult.boundingBox();
+    expect(resultBox).not.toBeNull();
+    expect(resultBox.y).toBeLessThan(844);
+
+    await filterMenu.locator("summary").click();
+    const external = page
+      .getByRole("group", { name: "Filter Discover results" })
+      .getByRole("button", { name: /Beyond (your )?Library/i });
+    await expect(external).toBeVisible();
+    await external.click();
+    await expect(filterMenu.locator("summary")).toContainText("Beyond your Library");
+    await expect(page.getByTestId("discover-rank-foot")).toContainText("Beyond your Library");
+  });
+
+  test("usable height expands evidence detail and the bounded History ledger", async ({ page }) => {
+    const historyItems = Array.from({ length: 13 }, (_, index) => ({
+      id: `run_height_${String(index + 1).padStart(2, "0")}`,
+      kind: "collection_run",
+      status: "query_ready",
+      title: `Registered research asset ${index + 1}`,
+      summary: `Registry read-back confirmed for asset ${index + 1}.`,
+      created_at: `2026-08-${String(index + 1).padStart(2, "0")}T02:00:00Z`,
+      updated_at: `2026-08-${String(index + 1).padStart(2, "0")}T03:00:00Z`,
+      dataset_id: `registered_asset_${index + 1}`,
+      query_ready: true,
+      usable: true,
+      readiness: "query_ready",
+      holding_status: "held",
+      registry_readback: true,
+      archive_verified: true,
+    }));
+    await mockV2Api(page, {
+      discoverBody: MOCK_DISCOVER_HIT,
+      historyBody: { items: historyItems },
+      jobsBody: { jobs: [] },
+    });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await searchDiscover(page, "governance filings");
+
+    const evidence = page.locator(".rd-v2-discover-evidence").first();
+    const offeringFacts = page.locator(".rd-v2-discover-offering-facts").first();
+    await expect(evidence).toBeVisible();
+    await expect(offeringFacts).toContainText("Dataset");
+    expect(await evidence.evaluate((node) => getComputedStyle(node).webkitLineClamp)).toBe("1");
+    // The compact ledger preserves fact labels at normal workstation height;
+    // hiding them made the evidence row harder to scan, not denser.
+    expect(await offeringFacts.locator("b").first().evaluate((node) => getComputedStyle(node).display)).toBe("block");
+
+    await page.setViewportSize({ width: 1920, height: 961 });
+    // The label is an inline declaration, then blockified by its inline-flex
+    // fact container; the material contract is that it is no longer hidden.
+    expect(await offeringFacts.locator("b").first().evaluate((node) => getComputedStyle(node).display)).toBe("block");
+    expect(await offeringFacts.evaluate((node) => getComputedStyle(node).display)).toBe("flex");
+
+    await page.getByRole("tab", { name: "History" }).click();
+    await expect(page.locator(".rd-v2-history-row")).toHaveCount(8);
+
+    await page.setViewportSize({ width: 1920, height: 1600 });
+    await expect(page.locator(".rd-v2-history-row")).toHaveCount(12);
+    await page.getByRole("tab", { name: "Explore" }).click();
+    expect(await evidence.evaluate((node) => getComputedStyle(node).webkitLineClamp)).toBe("3");
+    expect(await offeringFacts.locator("b").first().evaluate((node) => getComputedStyle(node).display)).toBe("block");
+    expect(await page.locator(".rd-v2-discover-candidate-title").first().evaluate(
+      (node) => getComputedStyle(node).whiteSpace,
+    )).toBe("normal");
   });
 
   test("Discover candidate Ask actions carry candidate context", async ({ page }) => {
@@ -123,7 +737,7 @@ test.describe("v2 Discover tab", () => {
     await waitForShell(page);
     await searchDiscover(page, "mops");
     await page.locator('.rd-v2-catalog button.row.rd-v2-discover-candidate', { hasText: "MOPS" }).click();
-    await page.locator('[data-testid="discover-eval-actions"]').getByRole("button", { name: "Probe source" }).click();
+    await page.locator('[data-testid="discover-eval-actions"]').getByRole("button", { name: "Test connection" }).click();
     const surface = page.locator("aside.rd-v2-rail").getByTestId("discover-eval-surface");
     await expect(surface.locator(".rd-v2-eval-verified")).toContainText("text/csv");
     await expect(surface.locator(".rd-v2-eval-verified")).toContainText(/domain observed/i);
@@ -201,9 +815,12 @@ test.describe("v2 Discover tab", () => {
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
     await searchDiscover(page, "market");
-    const section = page.locator('[aria-label="Other external matches"]');
-    await expect(section).toBeVisible();
-    await expect(section).not.toContainText("sources beyond your Library");
-    await expect(section).not.toContainText("results in your Library");
+    // This used to assert an "Other external matches" section did not restate the
+    // breakdown. That section is withdrawn along with BEST FIT, so the guarantee
+    // is now structural: neither ranking section may come back.
+    await expect(page.locator('[aria-label="Other external matches"]')).toHaveCount(0);
+    await expect(page.getByTestId("discover-other-matches")).toHaveCount(0);
+    await expect(page.getByTestId("discover-best-fit")).toHaveCount(0);
+    await expect(page.getByTestId("discover-result-summary")).toContainText(/\d+ sources?/i);
   });
 });

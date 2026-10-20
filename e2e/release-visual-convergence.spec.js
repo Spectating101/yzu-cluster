@@ -9,16 +9,16 @@ async function openTab(page, label) {
 async function waitForHomeEvidence(page) {
   const continuation = page.getByTestId("home-continue");
   await expect(continuation.locator("h2")).toBeVisible();
-  await expect(continuation.getByRole("button", { name: "Continue" })).toBeVisible();
+  await expect(continuation.getByRole("button", { name: /Continue|Review/ })).toBeVisible();
   await expect(page.getByRole("region", { name: "Recent trail" })).toBeVisible();
 }
 
 async function selectFirstLibraryDataset(page) {
   await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
-  await page.getByTestId("library-directory").waitFor({ state: "visible" });
-  await page.getByRole("textbox", { name: "Search library holdings" }).fill("Asia");
-  const row = page.locator('.rd-v2-catalog-list button[data-kind="dataset"]').first();
+  await page.getByTestId("library-evidence-estate").waitFor({ state: "visible" });
+  await page.getByRole("textbox", { name: "Search your Library" }).fill("Asia");
+  const row = page.getByTestId("library-evidence-row").first();
   await expect(row).toBeVisible();
   await row.click();
 }
@@ -104,7 +104,11 @@ test.describe("Research Drive release visual contract", () => {
 
     for (const destination of destinations) {
       await openTab(page, destination.tab);
-      await expect(page.locator(".rd-v2-page-head h1", { hasText: destination.title })).toBeVisible();
+      if (destination.tab === "Synthesis") {
+        await expect(page.getByTestId("synthesis-home-state")).toBeVisible();
+      } else {
+        await expect(page.locator(".rd-v2-page-head h1", { hasText: destination.title })).toBeVisible();
+      }
       const rail = page.locator("aside.rd-v2-rail");
       if (destination.rail) {
         await expect(rail.getByRole("tab", { name: "Ask" })).toBeVisible();
@@ -115,26 +119,25 @@ test.describe("Research Drive release visual contract", () => {
     }
   });
 
-  test("Settings keeps faculty status visible and technical endpoints collapsed", async ({ page }) => {
-    await openTab(page, "Settings");
+  test("Settings keeps browser connection visible and operational status subordinate", async ({ page }) => {
+  await openTab(page, "Settings");
 
-    const summary = page.getByRole("region", { name: "Research desk status" });
-    await expect(summary).toContainText("Desk API");
-    await expect(summary).toContainText("Research assistant");
-    await expect(summary).toContainText("Jobs");
-    await expect(page.getByText("Research services", { exact: true })).toBeVisible();
-    await expect(page.getByText("Browser access", { exact: true })).toBeVisible();
-    await expect(page.getByText("Research archive", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("This browser", { exact: true }).locator("..")).toContainText("Connected");
+  const advanced = page
+    .locator("details.rd-v2-settings-advanced")
+    .filter({ hasText: "System status and technical details" })
+    .first();
+  await expect(advanced).not.toHaveAttribute("open", "");
+  await expect(page.getByText("Research API", { exact: true })).not.toBeVisible();
+  await expect(page.getByText("Assistant runtime", { exact: true })).not.toBeVisible();
+  await advanced.locator("summary").first().click();
+  await expect(page.getByText("Research API", { exact: true })).toBeVisible();
+  await expect(page.getByText("Assistant runtime", { exact: true })).toBeVisible();
+  await expect(page.getByText("Research archive", { exact: true })).toBeVisible();
+  await expect(page.getByText("Research tools", { exact: true })).toBeVisible();
+});
 
-    const advanced = page.locator("details.rd-v2-settings-advanced");
-    await expect(advanced).not.toHaveAttribute("open", "");
-    await expect(page.getByText(":8765", { exact: true })).not.toBeVisible();
-    await advanced.locator("summary").click();
-    await expect(page.getByText(":8765", { exact: true })).toBeVisible();
-    await expect(page.getByText("Assistant runtime", { exact: true })).toBeVisible();
-  });
-
-  test("long research identities wrap instead of breaking the visible Detail pane", async ({ page }) => {
+test("long research identities wrap instead of breaking the visible Detail pane", async ({ page }) => {
     await selectFirstLibraryDataset(page);
 
     const rail = page.locator("aside.rd-v2-rail");
@@ -183,7 +186,7 @@ test.describe("Research Drive mobile composition", () => {
 
     await expect(page.locator("main.yzu-main")).toBeVisible();
     const continuation = page.getByTestId("home-continue");
-    const continueButton = continuation.getByRole("button", { name: "Continue" });
+    const continueButton = continuation.getByRole("button", { name: /Continue|Review/ });
     await expect(continuation.locator("h2")).toBeVisible();
     await expect(continueButton).toBeVisible();
     await expect(page.locator(".rd-v2-home-actions")).toHaveCount(0);
@@ -198,7 +201,7 @@ test.describe("Research Drive mobile composition", () => {
     expect(continueBox.y + continueBox.height).toBeLessThanOrEqual(cardBox.y + cardBox.height + 2);
 
     const rail = page.locator("aside.rd-v2-rail");
-    await expect(rail.getByRole("button", { name: /Show Detail · Ask|Hide panel/ })).toBeVisible();
+    await expect(rail.getByRole("button", { name: /Show research context|Hide panel/ })).toBeVisible();
 
     const viewportOverflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 2);
     expect(viewportOverflow).toBe(false);

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  LIBRARY_FOLDERS_ROOT,
   breadcrumbTrail,
   collectDatasetDescendants,
   listFolderChildren,
@@ -7,9 +8,19 @@ import {
 import { buildProfessorVaultTree, datasetTitle, isOpsNoiseDataset } from "@/v2/professorVaultTree";
 import { libraryFolderObject } from "@/v2/activeObject";
 import { CatalogList } from "@/v2/CatalogList";
-import { statusPillKind } from "@/v2/datasetMeta";
+import { isMembersOnly, libraryAssetPresentation, statusPillKind } from "@/v2/datasetMeta";
+import { libraryVerification } from "@/v2/libraryVerification";
+import { isBrowsableLibraryLocation, normalizeLibraryLocations } from "@/v2/libraryLocations";
 import { LibraryAssetWorkspace } from "@/v2/LibraryAssetWorkspace";
-import { Chip, PageShell } from "@/v2/ui";
+import { LibraryEvidenceEstate } from "@/v2/LibraryEvidenceEstate";
+import { LibrarySubscriptionStrip, LibrarySubscriptions } from "@/v2/LibrarySubscriptions";
+import { resolveLibrarySelection } from "@/v2/librarySelection";
+import { buildLibrarySearchAskPrompt, rankLibraryHoldings } from "@/v2/librarySearch";
+import { PageShell } from "@/v2/ui";
+import { DeskError } from "@/v2/DeskError";
+import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
+import { libraryLenses, lensNote } from "@/v2/libraryFocus";
+import { useResearchFocus } from "@/v2/useResearchFocus";
 
 function datasetListItem(row) {
   const name = datasetTitle(row);
@@ -22,7 +33,11 @@ function datasetListItem(row) {
 }
 
 function readinessCount(rows) {
-  return rows.filter((d) => statusPillKind(d).kind === "query-ready").length;
+  return rows.filter((d) => statusPillKind(d).kind === "query-ready" && !isMembersOnly(d)).length;
+}
+
+function membersOnlyCount(rows) {
+  return rows.filter((d) => isMembersOnly(d)).length;
 }
 
 function itemDataset(item) {
@@ -43,16 +58,48 @@ function itemUpdatedTime(item) {
   return Number.isNaN(time) ? 0 : time;
 }
 
+function itemPresentationKind(item) {
+  if (item?.kind === "folder") return "folder";
+  return libraryAssetPresentation(itemDataset(item)).kind;
+}
+
+function itemMatchesType(item, mode) {
+  if (mode === "all" || item?.kind === "folder") return true;
+  const kind = itemPresentationKind(item);
+  if (mode === "data") return kind === "dataset" || kind === "metadata_index";
+  if (mode === "literature") return kind === "scholarly_work";
+  if (mode === "sources") return kind === "live_source";
+  return true;
+}
+
+function itemVerificationConfirmed(item) {
+  if (item?.kind === "folder") return false;
+  const row = itemDataset(item);
+  const verification = libraryVerification(row).kind;
+  return ["verified", "matched"].includes(verification);
+}
+
 function itemMatchesFilter(item, mode) {
   if (mode === "all" || item?.kind === "folder") return true;
   const row = itemDataset(item);
-  return statusPillKind(row).kind === "query-ready";
+  const locked = isMembersOnly(row);
+  const ready = statusPillKind(row).kind === "query-ready" && !locked;
+  if (mode === "ready") return ready;
+  if (mode === "members") return locked;
+  if (mode === "not_ready") return !ready && !locked;
+  if (mode === "confirmed") return itemVerificationConfirmed(item);
+  if (mode === "unconfirmed") return !itemVerificationConfirmed(item);
+  return true;
 }
 
 function sortItems(rows, sortBy) {
   return [...rows].sort((a, b) => {
     if (a?.kind === "folder" && b?.kind !== "folder") return -1;
     if (a?.kind !== "folder" && b?.kind === "folder") return 1;
+    if (sortBy === "relevance") {
+      const delta = Number(itemDataset(b).search_match?.score || 0) - Number(itemDataset(a).search_match?.score || 0);
+      if (delta) return delta;
+    }
     if (sortBy === "updated") {
       const delta = itemUpdatedTime(b) - itemUpdatedTime(a);
       if (delta) return delta;
@@ -78,20 +125,20 @@ function branchStatusNote({
 }) {
   if (!displayCount && !folderCount) {
     if (showingSearchHits) return "No datasets match this search";
-    return isRoot ? "No indexed folders yet" : "No holdings in this branch";
+    return isRoot ? "No data saved to Library yet" : "No data in this branch";
   }
   if (showingSearchHits) {
-    return `${displayCount} matching dataset${displayCount === 1 ? "" : "s"} — open a row for readiness and Ask`;
+    return `${displayCount} matching dataset${displayCount === 1 ? "" : "s"} — select one for readiness, source, sample, and Ask`;
   }
   if (showingBranchFallback) {
     return `${displayCount} dataset${displayCount === 1 ? "" : "s"} matched here`;
   }
   if (isRoot) {
     const parts = [];
-    if (folderCount) parts.push(`${folderCount} ${folderCount === 1 ? "shelf" : "shelves"}`);
-    if (partitionCount) parts.push(`${partitionCount} folder${partitionCount === 1 ? "" : "s"}`);
     if (datasetCount) parts.push(`${datasetCount} dataset${datasetCount === 1 ? "" : "s"}`);
-    return parts.join(" · ") || "Browse shelves, then folders inside them";
+    if (folderCount) parts.push(`${folderCount} research collection${folderCount === 1 ? "" : "s"}`);
+    if (partitionCount) parts.push(`${partitionCount} nested context${partitionCount === 1 ? "" : "s"}`);
+    return parts.join(" · ") || "Browse your Library";
   }
   if (items.length) {
     const parts = [];
@@ -99,16 +146,23 @@ function branchStatusNote({
     if (datasetCount) parts.push(`${datasetCount} dataset${datasetCount === 1 ? "" : "s"}`);
     return parts.join(" · ") || "Open a folder or dataset";
   }
-  return "No holdings in this branch";
+  return "No data in this branch";
 }
 
-function toolbarCountLabel({ searchActive, folderCount, datasetCount, visibleCount }) {
+function toolbarCountLabel({ searchActive, isRoot, folderCount, datasetCount, visibleCount, focusedCount = 0 }) {
+  if (focusedCount) return `${focusedCount} of ${datasetCount} datasets`;
   if (searchActive) {
     return `${visibleCount} dataset${visibleCount === 1 ? "" : "s"}`;
   }
+  if (isRoot) {
+    const parts = [];
+    if (datasetCount) parts.push(`${datasetCount} dataset${datasetCount === 1 ? "" : "s"}`);
+    if (folderCount) parts.push(`${folderCount} collection${folderCount === 1 ? "" : "s"}`);
+    return parts.join(" · ") || `${visibleCount} row${visibleCount === 1 ? "" : "s"}`;
+  }
   const parts = [];
-  if (folderCount) parts.push(`${folderCount} folder${folderCount === 1 ? "" : "s"}`);
-  if (datasetCount) parts.push(`${datasetCount} dataset${datasetCount === 1 ? "" : "s"}`);
+  if (folderCount) parts.push(`${folderCount} ${folderCount === 1 ? "folder" : "folders"}`);
+  if (datasetCount) parts.push(`${datasetCount} ${datasetCount === 1 ? "dataset" : "datasets"}`);
   return parts.join(" · ") || `${visibleCount} row${visibleCount === 1 ? "" : "s"}`;
 }
 
@@ -162,9 +216,9 @@ function LibraryNewMenu({ open, onToggle, onUploadFile, onAddUrl, onProcure, onC
         <div className="rd-v2-library-action-menu" role="menu" aria-label="New library item">
           {onUploadFile ? <button type="button" role="menuitem" className="rd-v2-library-menu-item" onClick={onUploadFile}>Upload file...</button> : null}
           {onAddUrl ? <button type="button" role="menuitem" className="rd-v2-library-menu-item" onClick={onAddUrl}>Add URL / DOI...</button> : null}
-          {onProcure ? <button type="button" role="menuitem" className="rd-v2-library-menu-item" onClick={onProcure}>Procure missing data...</button> : null}
+          {onProcure ? <button type="button" role="menuitem" className="rd-v2-library-menu-item" onClick={onProcure}>Find missing evidence...</button> : null}
           <button type="button" role="menuitem" className="rd-v2-library-menu-item" disabled>
-            New folder
+            New collection
           </button>
         </div>
       ) : null}
@@ -204,18 +258,78 @@ function LibraryHeadActions({
   );
 }
 
+function LibraryAssetInspector({ dataset, onClose, onPreview, onOpenQuery, onAsk, onRefreshData, onFindInDiscover }) {
+  const inspectorRef = useRef(null);
+  const scrimRef = useRef(null);
+
+  useEffect(() => {
+    if (!dataset) return undefined;
+    const opener = document.activeElement;
+    const background = scrimRef.current?.previousElementSibling || null;
+    if (background) background.inert = true;
+    const frame = window.requestAnimationFrame(() => inspectorRef.current?.focus());
+    return () => {
+      window.cancelAnimationFrame(frame);
+      if (background) background.inert = false;
+      if (opener?.isConnected) opener.focus();
+    };
+  }, [dataset?.dataset_id]);
+
+  if (!dataset) return null;
+
+  return (
+    <div
+      ref={scrimRef}
+      className="rd-v2-library-inspector-scrim"
+      data-testid="library-asset-inspector"
+      onKeyDown={(event) => {
+        if (event.key !== "Escape") return;
+        if (event.target.closest?.(".rd-v2-library-overlay")) return;
+        event.stopPropagation();
+        onClose?.();
+      }}
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose?.();
+      }}
+    >
+      <section
+        ref={inspectorRef}
+        className="rd-v2-library-inspector-shell"
+        role="dialog"
+        aria-label={`Inspect ${datasetTitle(dataset)}`}
+        tabIndex={-1}
+      >
+        <LibraryAssetWorkspace
+          dataset={dataset}
+          onBack={onClose}
+          onPreview={onPreview}
+          onAsk={onAsk}
+          onOpenQuery={onOpenQuery}
+          onRefreshData={onRefreshData}
+          onFindInDiscover={onFindInDiscover}
+        />
+      </section>
+    </div>
+  );
+}
+
 export function LibraryPage({
+  canBrowseFolders = true,
   datasets,
+  loading = false,
+  navigationLoading = false,
+  navigationError = "",
   partitions = [],
   shelves = [],
+  loadError = "",
   guide = null,
-  cluster,
   folderId,
   onFolderChange,
   selectedId,
   onSelectDataset,
   onPreviewDataset,
   onOpenQuery,
+  onRefreshData,
   onRefresh,
   onFocusFolder,
   onStartUpload,
@@ -223,25 +337,107 @@ export function LibraryPage({
   onStartProcure,
   onClearSelection,
   onAskDataset,
+  onAskSearch,
+  onReviewAvailable,
+  onSearchWider,
   searchQuery = "",
   onSearchChange,
+  selectionHoldings,
+  selectionFallback,
+  selectionDetail,
+  folderLocations = [],
+  onFolderLocationChange,
+  referenceCount = 0,
+  researchEnabled = false,
 }) {
   const [sortBy, setSortBy] = useState("name");
+  const [lensChoice, setLensChoice] = useState(null);
+  const [typeMode, setTypeMode] = useState("all");
   const [filterMode, setFilterMode] = useState("all");
+  const [locationMode, setLocationMode] = useState("all");
   const [newMenuOpen, setNewMenuOpen] = useState(false);
+  const searchInputRef = useRef(null);
+  const searchActive = Boolean(String(searchQuery || "").trim());
 
-  const vaultDatasets = useMemo(
-    () => (datasets || []).filter((row) => !isOpsNoiseDataset(row)),
-    [datasets],
+  const librarySearchNav = useMemo(() => {
+    const byDataset = new Map();
+    const shelfById = new Map((shelves || []).map((shelf) => [String(shelf.id || ""), shelf]));
+    for (const lane of partitions || []) {
+      const shelf = shelfById.get(String(lane.shelf_id || ""));
+      const nav = [
+        shelf?.label,
+        shelf?.blurb,
+        lane.professor_label,
+        lane.subtitle,
+        lane.name,
+        lane.professor_blurb,
+        lane.scope,
+        lane.partition_id,
+        lane.detail?.partition_id,
+      ]
+        .filter(Boolean)
+        .join(" ");
+      const ids = lane.detail?.registry_dataset_ids || lane.registry_dataset_ids || [];
+      for (const id of ids) {
+        const key = String(id || "");
+        if (!key) continue;
+        byDataset.set(key, `${byDataset.get(key) || ""} ${nav}`.trim());
+      }
+    }
+    return byDataset;
+  }, [partitions, shelves]);
+
+  const allHeldDatasets = useMemo(
+    () => (selectionHoldings || datasets || []).filter((row) => !isOpsNoiseDataset(row)),
+    [datasets, selectionHoldings],
   );
+  const rankedSearchDatasets = useMemo(
+    () => (searchActive ? rankLibraryHoldings(allHeldDatasets, searchQuery, librarySearchNav) : []),
+    [allHeldDatasets, librarySearchNav, searchActive, searchQuery],
+  );
+  const vaultDatasets = useMemo(
+    () => (searchActive ? rankedSearchDatasets : (datasets || []).filter((row) => !isOpsNoiseDataset(row))),
+    [datasets, rankedSearchDatasets, searchActive],
+  );
+
+  useEffect(() => {
+    if (searchActive) {
+      setSortBy((current) => (current === "name" ? "relevance" : current));
+    } else {
+      setSortBy((current) => (current === "relevance" ? "name" : current));
+    }
+  }, [searchActive]);
+
+  useEffect(() => {
+    const focusLibrarySearch = (event) => {
+      if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey) return;
+      const target = event.target;
+      if (target?.closest?.('input, textarea, select, [contenteditable="true"]')) return;
+      event.preventDefault();
+      searchInputRef.current?.focus();
+    };
+    window.addEventListener("keydown", focusLibrarySearch);
+    return () => window.removeEventListener("keydown", focusLibrarySearch);
+  }, []);
+  const surfaceState = resolveSurfaceLifecycle({
+    loading: loading || navigationLoading,
+    error: loadError || navigationError,
+    count: vaultDatasets.length,
+  });
   const selectedDataset = useMemo(
-    () => vaultDatasets.find((row) => row.dataset_id === selectedId) || null,
-    [selectedId, vaultDatasets],
+    () =>
+      resolveLibrarySelection({
+        selectedId,
+        holdings: selectionHoldings || vaultDatasets,
+        fallback: selectionFallback,
+        allowUnknown: loading,
+      }),
+    [loading, selectedId, selectionHoldings, selectionFallback, vaultDatasets],
   );
 
   const tree = useMemo(
-    () => buildProfessorVaultTree(vaultDatasets, partitions.length ? partitions : (cluster?.lanes || []), shelves),
-    [vaultDatasets, partitions, shelves, cluster?.lanes],
+    () => buildProfessorVaultTree(vaultDatasets, partitions, shelves),
+    [vaultDatasets, partitions, shelves],
   );
 
   const trail = useMemo(() => {
@@ -252,18 +448,34 @@ export function LibraryPage({
 
   const destination = useMemo(() => folderDestination(trail, folderId), [trail, folderId]);
   const isRoot = !folderId;
+  const browsingPhysicalFolders = folderId === LIBRARY_FOLDERS_ROOT || String(folderId || "").startsWith(`${LIBRARY_FOLDERS_ROOT}/`);
+  const normalizedFolderLocations = useMemo(
+    () => normalizeLibraryLocations(folderLocations),
+    [folderLocations],
+  );
+
+  useEffect(() => {
+    if (locationMode === "all") return;
+    const active = normalizedFolderLocations.find((location) => location.id === locationMode);
+    if (!isBrowsableLibraryLocation(active, Boolean(onFolderLocationChange))) setLocationMode("all");
+  }, [locationMode, normalizedFolderLocations, onFolderLocationChange]);
 
   const items = useMemo(() => listFolderChildren(tree, folderId), [tree, folderId]);
-  const searchActive = Boolean(String(searchQuery || "").trim());
-  // Search already filters the catalog upstream; without flattening, Lab root only
-  // shows ancestor shelf/partition folders — never the matching datasets themselves.
+  // Search already filters the catalog upstream; without flattening, Library root
+  // would expose only ancestor shelves instead of the matching evidence itself.
   const displayRows = useMemo(() => {
     if (!searchActive) return items;
     return collectDatasetDescendants(tree, folderId);
   }, [folderId, items, searchActive, tree]);
   const visibleRows = useMemo(
-    () => sortItems(displayRows.filter((item) => itemMatchesFilter(item, filterMode)), sortBy),
-    [displayRows, filterMode, sortBy],
+    () =>
+      sortItems(
+        displayRows.filter(
+          (item) => itemMatchesType(item, typeMode) && itemMatchesFilter(item, filterMode),
+        ),
+        sortBy,
+      ),
+    [displayRows, filterMode, sortBy, typeMode],
   );
   const currentFolderName = isRoot ? "Library root" : trail[trail.length - 1]?.name || "Library";
   const showingBranchFallback = false;
@@ -286,27 +498,50 @@ export function LibraryPage({
     if (isRoot) return vaultDatasets;
     return collectDatasetDescendants(tree, folderId).map(itemDataset);
   }, [displayRows, folderId, isRoot, searchActive, tree, vaultDatasets]);
+  const focus = useResearchFocus(researchEnabled);
+  const lenses = useMemo(() => libraryLenses(allHeldDatasets, focus), [allHeldDatasets, focus]);
+  const filtersDefault = typeMode === "all" && filterMode === "all";
+  const lensAvailable = isRoot && !searchActive && lenses.length > 0;
+  const chosenLens = lensChoice === "all" || lenses.some((lens) => lens.id === lensChoice)
+    ? lensChoice
+    : lenses[0]?.id || "all";
+  const activeLens = lensAvailable && filtersDefault ? chosenLens : "all";
+  const estateRows = useMemo(() => {
+    const focused = lenses.find((lens) => lens.id === activeLens);
+    if (focused) return focused.rows.map(datasetListItem);
+    return sortItems(
+      branchDatasetRows
+        .map(datasetListItem)
+        .filter((item) => itemMatchesType(item, typeMode) && itemMatchesFilter(item, filterMode)),
+      sortBy,
+    );
+  }, [activeLens, branchDatasetRows, filterMode, lenses, sortBy, typeMode]);
+  const rootCollections = useMemo(
+    () => folderRows.map((folder) => ({
+      ...folder,
+      asset_count: collectDatasetDescendants(tree, folder.id).length,
+    })),
+    [folderRows, tree],
+  );
   const readyCount = readinessCount(branchDatasetRows);
+  const lockedCount = membersOnlyCount(branchDatasetRows);
+  const nonReadyCount = Math.max(0, branchDatasetRows.length - readyCount - lockedCount);
+  const confirmedCount = branchDatasetRows.filter((row) => itemVerificationConfirmed(datasetListItem(row))).length;
   const browseDatasetCount = branchDatasetRows.length;
+  const holdingsPending = loading && !vaultDatasets.length;
   const branchNote = branchStatusNote({
     isRoot,
     items,
     showingBranchFallback,
     showingSearchHits,
-    displayCount: displayRows.length,
+    displayCount: isRoot ? estateRows.length : displayRows.length,
     folderCount,
     partitionCount,
     datasetCount: browseDatasetCount,
   });
-  const startHereShelves = useMemo(() => {
-    const ids = Array.isArray(guide?.start_here) ? guide.start_here : [];
-    const byId = new Map((shelves || []).map((s) => [String(s.id || ""), s]));
-    const fromGuide = ids.map((id) => byId.get(String(id))).filter(Boolean);
-    if (fromGuide.length) {
-      return fromGuide.map((s) => ({ id: String(s.id), label: String(s.label || s.id) }));
-    }
-    return folderRows.slice(0, 5).map((s) => ({ id: s.id, label: s.name }));
-  }, [folderRows, guide, shelves]);
+  // Keep guide in the contract for the backend-owned taxonomy. Root evidence is
+  // no longer gated by those recommendations; shelves remain contextual filters.
+  void guide;
   const branchObject = useMemo(
     () =>
       libraryFolderObject({
@@ -317,9 +552,12 @@ export function LibraryPage({
         folderCount,
         datasetCount: browseDatasetCount,
         readyCount,
-        itemCount: visibleRows.length,
+        membersOnlyCount: lockedCount,
+        itemCount: isRoot ? estateRows.length : visibleRows.length,
+        referenceCount: isRoot ? referenceCount : 0,
+        loading: holdingsPending,
       }),
-    [branchNote, browseDatasetCount, destination, folderCount, folderId, readyCount, trail, visibleRows.length],
+    [branchNote, browseDatasetCount, destination, estateRows.length, folderCount, folderId, holdingsPending, isRoot, lockedCount, readyCount, referenceCount, trail, visibleRows.length],
   );
 
   useEffect(() => {
@@ -348,160 +586,298 @@ export function LibraryPage({
     onStartProcure?.(branchObject);
   }, [branchObject, onStartProcure]);
 
-  if (selectedDataset) {
-    return (
-      <LibraryAssetWorkspace
-        dataset={selectedDataset}
-        onBack={onClearSelection}
-        onPreview={() => onPreviewDataset?.(selectedDataset)}
-        onAsk={() => onAskDataset?.(selectedDataset)}
-        onOpenQuery={() => onOpenQuery?.(selectedDataset.dataset_id)}
-      />
-    );
-  }
+  const askCurrentSearch = useCallback(() => {
+    const query = String(searchQuery || "").trim();
+    if (!query || !onAskSearch) return;
+    onClearSelection?.();
+    onAskSearch(buildLibrarySearchAskPrompt(query, branchDatasetRows));
+  }, [branchDatasetRows, onAskSearch, onClearSelection, searchQuery]);
+
+  const resetFilters = useCallback(() => {
+    setTypeMode("all");
+    setFilterMode("all");
+  }, []);
+
+  const lensControl = lensAvailable
+    ? {
+        active: activeLens,
+        options: [
+          ...lenses.map((lens) => ({ id: lens.id, label: lens.label, count: lens.rows.length })),
+          { id: "all", label: "All", count: branchDatasetRows.length },
+        ],
+        note: lensNote(activeLens, focus),
+        onChange: (id) => {
+          resetFilters();
+          setLensChoice(id);
+        },
+      }
+    : null;
 
   return (
-    <PageShell
-      className="rd-v2-library-page"
-      title="Library"
-      lead="Open a shelf first — news, stocks, crypto, panels — then the datasets inside."
-      headExtra={
-        <div className="rd-v2-library-headline">
-          <LibraryBreadcrumb trail={trail} onFolderChange={onFolderChange} />
-          <LibraryHeadActions
-            newMenuOpen={newMenuOpen}
-            onToggleNewMenu={toggleNewMenu}
-            onCloseNewMenu={closeNewMenu}
-            onOpenUpload={openUploadRail}
-            onOpenUrlModal={openUrlRail}
-            onProcureBranch={handleProcureBranch}
-            onRefresh={onRefresh ? handleRefresh : undefined}
-          />
-        </div>
-      }
-      toolbar={
-        <>
-          <label className="rd-v2-library-toolbar-search" data-testid="library-toolbar-search">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path
-                d="m21 21-4.2-4.2m1.2-5.3a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
-            <input
-              value={searchQuery}
-              onChange={(e) => onSearchChange?.(e.target.value)}
-              placeholder="Search this library…"
-              aria-label="Search library holdings"
-              onKeyDown={(e) => {
-                // Live filter; Enter just commits focus so results stay visible.
-                if (e.key === "Enter") e.currentTarget.blur();
-              }}
+    <>
+      <PageShell
+        className="rd-v2-library-page"
+        title="Library"
+        lead={allHeldDatasets.length
+          ? `${allHeldDatasets.length.toLocaleString("en-US")} datasets, with where each came from and whether it is ready to query.`
+          : "Everything you hold, where it came from, and whether it is ready to query."}
+        headExtra={
+          <div className="rd-v2-library-headline">
+            <LibraryBreadcrumb trail={trail} onFolderChange={onFolderChange} />
+            <LibraryHeadActions
+              newMenuOpen={newMenuOpen}
+              onToggleNewMenu={toggleNewMenu}
+              onCloseNewMenu={closeNewMenu}
+              onOpenUpload={openUploadRail}
+              onOpenUrlModal={openUrlRail}
+              onProcureBranch={handleProcureBranch}
+              onRefresh={onRefresh ? handleRefresh : undefined}
             />
-          </label>
-          <Chip active={sortBy === "name"} onClick={() => setSortBy("name")}>
-            Name {sortBy === "name" ? "↑" : "↕"}
-          </Chip>
-          <Chip active={sortBy === "updated"} onClick={() => setSortBy("updated")}>
-            Modified {sortBy === "updated" ? "↓" : "↕"}
-          </Chip>
-          <Chip
-            active={filterMode === "ready"}
-            onClick={() => setFilterMode((cur) => (cur === "ready" ? "all" : "ready"))}
-          >
-            {filterMode === "ready" ? "Ready" : "All"}
-          </Chip>
-          <span className="rd-v2-toolbar-spacer" />
-          <span className="rd-v2-toolbar-count">
-            {toolbarCountLabel({
-              searchActive,
-              folderCount,
-              datasetCount: browseDatasetCount,
-              visibleCount: visibleRows.length,
-            })}
-          </span>
-        </>
-      }
-      footer="double-click row → Preview"
-    >
-      {isRoot && !searchActive && startHereShelves.length ? (
-        <div className="rd-v2-library-start-here" aria-label="Start here shelves">
-          <span className="rd-v2-library-start-here-label">Start here</span>
-          <div className="rd-v2-library-start-here-chips">
-            {startHereShelves.map((shelf) => (
-              <Chip key={shelf.id} onClick={() => onFolderChange(shelf.id)}>
-                {shelf.label}
-              </Chip>
-            ))}
           </div>
-        </div>
-      ) : null}
-      <div className="rd-v2-library-branchline rd-v2-library-pathbar" aria-label="Library location status">
-        <div className="rd-v2-library-pathcopy">
-          <strong>{currentFolderName}</strong>
-          <p>
-            {searchActive
-              ? branchNote
-              : isRoot
-                ? "Browse shelves first, then the folders inside — each folder holds the datasets for that collection."
-                : branchNote}
-          </p>
-        </div>
-        <div className="rd-v2-library-pathstats">
-          {searchActive ? null : isRoot ? (
-            <>
-              <span>
-                {folderCount} {folderCount === 1 ? "shelf" : "shelves"}
-              </span>
-              <span>
-                {partitionCount} folder{partitionCount === 1 ? "" : "s"}
-              </span>
-            </>
-          ) : (
-            <span>
-              {folderCount} folder{folderCount === 1 ? "" : "s"}
-            </span>
-          )}
-          <span>
-            {browseDatasetCount} dataset{browseDatasetCount === 1 ? "" : "s"}
-            {searchActive ? " matched" : ""}
-          </span>
-          <span>{readyCount} query-ready</span>
-        </div>
-      </div>
-      <div className="rd-v2-catalog-list-wrap" data-testid="library-directory">
-        {visibleRows.length ? (
-          <CatalogList
-            rows={visibleRows}
-            selectedId={selectedId}
-            onOpenFolder={(folder) => onFolderChange(folder.id)}
-            onSelectDataset={onSelectDataset}
-            onDoubleClick={onPreviewDataset}
-            compact
-          />
-        ) : (
-          <div className="rd-v2-library-empty">
-            <strong>{searchActive ? "No datasets match this search" : "Nothing else in this folder"}</strong>
-            <p>
-              {searchActive
-                ? "Try a broader keyword, or clear the search to browse shelves again."
-                : "Clear the filter or use the breadcrumb to return to indexed folders."}
-            </p>
-            {/* VC-8: an empty branch offers bounded intake instead of a dead
-                end. These reuse the existing Library intake handlers — no
-                dashboard, tutorial stack, or duplicated Discover catalogue. */}
-            {!searchActive && (onStartUpload || onStartUrl || onStartProcure) ? (
-              <div className="rd-v2-library-empty-actions">
-                {onStartUpload ? <button type="button" className="rd-v2-btn sm" onClick={() => onStartUpload?.()}>Add files</button> : null}
-                {onStartUrl ? <button type="button" className="rd-v2-btn sm" onClick={() => onStartUrl?.()}>Add URL</button> : null}
-                {onStartProcure ? <button type="button" className="rd-v2-btn sm" onClick={() => onStartProcure?.()}>Find missing data</button> : null}
-              </div>
+        }
+        toolbar={
+          <>
+            <label className="rd-v2-library-toolbar-search" data-testid="library-toolbar-search">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="m21 21-4.2-4.2m1.2-5.3a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              </svg>
+              <input
+                ref={searchInputRef}
+                value={searchQuery}
+                onChange={(e) => onSearchChange?.(e.target.value)}
+                placeholder="Search title, field, source, coverage…"
+                aria-label="Search your Library"
+                aria-keyshortcuts="/"
+                onKeyDown={(e) => {
+                  // Live filter; Enter commits focus so arrow navigation can take over.
+                  if (e.key === "Enter") e.currentTarget.blur();
+                }}
+              />
+              <kbd aria-hidden="true">/</kbd>
+            </label>
+            {searchActive && onAskSearch ? (
+              <button
+                type="button"
+                className="rd-v2-btn sm rd-v2-library-search-ask"
+                data-testid="library-search-ask"
+                onClick={askCurrentSearch}
+              >
+                Ask Library
+              </button>
             ) : null}
+            <div className="rd-v2-library-toolbar-filters" role="group" aria-label="Library filters">
+              <label className="rd-v2-library-filter-control">
+                <span>Type</span>
+                <select
+                  data-testid="library-type-filter"
+                  aria-label="Filter Library by type"
+                  value={typeMode}
+                  onChange={(event) => setTypeMode(event.target.value)}
+                >
+                  <option value="all">Everything</option>
+                  <option value="data">Data</option>
+                  <option value="literature">Literature</option>
+                  <option value="sources">Live sources</option>
+                </select>
+              </label>
+              <label className="rd-v2-library-filter-control">
+                <span>Sort</span>
+                <select
+                  data-testid="library-sort-filter"
+                  aria-label="Sort Library"
+                  value={sortBy}
+                  onChange={(event) => setSortBy(event.target.value)}
+                >
+                  {searchActive ? <option value="relevance">Relevance</option> : null}
+                  <option value="name">Name</option>
+                  <option value="updated">Modified</option>
+                </select>
+              </label>
+              {browsingPhysicalFolders ? (
+                <label
+                  className="rd-v2-library-filter-control rd-v2-library-location-filter"
+                  title="Choose which connected storage location to browse."
+                >
+                  <span>Location</span>
+                  <select
+                    data-testid="library-location-filter"
+                    aria-label="Browse folder storage location"
+                    value={locationMode}
+                    onChange={(event) => {
+                      const nextLocation = event.target.value;
+                      setLocationMode(nextLocation);
+                      onFolderLocationChange?.(nextLocation);
+                    }}
+                  >
+                    {normalizedFolderLocations.map((location) => {
+                      const browsable = isBrowsableLibraryLocation(location, Boolean(onFolderLocationChange));
+                      return (
+                        <option
+                          key={location.id}
+                          value={location.id}
+                          data-state={location.state}
+                          disabled={!browsable}
+                        >
+                          {location.label}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </label>
+              ) : null}
+            </div>
+            <span className="rd-v2-toolbar-spacer" />
+            <span className="rd-v2-toolbar-count">
+              {navigationLoading && !searchActive
+                ? "Organizing collections…"
+                : loading && !vaultDatasets.length ? "Loading Library…" : toolbarCountLabel({
+                searchActive,
+                isRoot,
+                folderCount,
+                datasetCount: browseDatasetCount,
+                visibleCount: isRoot ? estateRows.length : visibleRows.length,
+                focusedCount: activeLens === "all" ? 0 : estateRows.length,
+              })}
+            </span>
+          </>
+        }
+        footer="Select a dataset to see its sample, source and download"
+        surfaceState={surfaceState}
+      >
+        {!isRoot ? (
+          <div
+            className="rd-v2-library-branchline rd-v2-library-pathbar"
+            role="group" aria-label="Library location status"
+            data-navigation-state={navigationLoading ? "loading" : navigationError ? "error" : "ready"}
+          >
+            <div className="rd-v2-library-pathcopy">
+              <strong>{currentFolderName}</strong>
+              <p>{branchNote}</p>
+            </div>
+            <div className="rd-v2-library-pathstats">
+              {navigationLoading && !searchActive ? (
+                <span>Organizing collection…</span>
+              ) : (
+                <span>{folderCount} folder{folderCount === 1 ? "" : "s"}</span>
+              )}
+              <span>
+                {browseDatasetCount} dataset{browseDatasetCount === 1 ? "" : "s"}
+                {searchActive ? " matched" : ""}
+              </span>
+              <span>{readyCount} ready to query</span>
+              {lockedCount > 0 ? <span>{lockedCount} for Yuan Ze members</span> : null}
+            </div>
+          </div>
+        ) : null}
+        {loadError ? <DeskError raw={loadError} surface="your Library" onRetry={onRefresh} /> : null}
+        {navigationError ? <DeskError raw={navigationError} surface="Library collections" /> : null}
+
+        {isRoot ? (
+          loading && !vaultDatasets.length ? (
+            <div className="rd-v2-library-empty" role="status" aria-live="polite">
+              <strong>Loading Library data…</strong>
+              <p>Reading your Library before showing its datasets.</p>
+            </div>
+          ) : (
+            <>
+            <LibraryEvidenceEstate
+              assets={estateRows}
+              collections={searchActive ? [] : rootCollections}
+              collectionsLoading={navigationLoading && !searchActive}
+              referenceCount={searchActive ? 0 : referenceCount}
+              onOpenCollection={(collection) => onFolderChange(collection.id)}
+              onReviewAvailable={onReviewAvailable}
+              showFolders={canBrowseFolders}
+              onSelectDataset={onSelectDataset}
+              searchQuery={searchQuery}
+              searchMatchCount={rankedSearchDatasets.length}
+              onAskCurrentSearch={onAskSearch ? askCurrentSearch : undefined}
+              onSearchWider={onSearchWider}
+              onResetFilters={resetFilters}
+              lens={lensControl}
+              access={branchDatasetRows.length ? {
+                active: filterMode,
+                onChange: setFilterMode,
+                options: [
+                  { id: "ready", label: "Ready to query", count: readyCount },
+                  ...(lockedCount ? [{ id: "members", label: "Yuan Ze members", count: lockedCount }] : []),
+                  ...(nonReadyCount ? [{ id: "not_ready", label: "Not ready yet", count: nonReadyCount }] : []),
+                  ...(confirmedCount > 0 && confirmedCount < branchDatasetRows.length ? [
+                    { id: "confirmed", label: "Source confirmed", count: confirmedCount },
+                    { id: "unconfirmed", label: "Source not confirmed", count: branchDatasetRows.length - confirmedCount },
+                  ] : []),
+                ],
+              } : null}
+              axisRows={branchDatasetRows}
+              banner={searchActive ? null : (
+                <LibrarySubscriptionStrip
+                  datasets={vaultDatasets}
+                  onSeeAll={() => document.getElementById("library-subscriptions")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                />
+              )}
+            />
+            {searchActive ? null : <LibrarySubscriptions datasets={vaultDatasets} onSelectDataset={onSelectDataset} />}
+            </>
+          )
+        ) : (
+          <div className="rd-v2-catalog-list-wrap" data-testid="library-directory">
+            {navigationLoading && !searchActive ? (
+              <div className="rd-v2-library-empty" role="status" aria-live="polite">
+                <strong>Organizing collection…</strong>
+                <p>Reading the current research context before showing data in your Library.</p>
+              </div>
+            ) : loading && !vaultDatasets.length ? (
+              <div className="rd-v2-library-empty" role="status" aria-live="polite">
+                <strong>Loading Library data…</strong>
+                <p>Reading your Library before showing this collection.</p>
+              </div>
+            ) : visibleRows.length ? (
+              <CatalogList
+                rows={visibleRows}
+                selectedId={selectedId}
+                onOpenFolder={(folder) => onFolderChange(folder.id)}
+                onSelectDataset={onSelectDataset}
+                compact
+              />
+            ) : (
+              <div className="rd-v2-library-empty">
+                <strong>{searchActive ? "No datasets match this search" : "Nothing else in this collection"}</strong>
+                <p>
+                  {searchActive
+                    ? "Try a broader keyword, or clear the search to see the current collection again."
+                    : "Clear the filter or use the breadcrumb to return to Library."}
+                </p>
+                {!searchActive && (onStartUpload || onStartUrl || onStartProcure) ? (
+                  <div className="rd-v2-library-empty-actions">
+                    {onStartUpload ? <button type="button" className="rd-v2-btn sm" onClick={() => onStartUpload?.()}>Add files</button> : null}
+                    {onStartUrl ? <button type="button" className="rd-v2-btn sm" onClick={() => onStartUrl?.()}>Add URL</button> : null}
+                    {onStartProcure ? <button type="button" className="rd-v2-btn sm" onClick={() => onStartProcure?.()}>Find missing evidence</button> : null}
+                  </div>
+                ) : null}
+              </div>
+            )}
           </div>
         )}
-      </div>
-    </PageShell>
+      </PageShell>
+      <LibraryAssetInspector
+        dataset={
+          selectedDataset && !selectedDataset.full_download && selectionDetail?.full_download
+            && selectionDetail.dataset_id === selectedDataset.dataset_id
+            ? { ...selectedDataset, full_download: selectionDetail.full_download }
+            : selectedDataset
+        }
+        onClose={onClearSelection}
+        onFindInDiscover={onReviewAvailable}
+        onPreview={() => selectedDataset && onPreviewDataset?.({ ...selectedDataset, __libraryExpandedSample: true })}
+        onAsk={() => selectedDataset && onAskDataset?.(selectedDataset)}
+        onOpenQuery={() => selectedDataset && onOpenQuery?.(selectedDataset.dataset_id)}
+        onRefreshData={onRefreshData}
+      />
+    </>
   );
 }

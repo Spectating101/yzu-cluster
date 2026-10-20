@@ -31,6 +31,12 @@ const MARKS = {
     alt: "Cursor",
     title: "Cursor Ask",
   },
+  assistant: {
+    id: "assistant",
+    src: queryEngineMark,
+    alt: "Research assistant",
+    title: "Research assistant",
+  },
   bigquery: {
     id: "bigquery",
     src: bigqueryMark,

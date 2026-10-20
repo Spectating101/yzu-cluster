@@ -2,10 +2,35 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   sourceResultToCandidate,
+  searchHitToCandidate,
   sourcesResponseToRows,
   durableHistoryToEvents,
   normalizeDiscoverMode,
+  reconcileDiscoverRegistryRows,
 } from "../src/v2/discoverAdapters.js";
+import { descriptiveLine } from "../src/v2/browseMeta.js";
+import { webHitsToRows } from "../src/v2/discoverActions.js";
+
+test("Discover reconciles stale internal hits by ID while preserving equally named current inputs", () => {
+  const hits = [
+    { kind: "registry_dataset", dataset_id: "old", source: "collection_index", local_ready: false, title: "County panel" },
+    { kind: "registry_dataset", dataset_id: "old_ready", source: "collection_index", local_ready: true, title: "County panel" },
+    { kind: "registry_dataset", dataset_id: "current", title: "County panel" },
+    { kind: "registry_dataset", dataset_id: "different", title: "County panel" },
+    { kind: "catalog", source: "procured", title: "County panel" },
+    { kind: "source", source_id: "bls", title: "BLS" },
+  ];
+  const catalog = [{ dataset_id: "current", analysis_readiness: "instant" }, { dataset_id: "different", analysis_readiness: "instant" }];
+  assert.deepEqual(reconcileDiscoverRegistryRows(hits, catalog, true).map(r => r.dataset_id || r.source_id), ["current", "different", "bls"]);
+  assert.equal(reconcileDiscoverRegistryRows(hits, [], false).length, 5);
+  assert.equal(reconcileDiscoverRegistryRows([{ kind: "registry_dataset", dataset_id: "new", local_ready: true }], catalog, true).length, 1);
+});
+
+test("a registry record without a DOI cannot offer DataCite collection", () => {
+  const row = searchHitToCandidate({ kind: "registry_dataset", dataset_id: "internal", collect_via: "datacite", procureability_label: "Collect now" });
+  assert.equal(row.collect_via, "");
+  assert.equal(row.collectable, false);
+});
 
 test("sourceResultToCandidate maps Explore source rows for Discover UI", () => {
   const row = sourceResultToCandidate({
@@ -99,6 +124,34 @@ test("sourceResultToCandidate strips catalogue markup out of descriptions", () =
   assert.equal(row.description, "Daily events coverage & tone");
 });
 
+test("webHitsToRows strips catalogue markup from section and result payloads", () => {
+  const [section] = webHitsToRows({
+    sections: [{ rows: [{ title: "Forest fire", description: '<p><span lang="en">Economic &amp; social costs</span></p>' }] }],
+  });
+  const [result] = webHitsToRows({
+    results: [{ title: "Forest fire", snippet: "<em>Burned area</em>&nbsp;by region" }],
+  });
+
+  assert.equal(section.description, "Economic & social costs");
+  assert.equal(result.description, "Burned area by region");
+});
+
+test("Discover adapters erase explicit no-route sentinels before evaluation", () => {
+  const source = sourceResultToCandidate({ title: "Known record", collect_via: "none" });
+  const [search] = webHitsToRows({
+    sections: [{ rows: [{ title: "Known record", collect_via: "none" }] }],
+  });
+  const indexed = searchHitToCandidate({
+    kind: "registry_dataset",
+    dataset_id: "known-record",
+    collect_via: "none",
+  });
+
+  assert.equal(source.collect_via, "");
+  assert.equal(search.collect_via, "");
+  assert.equal(indexed.collect_via, "");
+});
+
 test("sourceResultToCandidate falls back when description is markup-only", () => {
   const row = sourceResultToCandidate({
     source_id: "x",
@@ -109,6 +162,32 @@ test("sourceResultToCandidate falls back when description is markup-only", () =>
   // Stripping must not manufacture an empty description — the access/capability
   // summary is the documented fallback.
   assert.equal(row.description, "open_api · bulk");
+});
+
+test("sourceResultToCandidate preserves recorded connector notes for result rows", () => {
+  const row = sourceResultToCandidate({
+    title: "Google BigQuery (public datasets)",
+    access_mode: "live_connector",
+    capabilities: ["onchain_crypto"],
+    notes: "Live remote SQL; USDT Ethereum flow pack is already materialized.",
+  });
+
+  assert.match(row.description, /Live remote SQL/);
+  assert.doesNotMatch(row.description, /^live_connector/);
+});
+
+test("Discover prefers a researcher description, then connector notes", () => {
+  assert.match(
+    descriptiveLine({ notes: "Live remote SQL; USDT Ethereum flow pack is available." }),
+    /USDT Ethereum flow pack/,
+  );
+  assert.equal(
+    descriptiveLine({
+      description: "Daily market and fundamentals panel.",
+      notes: "internal route id=bulk_42",
+    }),
+    "Daily market and fundamentals panel.",
+  );
 });
 
 test("sourcesResponseToRows collapses duplicate sources on identity", () => {

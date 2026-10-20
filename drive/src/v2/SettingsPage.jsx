@@ -3,150 +3,128 @@ import {
   clearDeskToken,
   deskSessionBootstrapped,
   hasDeskToken,
-  saveDeskToken,
   saveUserEmail,
 } from "@/v2/deskSession";
 import { clearDeskSession, ensureDeskSession } from "@/v2/api";
-import { composerRuntimeRead } from "@/v2/composerRuntimeStatus";
-import { ContextHelp } from "@/v2/InteractionGuidance";
+import { ProviderConnectionsSection } from "@/v2/ProviderConnectionsSection";
+import { AccountAdministration, AccountSection } from "./AccountSection.jsx";
+import { AssistantConnections } from "./AssistantConnections.jsx";
+import { signInWithMemberAccessCode } from "./apiCore.js";
+import { ConnectedAccountsSection } from "@/v2/ConnectedAccountsSection";
+import { archiveRuntimeStatus } from "@/v2/archiveRuntimeStatus";
+import { assistantRuntimeDetail, composerRuntimeRead } from "@/v2/composerRuntimeStatus";
 import { loadSettings, saveSettings } from "@/v2/settingsStore";
 import { PILOT_PREVIEW_EMAIL } from "@/v2/profileViewModel";
 import { PageShell, StatementRow, StatementSection } from "@/v2/ui";
-import { V2_TABS } from "@/v2/nav-config.jsx";
 import { handleEnterToSubmit } from "@/v2/enterToSubmit";
 
-/**
- * Explicit demo mode (`?demo=1`). The EXAMPLE faculty binding is a
- * demonstration affordance, not a production control, so it stays out of the
- * default presentation.
- */
 function isDemoMode() {
   try {
     return new URLSearchParams(window.location.search).get("demo") === "1";
-  } catch (e) {
+  } catch {
     return false;
   }
 }
 
-function deskAccessStatus(health) {
+function deskAccessStatus(health, deskAccess) {
   const desk = health?.desk || {};
+  if (deskAccess?.authenticated) {
+    return {
+      ok: true,
+      label: "Connected",
+      detail: deskAccess?.session?.mode === "token" ? "Session fallback" : "Browser session",
+    };
+  }
   if (hasDeskToken()) return { ok: true, label: "Connected", detail: "Session fallback" };
   if (deskSessionBootstrapped() || desk.desk_session_cookie) {
     return { ok: true, label: "Connected", detail: "Browser session" };
   }
-  if (desk.desk_token_required) return { ok: false, label: "Needs connection", detail: "Authorization required" };
+  if (desk.desk_token_required) {
+    return { ok: false, label: "Needs connection", detail: "Authorization required" };
+  }
   return { ok: true, label: "Open", detail: "No write token required" };
-}
-
-function archiveStatus(desk) {
-  if (desk?.gdrive?.ok === false) return { ok: false, label: "Needs review", detail: "Archive connection" };
-  if (desk?.gdrive?.ok === true) return { ok: true, label: "Connected", detail: "Research archive" };
-  return { ok: null, label: "Not reported", detail: "No archive health on /health" };
 }
 
 function assistantStatus(health) {
   if (health == null) {
-    return { ready: false, known: false, label: "Syncing…", detail: "Waiting for /health" };
-  }
-  const desk = health?.desk || {};
-  const explicit = desk.composer_configured;
-  const legacy = desk.legacy_llm_configured;
-  const model = String(desk.composer_model || desk.brain || "").trim();
-
-  // composer_runtime is the backend's own ready/degraded/stale/unverified/
-  // unavailable state machine (desk_composer_health.py) — read it exactly,
-  // never re-derive a coarser "configured means Ready" signal from it.
-  const runtimeRead = composerRuntimeRead(desk.composer_runtime);
-  if (runtimeRead) {
     return {
-      ready: runtimeRead.ready,
-      known: true,
-      label: runtimeRead.short,
-      detail: model ? `${model} · ${runtimeRead.why}` : runtimeRead.why,
+      ready: false,
+      known: false,
+      label: "Not checked",
+      detail: "Open system status to inspect runtime health",
     };
   }
-
-  if (explicit === true || legacy === true) {
+  const desk = health?.desk || {};
+  const runtime = composerRuntimeRead(desk.composer_runtime);
+  if (runtime) {
+    return {
+      ready: runtime.ready,
+      known: true,
+      label: runtime.short,
+      detail: assistantRuntimeDetail(desk, runtime),
+    };
+  }
+  if (desk.composer_configured === true || desk.legacy_llm_configured === true) {
     return {
       ready: true,
       known: true,
-      label: "Ready",
-      detail: model ? `${model} runtime` : "Ask and acquisition planning",
+      label: "Configured",
+      detail: desk.composer_model ? `${desk.composer_model} runtime` : "Assistant configured",
     };
   }
-  if (explicit === false && legacy !== true) {
-    return { ready: false, known: true, label: "Needs setup", detail: "Assistant health reports offline" };
-  }
-  if (model) {
-    return { ready: true, known: true, label: "Ready", detail: `${model} runtime signal` };
-  }
-  return { ready: false, known: false, label: "Not reported", detail: "No assistant signal on /health" };
-}
-
-function jobsStatus(health) {
-  if (health == null) {
-    return { label: "Syncing…", detail: "Waiting for /health", warn: false };
-  }
-  const jobs = health?.desk?.jobs || {};
-  const actionable = jobs.actionable && typeof jobs.actionable === "object" ? jobs.actionable : {};
-  const failed = Number(
-    jobs.failed_actionable ?? actionable.failed_actionable ?? jobs.failed_recent ?? jobs.failed ?? 0,
-  );
-  const opsNoise = Number(jobs.failed_ops_noise ?? actionable.failed_ops_noise ?? 0);
-  const pending = Number(jobs.pending_approval ?? 0);
-  const running = Number(jobs.running ?? 0);
-  if (!health?.desk?.jobs) {
-    return { label: "Not reported", detail: "Job counters missing from /health", warn: false };
-  }
-  if (pending > 0) return { label: `${pending} pending approval`, detail: "Discover owns approvals", warn: true };
-  if (running > 0) return { label: `${running} running`, detail: "Active collection / execution", warn: false };
-  if (failed > 0) {
+  if (desk.composer_configured === false) {
     return {
-      label: `${failed} failed (actionable)`,
-      detail:
-        opsNoise > 0
-          ? `See Discover History · ${opsNoise} ops/canary quarantined`
-          : "See Discover History / Resources Usage",
-      warn: true,
+      ready: false,
+      known: true,
+      label: "Needs setup",
+      detail: "Assistant reports offline",
     };
   }
-  return { label: "Quiet", detail: "No pending or running jobs", warn: false };
+  return {
+    ready: false,
+    known: false,
+    label: "Not reported",
+    detail: "No assistant runtime signal",
+  };
 }
 
-function SummaryCard({ label, value, detail, help, warn }) {
-  return (
-    <article className={`rd-v2-settings-summary-card${warn ? " warn" : ""}`}>
-      <span>
-        {label}
-        <ContextHelp content={help} label={`Explain ${label}`} side="bottom" align="start" />
-      </span>
-      <strong>{value}</strong>
-      <em>{detail}</em>
-    </article>
-  );
-}
-
-export function SettingsPage({ health, resourcesRollup, onProfileRefresh, onToast }) {
+export function SettingsPage({
+  health,
+  deskAccess,
+  resourcesRollup,
+  onProfileRefresh,
+  onToast,
+  onSettingsChange,
+  onSignOut,
+  onOpenAccess,
+  onAccountChanged,
+}) {
   const [settings, setSettings] = useState(() => loadSettings());
   const [emailDraft, setEmailDraft] = useState(() => settings.email || "");
   const [tokenDraft, setTokenDraft] = useState("");
   const [busy, setBusy] = useState(false);
-  const desk = health?.desk || {};
-  const demoMode = isDemoMode();
-  const access = deskAccessStatus(health);
-  const archive = archiveStatus(desk);
+  const access = deskAccessStatus(health, deskAccess);
+  const canViewFacultyProfile = Boolean(deskAccess?.permissions?.view_faculty_profile);
   const assistant = assistantStatus(health);
-  const jobs = jobsStatus(health);
-  const mcpTools = resourcesRollup?.ai?.mcp_tools?.total ?? resourcesRollup?.hero?.mcp_tools ?? null;
-  const healthOk = health?.status === "ok";
+  const demoMode = isDemoMode();
+  const desk = health?.desk || {};
+  const archive = archiveRuntimeStatus(health);
+  const mcpTools =
+    resourcesRollup?.ai?.mcp_tools?.total ?? resourcesRollup?.hero?.mcp_tools ?? null;
 
-  const patch = (p) => setSettings(saveSettings(p));
+  const patch = (change) => {
+    const next = saveSettings(change);
+    setSettings(next);
+    onSettingsChange?.(next, change);
+  };
 
   const saveEmail = () => {
     const email = saveUserEmail(emailDraft);
     patch({ email });
     onProfileRefresh?.();
-    onToast?.(email ? `Research profile loaded for ${email}` : "Research profile email cleared");
+    onToast?.(
+      email ? `Research profile loaded for ${email}` : "Research profile email cleared",
+    );
   };
 
   const bindPilot = () => {
@@ -154,34 +132,43 @@ export function SettingsPage({ health, resourcesRollup, onProfileRefresh, onToas
     const email = saveUserEmail(PILOT_PREVIEW_EMAIL);
     patch({ email });
     onProfileRefresh?.();
-    onToast?.(`Bound EXAMPLE identity ${email}`);
+    onToast?.(`Connected example account ${email}`);
   };
 
   const connectSession = async () => {
     setBusy(true);
     try {
       const out = await ensureDeskSession({ force: true });
-      if (out.ok) onToast?.("Research desk connected for this browser");
-      else onToast?.(out.error || "Desk connection failed");
+      onToast?.(
+        out.ok
+          ? "Research Drive connected for this browser"
+          : out.error || "Research Drive connection failed",
+      );
       onProfileRefresh?.();
+      onAccountChanged?.();
     } finally {
       setBusy(false);
     }
   };
 
-  const saveToken = () => {
-    const saved = saveDeskToken(tokenDraft);
-    setTokenDraft("");
-    onToast?.(saved ? "Fallback access saved for this browser session" : "Fallback access cleared");
-    onProfileRefresh?.();
+  const saveToken = async () => {
+    setBusy(true);
+    try {
+      await signInWithMemberAccessCode(tokenDraft);
+      setTokenDraft("");
+      await onAccountChanged?.();
+      onToast?.("Access code exchanged for a browser session.");
+    } catch (error) { onToast?.(error.message, "error"); }
+    finally { setBusy(false); }
   };
 
   const disconnect = async () => {
+    if (onSignOut) return onSignOut();
     setBusy(true);
     try {
       clearDeskToken();
       await clearDeskSession();
-      onToast?.("Research desk disconnected");
+      onToast?.("Research Drive disconnected");
       onProfileRefresh?.();
     } finally {
       setBusy(false);
@@ -189,39 +176,72 @@ export function SettingsPage({ health, resourcesRollup, onProfileRefresh, onToas
   };
 
   return (
-    <PageShell title="Settings" lead="Identity, access, and research-desk preferences — status from live /health only">
+    <PageShell
+      className="rd-v2-settings-page"
+      title="Settings"
+      lead="Your account, and how Research Drive behaves in this browser."
+      surfaceState="ready"
+    >
       <div className="rd-v2-settings-statement">
-        <section className="rd-v2-settings-summary" aria-label="Research desk status">
-          <SummaryCard
-            label="Desk API"
-            value={health == null ? "Syncing…" : healthOk ? "Live" : health?.status || "Unknown"}
-            detail={
-              health == null
-                ? "Waiting for /health"
-                : healthOk
-                  ? "Catalog · Ask · jobs reachable"
-                  : "Health payload missing or degraded"
-            }
-            help="Truth from GET /health on the Tailscale desk."
-            warn={health != null && !healthOk}
-          />
-          <SummaryCard
-            label="Research assistant"
-            value={assistant.label}
-            detail={assistant.detail}
-            help="Composer / legacy assistant flags from /health.desk — never invents Ready."
-            warn={assistant.known && !assistant.ready}
-          />
-          <SummaryCard
-            label="Jobs"
-            value={jobs.label}
-            detail={jobs.detail}
-            help="Pending / running / recent failed counters from /health.desk.jobs."
-            warn={jobs.warn}
-          />
-        </section>
+        <AccountSection deskAccess={deskAccess} onSignOut={onSignOut} onOpenAccess={onOpenAccess} />
+        {deskAccess?.permissions?.use_ask ? <AssistantConnections key={deskAccess.principal?.id} onOpenAccess={onOpenAccess} /> : null}
+        <AccountAdministration deskAccess={deskAccess} />
+        <StatementSection title="Workspace behavior">
+          <div className="rd-v2-settings-preference-grid">
+            <div className="rd-v2-settings-preference">
+              <div className="rd-v2-settings-row">
+                <label className="rd-v2-settings-label" htmlFor="rd-settings-startup">When Research Drive opens</label>
+                <select id="rd-settings-startup" value={settings.startup} onChange={(event) => patch({ startup: event.target.value })} className="rd-v2-select">
+                  <option value="home">Home — show what needs attention</option>
+                  <option value="resume">Continue where I left off</option>
+                </select>
+              </div>
+              <p className="rd-v2-settings-hint">Continue remembers only Library, Discover, or Synthesis—not administrative pages.</p>
+            </div>
+            <div className="rd-v2-settings-preference">
+              <div className="rd-v2-settings-row">
+                <label className="rd-v2-settings-label" htmlFor="rd-settings-on-select">When evidence is selected</label>
+                <select id="rd-settings-on-select" value={settings.onSelect} onChange={(event) => patch({ onSelect: event.target.value })} className="rd-v2-select">
+                  <option value="detail">Show Detail</option>
+                  <option value="ask">Open Ask</option>
+                  <option value="keep">Keep current Inspector mode</option>
+                </select>
+              </div>
+              <p className="rd-v2-settings-hint">Library and Discover follow this preference; decision states retain their task-specific view.</p>
+            </div>
+            <div className="rd-v2-settings-preference">
+              <div className="rd-v2-settings-row">
+                <label className="rd-v2-settings-label" htmlFor="rd-settings-discover-scope">Discover search</label>
+                <select id="rd-settings-discover-scope" value={settings.discoverScope} onChange={(event) => patch({ discoverScope: event.target.value })} className="rd-v2-select">
+                  <option value="known">Known evidence first</option>
+                  <option value="wide">Search wider immediately</option>
+                </select>
+              </div>
+              <p className="rd-v2-settings-hint">Search starts with data in your Library. Wider search adds live sources and matches by meaning.</p>
+            </div>
+          </div>
+        </StatementSection>
+
+        {archive.known ? (
+          <StatementSection title="Research Drive storage">
+            <StatementRow
+              label="Shared evidence archive"
+              metric={archive.label}
+              sublabel={archive.detail}
+              detail={archive.ready ? "Ready" : archive.known ? "Needs a check" : "Unknown"}
+              warn={archive.known && !archive.ready}
+            />
+            <p className="rd-v2-settings-hint">
+              This service-managed archive supplies the shared Library. Personal storage below is optional and never replaces the default research estate.
+            </p>
+          </StatementSection>
+        ) : null}
+
+        <ConnectedAccountsSection deskAccess={deskAccess} onToast={onToast} showIdentity={false} />
+        <ProviderConnectionsSection deskAccess={deskAccess} onToast={onToast} />
 
         <StatementSection title="Research identity">
+          {canViewFacultyProfile ? (
           <div className="rd-v2-settings-row stack">
             <label className="rd-v2-settings-label" htmlFor="rd-settings-email">
               Faculty email
@@ -232,154 +252,142 @@ export function SettingsPage({ health, resourcesRollup, onProfileRefresh, onToas
               className="rd-v2-input"
               placeholder="faculty@yzu.edu.tw"
               value={emailDraft}
-              onChange={(e) => setEmailDraft(e.target.value)}
+              onChange={(event) => setEmailDraft(event.target.value)}
               aria-describedby="rd-settings-email-hint"
-              onKeyDown={(e) => handleEnterToSubmit(e, () => saveEmail())}
+              onKeyDown={(event) => handleEnterToSubmit(event, saveEmail)}
             />
             <button type="button" className="rd-v2-btn sm primary" onClick={saveEmail}>
               Save identity
             </button>
             {demoMode ? (
               <button type="button" className="rd-v2-btn sm ghost" onClick={bindPilot}>
-                Use EXAMPLE (Kong)
+                Use example account (Kong)
               </button>
             ) : null}
           </div>
+          ) : null}
           <p id="rd-settings-email-hint" className="rd-v2-settings-hint">
-            Loads Memory / Works / Library from the faculty registry. Unbound desks preview EXAMPLE only until an email is saved.
+            {canViewFacultyProfile
+              ? "Binds the faculty-registry record shown in Profile. This does not edit registry research facts."
+              : "Public browsing does not load or bind a faculty identity. Sign in to save a research profile and research trail."}
           </p>
         </StatementSection>
 
-        <StatementSection title="Desk access">
+        <StatementSection title="Research Drive connection">
           <StatementRow
             label="This browser"
             metric={access.label}
             sublabel={access.detail}
-            detail={access.ok ? "OK" : "NEED"}
+            detail={access.ok ? "Healthy" : "Needed"}
             warn={!access.ok}
           />
-          {/* Actions must agree with state: a connected desk is not offered a
-              primary "Connect" action. Reconnect stays quiet; Disconnect stays
-              secondary and reads as destructive. */}
           <div className="rd-v2-settings-row stack">
             {access.ok ? (
               <>
-                <button type="button" className="rd-v2-btn sm ghost" disabled={busy} onClick={connectSession}>
+                <button
+                  type="button"
+                  className="rd-v2-btn sm ghost"
+                  disabled={busy}
+                  onClick={connectSession}
+                >
                   Reconnect
                 </button>
-                <button type="button" className="rd-v2-btn sm danger" disabled={busy} onClick={disconnect}>
+                <button
+                  type="button"
+                  className="rd-v2-btn sm danger"
+                  disabled={busy}
+                  onClick={disconnect}
+                >
                   Disconnect
                 </button>
               </>
             ) : (
-              <button type="button" className="rd-v2-btn sm primary" disabled={busy} onClick={connectSession}>
+              <button
+                type="button"
+                className="rd-v2-btn sm primary"
+                disabled={busy}
+                onClick={connectSession}
+              >
                 Connect browser
               </button>
             )}
           </div>
-          <p id="rd-settings-access-hint" className="rd-v2-settings-hint">
-            Authorized internal entry connects automatically. Fallback token is only for browsers that cannot mint a session cookie.
-          </p>
-          <div className="rd-v2-settings-row stack">
-            <label className="rd-v2-settings-label" htmlFor="rd-settings-token">
-              Fallback access token
-            </label>
-            <input
-              id="rd-settings-token"
-              type="password"
-              className="rd-v2-input"
-              placeholder="Fallback access token"
-              value={tokenDraft}
-              autoComplete="off"
-              onChange={(e) => setTokenDraft(e.target.value)}
-              aria-describedby="rd-settings-access-hint"
-              onKeyDown={(e) => {
-                handleEnterToSubmit(e, () => {
-                  if (!busy && tokenDraft.trim()) saveToken();
-                });
-              }}
-            />
-            <button type="button" className="rd-v2-btn sm" disabled={busy || !tokenDraft.trim()} onClick={saveToken}>
-              Save fallback
-            </button>
-          </div>
-        </StatementSection>
-
-        <StatementSection title="Research services">
-          <StatementRow
-            label="Ask and acquisition planning"
-            metric={assistant.label}
-            sublabel={assistant.detail}
-            detail={assistant.ready ? "OK" : assistant.known ? "CHECK" : "UNKNOWN"}
-            warn={!assistant.ready}
-          />
-          <StatementRow
-            label="Research archive"
-            metric={archive.label}
-            sublabel={archive.detail}
-            detail={archive.ok === true ? "OK" : archive.ok === false ? "CHECK" : "UNKNOWN"}
-            warn={archive.ok === false}
-          />
-          <StatementRow
-            label="Desk equipment"
-            metric={mcpTools != null ? `${mcpTools} MCP tools` : "Not reported"}
-            sublabel="From desk resources rollup when available — not a faculty ops console"
-            detail={mcpTools != null ? "REPORTED" : "UNKNOWN"}
-          />
-          <StatementRow
-            label="Browser access"
-            metric={access.label}
-            sublabel={access.detail}
-            detail={access.ok ? "OK" : "NEED"}
-            warn={!access.ok}
-          />
-        </StatementSection>
-
-        <StatementSection title="Display">
-          <div className="rd-v2-settings-row">
-            <label className="rd-v2-settings-label" htmlFor="rd-settings-default-tab">
-              Open Research Drive on
-            </label>
-            <select
-              id="rd-settings-default-tab"
-              value={settings.defaultTab}
-              onChange={(e) => patch({ defaultTab: e.target.value })}
-              className="rd-v2-select"
-            >
-              {V2_TABS.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="rd-v2-settings-row">
-            <label className="rd-v2-settings-label" htmlFor="rd-settings-on-select">
-              When an object is selected
-            </label>
-            <select
-              id="rd-settings-on-select"
-              value={settings.onSelect}
-              onChange={(e) => patch({ onSelect: e.target.value })}
-              className="rd-v2-select"
-            >
-              <option value="detail">Show Detail</option>
-              <option value="ask">Open Ask</option>
-            </select>
-          </div>
         </StatementSection>
 
         <details className="rd-v2-settings-advanced">
-          <summary>Advanced connection details</summary>
+          <summary>System status and technical details</summary>
           <div className="rd-v2-settings-advanced-body">
-            <StatementRow label="Research API" metric=":8765" sublabel="Catalog, Ask, jobs, and query service" detail="INTERNAL" />
+            <StatementRow
+              label="Research API"
+              metric={health == null ? "Not checked" : health?.status || "Reported"}
+              sublabel="Catalog, Ask, jobs, query, and research-workspace service"
+              detail={
+                health?.status === "ok"
+                  ? "Healthy"
+                  : health == null
+                    ? "Unknown"
+                    : "Needs a check"
+              }
+              warn={health != null && health?.status !== "ok"}
+            />
             <StatementRow
               label="Assistant runtime"
-              metric={desk.brain || desk.composer_model || "Not reported"}
-              sublabel="Private orchestration authority from /health"
-              detail={assistant.ready ? "READY" : assistant.known ? "CHECK" : "UNKNOWN"}
-              warn={!assistant.ready}
+              metric={assistant.label}
+              sublabel={assistant.detail}
+              detail={
+                assistant.ready ? "Ready" : assistant.known ? "Needs a check" : "Unknown"
+              }
+              warn={assistant.known && !assistant.ready}
             />
+            <StatementRow
+              label="Research archive"
+              metric={archive.label}
+              sublabel={archive.detail}
+              detail={archive.ready ? "Ready" : archive.known ? "Needs a check" : "Unknown"}
+              warn={archive.known && !archive.ready}
+            />
+            <StatementRow
+              label="Research tools"
+              metric={mcpTools != null ? `${mcpTools} research tools` : "Not reported"}
+              sublabel="Capability inventory belongs to Resources; this is a compact status read"
+              detail={mcpTools != null ? "Reported" : "Unknown"}
+            />
+
+            {deskAccess?.permissions?.view_operations ? <details className="rd-v2-settings-advanced">
+              <summary>Fallback browser access</summary>
+              <div className="rd-v2-settings-advanced-body">
+                <p className="rd-v2-settings-hint">
+                  Exchange an issued access code for a browser session. The code is removed after sign-in.
+                </p>
+                <div className="rd-v2-settings-row stack">
+                  <label className="rd-v2-settings-label" htmlFor="rd-settings-token">
+                    Fallback access token
+                  </label>
+                  <input
+                    id="rd-settings-token"
+                    type="password"
+                    className="rd-v2-input"
+                    placeholder="Fallback access token"
+                    value={tokenDraft}
+                    autoComplete="off"
+                    onChange={(event) => setTokenDraft(event.target.value)}
+                    onKeyDown={(event) => {
+                      handleEnterToSubmit(event, () => {
+                        if (!busy && tokenDraft.trim()) saveToken();
+                      });
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="rd-v2-btn sm"
+                    disabled={busy || !tokenDraft.trim()}
+                    onClick={saveToken}
+                  >
+                    Use access code
+                  </button>
+                </div>
+              </div>
+            </details> : null}
           </div>
         </details>
       </div>

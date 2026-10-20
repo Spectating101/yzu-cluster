@@ -1,5 +1,7 @@
 # Research Drive v2 — BUILD FROZEN (implementation authority)
 
+> **Historical composition notice (2026-08-20):** Cluster references below are superseded. The current navigation authority is [`UI_PRODUCT_AUTHORITY.md`](../UI_PRODUCT_AUTHORITY.md), which explicitly excludes Cluster as a faculty destination. Keep these passages only as design history; do not implement or restore that route.
+
 **Status:** ACTIVE BUILD RECORD — updated 2026-07-01  
 **Supersedes:** ad-hoc CSS drift, duplicate row components, fixed-width shell experiments  
 **Subordinate to:** [`RESEARCH_DRIVE_UI_CANON.md`](../RESEARCH_DRIVE_UI_CANON.md), [`../RESEARCH_DRIVE_RIGHT_RAIL_CONTRACT.md`](../RESEARCH_DRIVE_RIGHT_RAIL_CONTRACT.md), [`V2_FORWARD_FROZEN.md`](V2_FORWARD_FROZEN.md)  

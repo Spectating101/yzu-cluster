@@ -16,6 +16,7 @@ export function composerRuntimeRead(runtime) {
       return {
         status,
         ready: true,
+        usable: true,
         warn: false,
         label: "Assistant ready",
         short: "Ready",
@@ -25,15 +26,17 @@ export function composerRuntimeRead(runtime) {
       return {
         status,
         ready: false,
+        usable: true,
         warn: true,
         label: "Assistant degraded",
         short: "Degraded",
-        why: "last probe failed",
+        why: "last connection test failed",
       };
     case "stale":
       return {
         status,
         ready: false,
+        usable: true,
         warn: true,
         label: "Assistant needs recheck",
         short: "Needs recheck",
@@ -43,15 +46,17 @@ export function composerRuntimeRead(runtime) {
       return {
         status,
         ready: false,
+        usable: true,
         warn: true,
         label: "Assistant unverified",
         short: "Unverified",
-        why: "not yet probed live",
+        why: "live connection not yet tested",
       };
     case "unavailable":
       return {
         status,
         ready: false,
+        usable: false,
         warn: true,
         label: "Assistant unavailable",
         short: "Not configured",
@@ -63,10 +68,70 @@ export function composerRuntimeRead(runtime) {
       return {
         status: status || "unknown",
         ready: false,
+        usable: false,
         warn: true,
         label: "Assistant status unknown",
         short: "Unknown",
         why: "unrecognized runtime status",
       };
   }
+}
+
+/**
+ * Operators receive the full health document. Ordinary Ask members receive a
+ * deliberately small runtime observation in desk capabilities instead. Both
+ * must drive the same Synthesis gate without exposing operations telemetry.
+ */
+export function composerRuntimeFromSources(health, deskAccess) {
+  return composerRuntimeRead(
+    health?.desk?.composer_runtime ?? deskAccess?.assistant_runtime,
+  );
+}
+
+/**
+ * Name the provider that /health says is actually serving Ask.  The runtime
+ * model is deliberately kept separate: Copilot's `auto` pool may resolve a
+ * different model per turn, so a cached probe model is not a durable product
+ * identity.
+ */
+export function assistantProviderRead(desk = {}) {
+  const provider = String(
+    desk.brain || desk.provider || desk.composer_provider || "",
+  ).trim().toLowerCase();
+
+  if (provider.includes("copilot")) {
+    return {
+      id: "copilot",
+      label: "Copilot Ask",
+      runtimeLabel: "Copilot pool",
+      modelIsDurable: false,
+    };
+  }
+  if (provider.includes("cursor")) {
+    return {
+      id: "cursor",
+      label: "Cursor Ask",
+      runtimeLabel: "Cursor Composer",
+      modelIsDurable: true,
+    };
+  }
+  return {
+    id: "assistant",
+    label: "Research assistant",
+    runtimeLabel: "Assistant runtime",
+    modelIsDurable: true,
+  };
+}
+
+export function assistantRuntimeDetail(desk = {}, runtimeRead = null) {
+  const provider = assistantProviderRead(desk);
+  const model = String(desk.composer_model || desk.model || "").trim();
+  const observed = runtimeRead?.why || "runtime not verified";
+
+  if (!provider.modelIsDurable) {
+    return `${provider.runtimeLabel} · ${observed}`;
+  }
+  return model
+    ? `${provider.runtimeLabel} · ${model} · ${observed}`
+    : `${provider.runtimeLabel} · ${observed}`;
 }

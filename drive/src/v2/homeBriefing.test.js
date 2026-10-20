@@ -113,7 +113,7 @@ test("receipt_only rows are not ordinary reusable evidence and never offer previ
   assert.ok(briefing.evidence.every((row) => row.previewAllowed !== true || row.id === "ready_b"));
   assert.equal(
     briefing.evidence.find((row) => row.id === "registered_ok")?.metric,
-    "Registered",
+    "Saved to Library",
   );
 });
 
@@ -136,7 +136,7 @@ test("when only receipt_only assets exist, classify them as reconciliation pendi
   assert.equal(briefing.evidence.length, 1);
   assert.equal(briefing.evidence[0].id, "only_receipt");
   assert.equal(briefing.evidence[0].kind, "receipt");
-  assert.match(briefing.evidence[0].metric, /reconciliation pending/i);
+  assert.match(briefing.evidence[0].metric, /being checked/i);
   assert.equal(briefing.evidence[0].previewAllowed, false);
   assert.ok(
     briefing.evidence[0].tab === "library" || briefing.evidence[0].discoverMode === "history",

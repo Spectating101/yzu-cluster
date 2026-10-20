@@ -9,25 +9,85 @@ test.describe("v2 adaptive Preview", () => {
     await waitForShell(page);
   });
 
-  test("owned datasets open as a bounded rows and fields viewer", async ({ page }) => {
-    await page.getByRole("textbox", { name: "Search library holdings" }).fill("Asia");
-    await page.locator('.rd-v2-catalog-list button[data-kind="dataset"]', { hasText: "Asia daily news-risk panel" }).click();
-    await page.locator("aside.rd-v2-rail").getByRole("button", { name: "Preview rows" }).click();
+  test("owned datasets keep schema local and expand only the observed sample", async ({ page }) => {
+    await page.getByRole("textbox", { name: "Search your Library" }).fill("Asia");
+    await page.getByTestId("library-evidence-row").filter({ hasText: "Asia daily news-risk panel" }).click();
 
-    const preview = page.getByRole("dialog", { name: "Asia daily news-risk panel preview" });
+    const workspace = page.getByTestId("library-asset-workspace");
+    const inspectSchema = workspace.getByRole("button", { name: "Inspect schema" });
+    await inspectSchema.click();
+    const schemaOverlay = page.getByRole("dialog", { name: "Documented structure" });
+    await expect(schemaOverlay).toBeVisible();
+    await expect(schemaOverlay.getByRole("button", { name: "Close inspection" })).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(schemaOverlay).toHaveCount(0);
+    await expect(inspectSchema).toBeFocused();
+
+    await workspace.getByRole("button", { name: "Expand sample" }).click();
+
+    const preview = page.getByRole("dialog", { name: "Asia daily news-risk panel expanded sample" });
     await expect(preview).toBeVisible();
-    await expect(preview).toContainText("Dataset preview");
-    await expect(preview.getByRole("button", { name: "Rows", exact: true })).toBeVisible();
-    await expect(preview.getByRole("button", { name: "Fields", exact: true })).toBeVisible();
+    const scrim = page.locator(".rd-preview-scrim");
+    const inspector = page.getByRole("complementary", { name: "Inspector" });
+    const [scrimBox, inspectorBox] = await Promise.all([scrim.boundingBox(), inspector.boundingBox()]);
+    expect(scrimBox).not.toBeNull();
+    expect(inspectorBox).not.toBeNull();
+    expect(scrimBox.x + scrimBox.width).toBeLessThanOrEqual(inspectorBox.x + 1);
+    await expect(inspector.getByTestId("library-preview-open-state")).toHaveText("Expanded sample open in centre");
+    await expect(inspector.getByRole("button", { name: "Preview rows" })).toHaveCount(0);
+    await expect(preview).toContainText("Expanded dataset sample");
+    await expect(preview.getByRole("button", { name: "Rows", exact: true })).toHaveCount(0);
+    await expect(preview.getByRole("button", { name: "Fields", exact: true })).toHaveCount(0);
+    await expect(preview).not.toContainText("Field inventory");
     await expect(preview.getByRole("button", { name: "Query", exact: true })).toHaveCount(0);
-    await expect(preview).toContainText("Observed sample");
+    await expect(preview).toContainText("Expanded sample");
     await expect(preview.locator("table")).toContainText("country");
-
-    await preview.getByRole("button", { name: "Fields", exact: true }).click();
-    await expect(preview).toContainText("Field inventory");
-    await expect(preview).toContainText("database-schema guarantee");
 
     await preview.getByRole("button", { name: "Close preview" }).click();
     await expect(preview).toHaveCount(0);
+    await expect(workspace).toBeVisible();
+    await expect(workspace).toContainText("Asia daily news-risk panel");
+    await expect(workspace.getByRole("button", { name: "Inspect schema" })).toBeVisible();
+  });
+});
+
+test.describe("v2 Library provenance semantics", () => {
+  test("access transport never masquerades as source authority", async ({ page }) => {
+    await mockV2Api(page, {
+      datasetsBody: {
+        datasets: [
+          {
+            dataset_id: "transport_only_asset",
+            name: "Transport-only research asset",
+            grain: "day",
+            analysis_readiness: "instant",
+            local_root: "research_panels/transport-only",
+            collect_via: "bigquery_connector",
+            backend: "bigquery_api",
+            join_keys: ["date"],
+          },
+        ],
+      },
+    });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+
+    const row = page.getByTestId("library-evidence-row").filter({ hasText: "Transport-only research asset" });
+    await expect(row.locator(".rd-v2-cap-source")).toHaveText("Not recorded");
+    await row.click();
+
+    const workspace = page.getByTestId("library-asset-workspace");
+    const claims = workspace.getByLabel("Evidence claims");
+    await expect(claims).not.toContainText("bigquery_api");
+    await expect(claims).not.toContainText("bigquery_connector");
+
+    const rail = page.locator("aside.rd-v2-rail");
+    const source = page.getByTestId("library-rail-source");
+    await expect(source.getByRole("heading", { name: "Source not recorded" })).toBeVisible();
+    await expect(source).toContainText("Access");
+    await expect(source).toContainText("BigQuery connector");
+    await expect(source).not.toContainText("The source authority is named");
+    await expect(rail).toContainText("Source not recorded");
   });
 });

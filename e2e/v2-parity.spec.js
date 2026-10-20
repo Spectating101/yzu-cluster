@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { mockV2Api } from "./fixtures/v2MockApi.js";
 
 const MOCK_DATASETS = {
   datasets: [
@@ -7,6 +8,7 @@ const MOCK_DATASETS = {
       name: "Asia daily news-risk panel",
       grain: "country-day",
       analysis_readiness: "instant",
+      local_ready: true,
       local_root: "research_panels/gdelt",
     },
     {
@@ -14,36 +16,13 @@ const MOCK_DATASETS = {
       name: "Ticker week panel",
       grain: "country-week",
       analysis_readiness: "instant",
+      local_ready: true,
     },
   ],
 };
 
-const MOCK_HEALTH = {
-  status: "ok",
-  datasets: 2,
-  desk: {
-    jobs: { running: 1, pending_approval: 0 },
-    composer_configured: true,
-    storage_tiers: { canonical: { quota_tb: 5, used_tb: 2.1 } },
-    gdrive: { ok: true },
-  },
-};
-
 async function mockApi(page) {
-  await page.route("**/library/desk/capabilities", (route) =>
-    route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({ version: 1, authenticated: true, access: "operator" }),
-    }),
-  );
-  await page.route("**/library/desk/session", (route) =>
-    route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({ ok: true, authorized: true }),
-    }),
-  );
+  await mockV2Api(page, { datasetsBody: MOCK_DATASETS });
   await page.route("**/datasets", (route) =>
     route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(MOCK_DATASETS) }),
   );
@@ -52,9 +31,6 @@ async function mockApi(page) {
     const row = MOCK_DATASETS.datasets.find((d) => d.dataset_id === id) || MOCK_DATASETS.datasets[0];
     return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(row) });
   });
-  await page.route("**/health*", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(MOCK_HEALTH) }),
-  );
   await page.route("**/library/discover*", (route) =>
     route.fulfill({
       status: 200,
@@ -114,10 +90,10 @@ async function v2Nav(page, label) {
 
 async function selectFirstDataset(page) {
   await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
-  await page.locator(".rd-v2-shell").waitFor({ timeout: 30_000 });
-  await page.getByTestId("library-directory").waitFor({ state: "visible", timeout: 15_000 });
-  await page.getByRole("textbox", { name: "Search library holdings" }).fill("Asia");
-  const row = page.locator('.rd-v2-catalog-list button[data-kind="dataset"]').first();
+  await page.locator(".rd-v2-shell:not(.rd-v2-session-bootstrap)").waitFor({ timeout: 30_000 });
+  await page.getByTestId("library-evidence-estate").waitFor({ state: "visible", timeout: 15_000 });
+  await page.getByRole("textbox", { name: "Search your Library" }).fill("Asia");
+  const row = page.getByTestId("library-evidence-row").first();
   await row.waitFor({ state: "visible", timeout: 15_000 });
   await row.click();
 }
@@ -127,7 +103,7 @@ test.describe("v2 parity @ desk-v2-1440", () => {
     await mockApi(page);
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await page.locator(".rd-v2-shell").waitFor({ timeout: 30_000 });
+    await page.locator(".rd-v2-shell:not(.rd-v2-session-bootstrap)").waitFor({ timeout: 30_000 });
   });
 
   test("shell grid keeps adaptive rail proportions without overflow", async ({ page }) => {
@@ -152,11 +128,8 @@ test.describe("v2 parity @ desk-v2-1440", () => {
     expect(metrics.shellW).toBeLessThanOrEqual(1442);
     expect(metrics.headerH).toBeGreaterThanOrEqual(60);
     expect(metrics.headerH).toBeLessThanOrEqual(66);
-    // Premium shell authority is 216px–252px at this viewport, keeping the
-    // navigation compact while preserving the larger decision rail.
     expect(metrics.sidebarW / metrics.shellW).toBeGreaterThanOrEqual(0.14);
     expect(metrics.sidebarW / metrics.shellW).toBeLessThanOrEqual(0.18);
-    // Release-scale authority uses a 26vw rail at 1440px, bounded to 320–380px.
     expect(metrics.railW / metrics.shellW).toBeGreaterThanOrEqual(0.24);
     expect(metrics.railW / metrics.shellW).toBeLessThanOrEqual(0.28);
     expect(metrics.mainW).toBeGreaterThan(metrics.railW);
@@ -184,34 +157,74 @@ test.describe("v2 parity @ desk-v2-1440", () => {
     await expect(page.locator("aside.yzu-sidebar nav button", { hasText: "Cluster" })).toHaveCount(0);
   });
 
-  test("cluster tab still reachable via URL while deferred", async ({ page }) => {
+  test("cluster is gone, including by deep link", async ({ page }) => {
     await page.goto("/?tab=cluster", { waitUntil: "domcontentloaded" });
-    await expect(page.locator(".rd-v2-page-head h1", { hasText: "Cluster" })).toBeVisible();
+    await expect(page.locator(".rd-v2-page-head h1", { hasText: "Cluster" })).toHaveCount(0);
+    await expect(page.locator("aside.yzu-sidebar nav button", { hasText: "Cluster" })).toHaveCount(0);
   });
 
-  test("Detail rail has sticky CTAs and segmented toggle", async ({ page }) => {
+  test("Detail rail keeps decision context without duplicating the centre dossier", async ({ page }) => {
     await selectFirstDataset(page);
-    await expect(page.locator(".rd-v2-rail-toggle button.on", { hasText: "Detail" })).toBeVisible();
+    const situation = page.getByTestId("research-situation");
+    const rail = page.locator("aside.rd-v2-rail");
+    await expect(situation).toContainText("Asia daily news-risk panel");
+    await expect(situation).toContainText("Ready to query");
+    await expect(situation.getByRole("tab", { name: "Detail" })).toHaveAttribute("aria-selected", "true");
     await expect(page.locator('[data-testid="rail-pane-ask"]')).toBeHidden();
-    await expect(
-      page.locator("aside .rd-v2-rail-sticky .rd-v2-btn.primary", { hasText: "Preview rows" }),
-    ).toBeVisible();
-    await expect(page.locator('aside.rd-v2-rail [aria-label="Can I use this?"]')).toContainText("Query ready");
-    await page.locator(".rd-v2-rail-toggle").getByRole("tab", { name: "Ask" }).click();
+    await expect(rail.getByRole("button", { name: "Preview rows" })).toHaveCount(0);
+    await expect(rail.getByRole("button", { name: "Ask about this →" })).toBeVisible();
+    await expect(rail).not.toContainText("Coverage & grain");
+    await expect(rail.locator(".rd-v2-library-evidence-facts")).toHaveCount(0);
+    await expect(page.locator('aside.rd-v2-rail [aria-label="Can I use this?"]')).toContainText("Ready to query");
+    await situation.getByRole("tab", { name: "Ask" }).click();
     await expect(page.getByTestId("ask-composer")).toBeVisible();
+    await expect(page.getByTestId("research-situation")).toContainText("Asia daily news-risk panel");
     await expect(page.locator('[data-testid="rail-pane-detail"] .rd-v2-rail-sticky')).not.toBeVisible();
   });
 
-  test("adaptive Preview overlays the main surface with bounded evidence actions", async ({ page }) => {
+  test("Ask drops a prior evidence object when navigation changes surface ownership", async ({ page }) => {
     await selectFirstDataset(page);
-    await page.locator("aside .rd-v2-rail-sticky").getByRole("button", { name: "Preview rows" }).click();
-    const preview = page.getByRole("dialog", { name: "Asia daily news-risk panel preview" });
+    await v2Nav(page, "Resources");
+    await expect(page.locator(".rd-v2-page-head h1", { hasText: "Resources" })).toBeVisible();
+
+    let posted = null;
+    await page.route("**/api/library/chat/stream", async (route) => {
+      if (route.request().method() !== "POST") return route.fallback();
+      posted = route.request().postDataJSON();
+      return route.fulfill({
+        status: 200,
+        contentType: "application/x-ndjson",
+        body: `${JSON.stringify({
+          type: "complete",
+          result: { session_id: "surface-context", reply: "Resources is the current operational surface." },
+        })}\n`,
+      });
+    });
+
+    await page.getByTestId("research-situation").getByRole("tab", { name: "Ask" }).click();
+    await expect(page.getByTestId("research-situation")).toContainText("Resources");
+    await page.getByTestId("ask-composer").fill("What surface am I using?");
+    await page.getByRole("button", { name: "Send" }).click();
+    await expect(page.getByText("Resources is the current operational surface.")).toBeVisible();
+
+    expect(posted?.message).not.toContain("gdelt_asia_daily_country_panel");
+    expect(posted?.rail_context).toMatchObject({ tab: "resources", entity: null });
+    expect(posted?.rail_context?.dataset_id).toBeUndefined();
+    expect(posted?.rail_context?.selected).toBeUndefined();
+    expect(posted?.rail_context?.search_query).toBeUndefined();
+    expect(posted?.rail_context?.vault_path).toBeUndefined();
+  });
+
+  test("Expanded sample opens from the primary inspection surface without losing rail context", async ({ page }) => {
+    await selectFirstDataset(page);
+    await page.getByTestId("library-data-preview").getByRole("button", { name: "Expand sample" }).click();
+    const preview = page.getByRole("dialog", { name: "Asia daily news-risk panel expanded sample" });
     await expect(preview).toBeVisible();
-    await expect(preview.getByRole("button", { name: "Rows", exact: true })).toBeVisible();
-    await expect(preview.getByRole("button", { name: "Fields", exact: true })).toBeVisible();
-    await expect(preview.getByRole("button", { name: "Export sample" })).toBeVisible();
-    await expect(preview.getByRole("button", { name: "Open query" })).toBeVisible();
-    await expect(page.locator(".rd-v2-rail-toggle")).toBeVisible();
+    await expect(preview).toContainText("Expanded dataset sample");
+    await expect(preview).toContainText("Expanded sample");
+    await expect(preview.locator("table")).toContainText("country");
+    await expect(page.getByTestId("research-situation")).toContainText("Asia daily news-risk panel");
+    await expect(page.getByTestId("library-preview-open-state")).toContainText("Expanded sample open in centre");
     await page.keyboard.press("Escape");
     await expect(preview).toHaveCount(0);
   });

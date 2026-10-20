@@ -1,0 +1,153 @@
+import { AskUnavailableNote } from "@/v2/askNote";
+import { LIBRARY_FOLDERS_ROOT } from "@/driveTree";
+import {
+  RailField,
+  RailFieldGrid,
+  RailFrame,
+  RailStickyFooter,
+} from "@/v2/RailFrame";
+
+function pluralCount(value, singular, plural = `${singular}s`) {
+  const count = Number(value || 0);
+  return `${count} ${count === 1 ? singular : plural}`;
+}
+
+function isFilteredRoot(folder) {
+  if (folder?.folderId) return false;
+  const note = String(folder?.note || "").toLowerCase();
+  return note.includes("match") && (note.includes("search") || note.includes("matching dataset"));
+}
+
+function isPhysicalFolder(folderId = "") {
+  const id = String(folderId || "");
+  return id === LIBRARY_FOLDERS_ROOT || id.startsWith(`${LIBRARY_FOLDERS_ROOT}/`);
+}
+
+export function LibraryFolderRailPanel({
+  object,
+  onAskAbout,
+  onStartUpload,
+  onStartUrl,
+  onStartProcure,
+}) {
+  if (object?.kind !== "library_folder") return null;
+
+  const counts = object.counts || {};
+  const loading = Boolean(object.loading);
+  const root = !object.folderId;
+  const foldersRoot = object.folderId === LIBRARY_FOLDERS_ROOT;
+  const physicalFolder = isPhysicalFolder(object.folderId);
+  const filteredRoot = isFilteredRoot(object);
+  const collection = !root && !physicalFolder;
+  const totalAssets = Number(counts.datasets || 0);
+  const scopedRows = Number(counts.items || 0);
+  const membersOnly = Number(counts.membersOnly || 0);
+  const notReady = Math.max(0, totalAssets - Number(counts.queryReady || 0) - membersOnly);
+
+  const summaryLabel = filteredRoot
+    ? "Filtered Library view"
+    : root
+      ? "Library overview"
+      : foldersRoot
+        ? "Folder storage"
+        : physicalFolder
+          ? "Folder"
+          : "Collection";
+
+  const legacySummaryLabel = filteredRoot
+    ? "In this view"
+    : root
+      ? "In this library"
+      : foldersRoot
+        ? "In folder storage"
+        : physicalFolder
+          ? "In this folder"
+          : "In this collection";
+
+  const structureLabel = root
+    ? "Collections"
+    : foldersRoot
+      ? "Top-level folders"
+      : physicalFolder
+        ? "Child folders"
+        : "Nested context";
+
+  const purpose = filteredRoot
+    ? "This view shows the current search and filters for data in your Library. Clear them to return to the full overview."
+    : root
+      ? "Search and review evidence across the full Library. Open Folders when you want to browse the recorded storage structure manually."
+      : foldersRoot
+        ? "Manual storage browser built only from recorded local paths. Open a top-level folder to move deeper; return to Library for cross-estate retrieval and research collections."
+        : physicalFolder
+          ? "Recorded storage folder. Select evidence here, move deeper through child folders, or use the breadcrumb to move back up."
+          : "Research collection. Select evidence in this context, open nested research context where available, or use the breadcrumb to move back up.";
+
+  const askLabel = root
+    ? "Ask about the library →"
+    : foldersRoot
+      ? "Ask about folders →"
+      : physicalFolder
+        ? "Ask about this folder →"
+        : "Ask about this collection →";
+
+  return (
+    <RailFrame>
+      <div className="rd-v2-rail-scroll rd-v2-library-folder-inspector">
+        <section className="rd-v2-library-folder-summary">
+          <span hidden>{legacySummaryLabel}</span>
+          <p className="rd-v2-rail-section-label">{summaryLabel}</p>
+          <h3>{loading ? "Reading your Library…" : pluralCount(totalAssets, "dataset")}</h3>
+          <div className="rd-v2-library-folder-readiness" aria-busy={loading || undefined}>
+            {loading ? <span>Data saved to Library is still loading.</span> : null}
+            {counts.queryReady > 0 ? <span><b>{counts.queryReady}</b> ready to query</span> : null}
+            {membersOnly > 0 ? <span><b>{membersOnly}</b> for Yuan Ze members</span> : null}
+            {notReady > 0 ? <span><b>{notReady}</b> not ready to query</span> : null}
+            {counts.connected > 0 ? <span><b>{counts.connected}</b> connected</span> : null}
+            {counts.metadataOnly > 0 ? <span><b>{counts.metadataOnly}</b> metadata only</span> : null}
+            {counts.references > 0 ? (
+              <span>
+                <b>{counts.references}</b> known source{counts.references === 1 ? "" : "s"} not yet collected; find {counts.references === 1 ? "it" : "them"} in Discover
+              </span>
+            ) : null}
+          </div>
+        </section>
+
+        <section className="rd-v2-library-folder-context" aria-label="Library browse context">
+          <p className="rd-v2-rail-section-label">Scope &amp; location</p>
+          <RailFieldGrid>
+            <RailField label="Location" value={object.path || object.destination || "Library"} />
+            <RailField
+              label={structureLabel}
+              value={loading ? "Reading…" : pluralCount(counts.folders, root ? "collection" : "folder")}
+            />
+            <RailField label="Datasets shown" value={loading ? "Reading…" : String(scopedRows)} />
+          </RailFieldGrid>
+          <p className="rd-v2-rail-note">{purpose}</p>
+        </section>
+
+        {onStartUpload || onStartUrl || onStartProcure ? <section className="rd-v2-library-folder-add">
+          <p className="rd-v2-rail-section-label">Add evidence</p>
+          {onStartUpload ? <button type="button" onClick={() => onStartUpload(object)}>Upload file</button> : null}
+          {onStartUrl ? <button type="button" onClick={() => onStartUrl(object)}>Add URL / DOI</button> : null}
+          {onStartProcure ? <button type="button" onClick={() => onStartProcure(object)}>Find missing evidence</button> : null}
+        </section> : null}
+
+        <details className="rd-v2-library-inspector-tech rd-v2-library-folder-tech">
+          <summary>Technical details</summary>
+          <div className="rd-v2-library-inspector-tech-body">
+            <RailFieldGrid>
+              <RailField label="Destination" value={object.destination} />
+              <RailField label="Items" value={pluralCount(counts.items, "item")} />
+            </RailFieldGrid>
+          </div>
+        </details>
+      </div>
+
+      <RailStickyFooter>
+        {onAskAbout ? <button type="button" className="rd-v2-btn sm primary" onClick={onAskAbout}>
+          {askLabel}
+        </button> : <AskUnavailableNote className="rd-v2-rail-note" subject={root ? "the Library" : physicalFolder ? "this folder" : "this collection"} />}
+      </RailStickyFooter>
+    </RailFrame>
+  );
+}

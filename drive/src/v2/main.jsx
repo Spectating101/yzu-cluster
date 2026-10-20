@@ -1,24 +1,27 @@
 import { createRoot } from "react-dom/client";
-import "./v2-base.css";
-import "./v2.css";
-import "./premium.css";
-import "./premium-components.css";
-import "./premium-profile.css";
-import "./premium-synthesis.css";
-import "./premium-fixes.css";
-import "./synthesis-s04-review.css";
-import "./release-visual.css";
-import "./release-mobile-fixes.css";
-import "./interaction-guidance.css";
-import "./interaction-feedback.css";
-import "./decoration-layer.css";
-import "./release-scale.css"; /* laptop/desktop resolution ladder + rail collapse */
-import "./library-workspace.css";
-import { InteractionProvider } from "./InteractionGuidance.jsx";
-import { V2App } from "./App.jsx";
+import "./styles/01-foundation.css";
+import "./styles/02-components.css";
+import "./styles/03-discover-workspace.css";
+import "./styles/04-shell.css";
+import "./styles/05-synthesis-workstation.css";
+import "./styles/06-app-closure.css";
+import "./styles/07-discover.css";
+import "./styles/08-convergence.css";
+import "./styles/09-library.css";
+import "./styles/10-preview.css";
+import "./styles/11-synthesis-surfaces.css";
+import { V2App } from "./App";
+import { InteractionProvider } from "./InteractionGuidance";
+import { SynthesisAuthorityMount } from "./SynthesisAuthorityMount.jsx";
+import { SynthesisObjectContextMount } from "./SynthesisObjectContextMount.jsx";
 
-createRoot(document.getElementById("root")).render(
-  <InteractionProvider>
-    <V2App />
-  </InteractionProvider>,
-);
+const el = document.getElementById("root");
+if (el) {
+  createRoot(el).render(
+    <InteractionProvider>
+      <V2App />
+      <SynthesisAuthorityMount />
+      <SynthesisObjectContextMount />
+    </InteractionProvider>,
+  );
+}

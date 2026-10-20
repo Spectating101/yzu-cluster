@@ -1,6 +1,15 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { isQueryReadyReadiness, statusPillKind } from "./datasetMeta.js";
+import { displayName,
+  canIUseDecision,
+  demotionSentence,
+  detailFields,
+  hydrateRemedy,
+  isQueryReadyReadiness,
+  libraryAssetKind,
+  libraryAssetPresentation,
+  statusPillKind,
+} from "./datasetMeta.js";
 
 test("unknown readiness is never promoted to query ready", () => {
   assert.deepEqual(statusPillKind({ dataset_id: "unknown" }), {
@@ -8,6 +17,26 @@ test("unknown readiness is never promoted to query ready", () => {
     label: "Readiness unknown",
   });
   assert.deepEqual(statusPillKind({ dataset_id: "novel", analysis_readiness: "new_state" }), {
+    kind: "unknown",
+    label: "Readiness unknown",
+  });
+});
+
+test("quarantined membership gives a blocked-use decision rather than an unchecked label", () => {
+  const asset = { analysis_readiness: "registered", runtime_readiness_reason: "historical_membership_invalid" };
+  assert.equal(statusPillKind(asset).label, "Historical use blocked");
+  assert.equal(canIUseDecision(asset).headline, "Historical use blocked");
+  assert.match(canIUseDecision(asset).body, /Reacquire and validate/);
+});
+
+test("queryable undated fundamentals still explain the historical-use restriction", () => {
+  const asset = { analysis_readiness: "instant", temporal_quality: { status: "undated_snapshot", reason: "Fiscal years are missing." } };
+  assert.match(canIUseDecision(asset).body, /snapshot/);
+  assert.match(canIUseDecision(asset).body, /Fiscal years are missing/);
+});
+
+test("readiness projection stays null-safe before a dataset is selected", () => {
+  assert.deepEqual(statusPillKind(null), {
     kind: "unknown",
     label: "Readiness unknown",
   });
@@ -24,8 +53,8 @@ test("fuzzy readiness substrings must not claim query ready", () => {
 test("dataset readiness labels preserve the explicit access contract", () => {
   assert.equal(statusPillKind({ analysis_readiness: "instant" }).kind, "query-ready");
   assert.equal(statusPillKind({ analysis_readiness: "instant_or_minutes" }).kind, "query-ready");
-  assert.equal(statusPillKind({ analysis_readiness: "query_ready" }).label, "Query ready");
-  assert.equal(statusPillKind({ analysis_readiness: "registered" }).label, "Registered");
+  assert.equal(statusPillKind({ analysis_readiness: "query_ready" }).label, "Ready to query");
+  assert.equal(statusPillKind({ analysis_readiness: "registered" }).label, "Saved to Library");
   assert.equal(statusPillKind({ analysis_readiness: "connected" }).kind, "connected");
   assert.equal(statusPillKind({ analysis_readiness: "dry_run_before_execution" }).kind, "connected");
   assert.equal(statusPillKind({ analysis_readiness: "metadata_search" }).label, "Metadata only");
@@ -36,4 +65,162 @@ test("dataset readiness labels preserve the explicit access contract", () => {
 
 test("external acquisition rows remain external regardless of readiness text", () => {
   assert.equal(statusPillKind({ collect_via: "web", analysis_readiness: "instant" }).kind, "external");
+});
+
+test("instant readiness is not query-ready when local panel is missing at runtime", () => {
+  const pill = statusPillKind({
+    analysis_readiness: "instant",
+    runtime_readiness_reason: "local_panel_missing",
+  });
+  assert.notEqual(pill.kind, "query-ready");
+  assert.notEqual(pill.label, "Ready to query");
+});
+
+test("declared instant without a runtime reason stays query-ready", () => {
+  assert.equal(statusPillKind({ analysis_readiness: "instant" }).kind, "query-ready");
+});
+
+test("demotion sentence names the measured gap, not a generic warning", () => {
+  assert.equal(
+    demotionSentence({
+      analysis_readiness: "instant",
+      runtime_readiness_reason: "local_panel_missing",
+    }),
+    "Documented as queryable, but the local panel is missing.",
+  );
+  assert.equal(
+    demotionSentence({ runtime_readiness_reason: "local_bytes_missing" }),
+    "Documented as queryable, but local data is missing.",
+  );
+  assert.equal(demotionSentence({ analysis_readiness: "instant" }), "");
+});
+
+test("any runtime readiness reason blocks Query-ready, including unknown future reasons", () => {
+  const pill = statusPillKind({
+    analysis_readiness: "instant",
+    runtime_readiness_reason: "new_engine_reason_v2",
+  });
+  assert.notEqual(pill.kind, "query-ready");
+  assert.equal(
+    demotionSentence({
+      analysis_readiness: "instant",
+      runtime_readiness_reason: "new_engine_reason_v2",
+    }),
+    "Documented as queryable, but readiness in the current system has not been confirmed.",
+  );
+});
+
+test("hydrate remedy is silent unless the engine set hydrate_required", () => {
+  assert.equal(hydrateRemedy({ runtime_readiness_reason: "local_bytes_missing" }), "");
+  assert.equal(hydrateRemedy({ hydrate_required: false }), "");
+  assert.equal(
+    hydrateRemedy({ hydrate_required: true, runtime_readiness_reason: "local_bytes_missing" }),
+    "A vault archive is available to restore local bytes.",
+  );
+});
+
+test("Can I use this keeps the demotion and does not drop the hydrate remedy", () => {
+  const decision = canIUseDecision({
+    analysis_readiness: "instant",
+    runtime_readiness_reason: "local_bytes_missing",
+    hydrate_required: true,
+  });
+  assert.equal(decision.headline, "In Library · not yet checked");
+  assert.match(decision.body, /local data is missing/);
+  assert.match(decision.body, /vault archive is available to restore local bytes/);
+});
+
+test("detail source authority never falls back to transport backend", () => {
+  assert.equal(
+    detailFields({ backend: "bigquery_api", collect_via: "BigQuery" }).source,
+    null,
+  );
+  assert.equal(
+    detailFields({ source_system: "GDELT news graph", backend: "local_sqlite" }).source,
+    "GDELT news graph",
+  );
+});
+
+test("a procured paper is presented as a scholarly work, not a tabular dataset", () => {
+  const paper = {
+    dataset_id: "datacite_10.5281_zenodo.58938",
+    name: "Arbitrage Pricing and Efficient Markets Paper",
+    backend: "local_file",
+    access_shape: "local_file",
+    analysis_readiness: "metadata_search",
+    grain: "procured_snapshot",
+    one_line: "A research work useful for finance literature grounding and citation.",
+  };
+  assert.equal(libraryAssetKind(paper), "scholarly_work");
+  assert.deepEqual(libraryAssetPresentation(paper), {
+    kind: "scholarly_work",
+    noun: "scholarly work",
+    eyebrow: "Selected scholarly work",
+    shapeTitle: "Bibliographic record",
+    structureTitle: "Record details",
+    structureAction: "Inspect record",
+    askLabel: "Ask about this work",
+    previewRows: false,
+  });
+});
+
+test("connected remote holdings present as live sources without becoming query ready", () => {
+  const source = {
+    dataset_id: "connected_bigquery_catalogue",
+    analysis_readiness: "dry_run_before_execution",
+    registered: true,
+    registry_id: "connected_bigquery_catalogue",
+    backend: "bigquery_public_dataset",
+    collect_via: "BigQuery",
+  };
+  assert.equal(statusPillKind(source).kind, "connected");
+  assert.equal(libraryAssetKind(source), "live_source");
+  assert.deepEqual(libraryAssetPresentation(source), {
+    kind: "live_source",
+    noun: "live source",
+    eyebrow: "Selected live source",
+    shapeTitle: "Source contract",
+    structureTitle: "Documented response shape",
+    structureAction: "Inspect fields",
+    askLabel: "Ask about this source",
+    previewRows: true,
+  });
+});
+
+test("metadata catalogues and normal panels keep distinct Library projections", () => {
+  assert.equal(
+    libraryAssetKind({ access_shape: "metadata_index", backend: "local_jsonl_catalog" }),
+    "metadata_index",
+  );
+  assert.equal(
+    libraryAssetKind({
+      name: "Daily market panel",
+      backend: "local_csv",
+      access_shape: "local_derived_tables",
+      grain: "firm_day",
+      analysis_readiness: "instant",
+    }),
+    "dataset",
+  );
+});
+
+test("registered folders of files read as files, not as unconfirmed tables", () => {
+  const pill = statusPillKind({ dataset_id: "d", registered: true, analysis_readiness: "registered", access_shape: "local_file_tree" });
+  assert.equal(pill.label, "Files available");
+  assert.equal(statusPillKind({ dataset_id: "d", registered: true, analysis_readiness: "registered" }).label, "Saved to Library");
+});
+
+test("an available-to-collect dataset says it is not downloaded yet, and a ready one is unaffected", async () => {
+  const { statusPillKind } = await import("./datasetMeta.js");
+  const row = { dataset_id: "usgs", analysis_readiness: "registered", library_available: true };
+  assert.deepEqual(statusPillKind(row), { kind: "available", label: "Available to collect" });
+  assert.match(canIUseDecision(row).body, /not downloaded yet/);
+  assert.equal(statusPillKind({ ...row, analysis_readiness: "instant" }).label, "Ready to query");
+  assert.equal(statusPillKind({ dataset_id: "x", analysis_readiness: "registered" }).label, "Saved to Library");
+});
+
+test("a Synthesis output reads by its own title, without the Synthesis: prefix", () => {
+  assert.equal(displayName({ name: "Synthesis: Stablecoin de-peg weeks" }), "Stablecoin de-peg weeks");
+  assert.equal(displayName({ name: "Synthesis studies" }), "Synthesis studies");
+  assert.equal(displayName({ dataset_id: "x" }), "x");
 });

@@ -1,10 +1,21 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { downloadText, openQueryInNewTab, queryDataset, rowsToCsv } from "@/v2/api";
+import { MEMBERS_ONLY_TEXT, licensedRowsLocked } from "@/v2/licensedAccess";
+import { previewCellValue, researcherPreviewReason } from "@/v2/previewValue";
+import {
+  downloadText,
+  openQueryInNewTab,
+  previewDiscoverSource,
+  queryDataset,
+  rowsToCsv,
+} from "@/v2/api";
+import { candidateKey } from "@/v2/candidateKey";
+import { humanizeDiscoverDescription } from "@/v2/browseMeta";
 import { buildSchemaRows, displayName, statusPill } from "@/v2/datasetMeta";
 import { previewSampleRows } from "@/v2/deskSeed";
-import "@/v2/preview.css";
+import { coverageText } from "./coverageText.js";
 
 const MAX_PREVIEW_ROWS = 50;
+const MAX_EXTERNAL_PREVIEW_ROWS = 5;
 
 function compactParts(parts) {
   return parts
@@ -51,11 +62,11 @@ function inferredKind(dataset, isExternal) {
   return "file";
 }
 
-function kindLabel(kind) {
-  if (kind === "source") return "External source preview";
+function kindLabel(kind, libraryExpandedSample = false) {
+  if (kind === "source") return "External data inspector";
   if (kind === "document") return "Document preview";
   if (kind === "image") return "Image preview";
-  if (kind === "table") return "Dataset preview";
+  if (kind === "table") return libraryExpandedSample ? "Expanded dataset sample" : "Dataset preview";
   return "Evidence preview";
 }
 
@@ -71,19 +82,55 @@ function openExternal(url) {
   window.open(url, "_blank", "noopener,noreferrer");
 }
 
-function SourceRecord({ dataset }) {
+function externalPreviewBoundary(preview) {
+  const status = String(preview?.status || "").trim();
+  if (status === "ready") {
+    return {
+      title: "Observed sample available",
+      body: `${Number(preview?.sample_row_count || preview?.sample_rows?.length || 0)} sample row${Number(preview?.sample_row_count || preview?.sample_rows?.length || 0) === 1 ? "" : "s"} returned by the source-preview contract.`,
+    };
+  }
+  if (status === "schema_only") {
+    return {
+      title: "Structure available · rows not observed",
+      body: preview?.notes || "The preview contract returned schema/access facts without sample rows.",
+    };
+  }
+  if (status === "access_required") {
+    return {
+      title: "Access required before preview",
+      body: researcherPreviewReason(
+        preview?.reason || preview?.notes,
+        "This source requires university access, credentials, or another access step before a sample can be viewed.",
+      ),
+    };
+  }
+  if (status === "failed") {
+    return {
+      title: "Source record only",
+      body: researcherPreviewReason(preview?.reason),
+    };
+  }
+  return {
+    title: "Inspecting source",
+    body: "The source sample preview is checking what can be viewed without starting collection.",
+  };
+}
+
+function SourceRecord({ dataset, preview }) {
   const rows = [
-    ["Publisher", dataset?.source || dataset?.publisher || dataset?.domain || "Not specified"],
-    ["Coverage", dataset?.coverage || dataset?.date_range || dataset?.temporal_coverage || "Not specified"],
-    ["Grain", dataset?.grain || dataset?.format || "Not specified"],
-    ["Access", dataset?.access_mode || dataset?.collect_via || "Source-specific"],
+    ["Publisher", preview?.provider || dataset?.source || dataset?.publisher || dataset?.domain || "Not specified"],
+    ["Coverage", coverageText(dataset?.coverage || dataset?.date_range || dataset?.temporal_coverage) || "Not specified"],
+    ["Unit of observation", dataset?.grain || dataset?.format || "Not specified"],
+    ["Access", humanizeDiscoverDescription(dataset?.access_mode || dataset?.collect_via || "Source-specific")],
     ["License", dataset?.license || "See source terms"],
   ];
+  const boundary = externalPreviewBoundary(preview);
 
   return (
     <div className="rd-preview-source-record">
       <div className="rd-preview-source-brand">
-        <span>{dataset?.source || dataset?.publisher || "External source"}</span>
+        <span>{preview?.provider || dataset?.source || dataset?.publisher || "External source"}</span>
         <strong>{displayName(dataset)}</strong>
       </div>
       <dl className="rd-preview-source-fields">
@@ -95,10 +142,64 @@ function SourceRecord({ dataset }) {
         ))}
       </dl>
       {dataset?.description ? <p className="rd-preview-description">{dataset.description}</p> : null}
-      <div className="rd-preview-boundary">
-        <strong>Source record only</strong>
-        <span>No rows or document contents have been collected or observed yet.</span>
+      <div className="rd-preview-boundary" data-status={preview?.status || "checking"}>
+        <strong>{boundary.title}</strong>
+        <span>{boundary.body}</span>
       </div>
+    </div>
+  );
+}
+
+function ExternalFields({ preview }) {
+  const schema = preview?.schema && typeof preview.schema === "object" ? preview.schema : {};
+  const columns = Array.isArray(schema.columns) ? schema.columns.filter(Boolean).slice(0, 40) : [];
+  const facts = Object.entries(schema)
+    .filter(([key, value]) => key !== "columns" && value !== null && value !== undefined && value !== "")
+    .slice(0, 10);
+
+  if (!columns.length && !facts.length) {
+    return (
+      <UnavailablePreview
+        dataset={{}}
+        error={preview?.status === "access_required"
+          ? preview?.reason || "Access is required before source structure can be inspected."
+          : "The sample preview returned no source structure or field list."}
+      />
+    );
+  }
+
+  return (
+    <div className="rd-preview-fields rd-preview-external-fields">
+      <div className="rd-preview-section-heading">
+        <strong>Observed structure</strong>
+        <span>Source sample preview; it does not guarantee the database structure</span>
+      </div>
+      {columns.length ? (
+        <table className="rd-preview-table fields">
+          <thead><tr><th>Field</th><th>Verification</th></tr></thead>
+          <tbody>
+            {columns.map((column) => (
+              <tr key={String(column)}>
+                <td>{String(column)}</td>
+                <td>Source preview</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : null}
+      {facts.length ? (
+        <dl className="rd-preview-source-fields rd-preview-schema-facts">
+          {facts.map(([label, value]) => (
+            <div key={label}>
+              <dt>{String(label).replaceAll("_", " ")}</dt>
+              <dd>{Array.isArray(value) ? value.join(" · ") : String(value)}</dd>
+            </div>
+          ))}
+        </dl>
+      ) : null}
+      <p className="rd-preview-field-note">
+        Structure appears only when the sample preview returns it. Missing fields have not been observed.
+      </p>
     </div>
   );
 }
@@ -106,8 +207,8 @@ function SourceRecord({ dataset }) {
 function UnavailablePreview({ dataset, error, onRetry }) {
   const remaining = compactParts([
     dataset?.source || dataset?.publisher ? `Source · ${dataset?.source || dataset?.publisher}` : "",
-    dataset?.coverage || dataset?.date_range ? `Coverage · ${dataset?.coverage || dataset?.date_range}` : "",
-    dataset?.grain ? `Grain · ${dataset.grain}` : "",
+    dataset?.coverage || dataset?.date_range ? `Coverage · ${coverageText(dataset?.coverage || dataset?.date_range)}` : "",
+    dataset?.grain ? `Unit of observation · ${dataset.grain}` : "",
     dataset?.local_root || dataset?.local_path ? "Archive record · available" : "",
   ]);
 
@@ -141,11 +242,14 @@ export function PreviewModal({
   usingSeed = false,
   onClose,
   onAskAbout,
+  onOpenTable,
   onPrevious,
   onNext,
 }) {
+  const libraryExpandedSample = Boolean(dataset?.__libraryExpandedSample);
   const [tab, setTab] = useState(initialTab === "schema" ? "fields" : "rows");
   const [rows, setRows] = useState([]);
+  const [externalPreview, setExternalPreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [demoNotice, setDemoNotice] = useState("");
@@ -156,14 +260,24 @@ export function PreviewModal({
   const kind = useMemo(() => inferredKind(dataset, isExternal), [dataset, isExternal]);
   const assetUrl = previewAssetUrl(dataset);
   const externalUrl = sourceUrl(dataset);
-  const cols = rows[0] ? Object.keys(rows[0]).slice(0, 8) : [];
+  const observedRows = isExternal
+    ? (Array.isArray(externalPreview?.sample_rows) ? externalPreview.sample_rows : [])
+    : rows;
+  const cols = observedRows[0] ? Object.keys(observedRows[0]).slice(0, 8) : [];
   const schemaRows = buildSchemaRows(dataset, rows[0]);
   const title = displayName(dataset);
-  const readiness = isExternal ? "Source record" : statusPill(dataset);
+  const readiness = isExternal
+    ? ({
+        ready: "Observed sample",
+        schema_only: "Structure only",
+        access_required: "Access required",
+        failed: "Source record",
+      }[externalPreview?.status] || "Inspecting source")
+    : statusPill(dataset);
   const metaParts = compactParts([
-    dataset?.source || dataset?.publisher || dataset?.backend,
+    externalPreview?.provider || dataset?.source || dataset?.publisher || dataset?.backend,
     dataset?.grain || dataset?.format,
-    dataset?.coverage || dataset?.date_range || dataset?.temporal_coverage,
+    coverageText(dataset?.coverage || dataset?.date_range || dataset?.temporal_coverage),
     readiness,
   ]);
 
@@ -179,14 +293,70 @@ export function PreviewModal({
 
   useEffect(() => {
     if (!open) return;
-    setTab(initialTab === "schema" ? "fields" : "rows");
+    setTab(isExternal ? "overview" : libraryExpandedSample ? "rows" : initialTab === "schema" ? "fields" : "rows");
     setRows([]);
+    setExternalPreview(null);
     setError("");
     setDemoNotice("");
-  }, [open, initialTab, dataset?.dataset_id, dataset?.url, dataset?.doi]);
+  }, [open, isExternal, initialTab, libraryExpandedSample, dataset?.dataset_id, dataset?.url, dataset?.doi]);
+
+  useEffect(() => {
+    if (!open || !isExternal || !dataset) return undefined;
+    const actualUrl = String(dataset?.url || "").trim();
+    const sourceId = String(dataset?.source_id || dataset?.external_id || "").trim();
+    const connectorId = String(dataset?.connector_id || dataset?.connector?.connector_id || "").trim();
+    const datasetId = String(dataset?.dataset_id || "").trim();
+    if (!actualUrl && !sourceId && !connectorId && !datasetId) {
+      setExternalPreview({
+        status: "failed",
+        reason: dataset?.doi
+          ? "This DOI-only record has no bound browser preview route yet; open the source to inspect it."
+          : "No source sample preview is linked to this record.",
+      });
+      setLoading(false);
+      return undefined;
+    }
+
+    let cancelled = false;
+    setLoading(true);
+    setError("");
+    previewDiscoverSource({
+      sourceId,
+      connectorId,
+      candidateKey: candidateKey(dataset),
+      url: actualUrl,
+      datasetId,
+      limit: MAX_EXTERNAL_PREVIEW_ROWS,
+    })
+      .then((result) => {
+        if (cancelled) return;
+        setExternalPreview(result && typeof result === "object" ? result : { status: "failed", reason: "Preview returned no structured response." });
+      })
+      .catch((failure) => {
+        if (cancelled) return;
+        setExternalPreview({
+          status: "failed",
+          reason: /lacks permission: inspect_sources/.test(String(failure?.message || ""))
+            ? "Checking an outside source makes our server fetch it, so it needs an account. Create a free account to inspect it, or open the source yourself."
+            : failure?.message || "The source sample preview could not be loaded.",
+        });
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, isExternal, dataset, retryToken]);
 
   useEffect(() => {
     if (!open || !dataset?.dataset_id || isExternal || kind !== "table") return undefined;
+    if (licensedRowsLocked(dataset)) {
+      setRows([]);
+      setError(MEMBERS_ONLY_TEXT);
+      setLoading(false);
+      return undefined;
+    }
     let cancelled = false;
     setLoading(true);
     setError("");
@@ -203,7 +373,7 @@ export function PreviewModal({
           setError("");
         } else {
           setRows([]);
-          setError("The query engine could not return a sample for this registered dataset.");
+          setError("The query engine could not return a sample for this dataset saved to Library.");
         }
       })
       .finally(() => {
@@ -236,7 +406,7 @@ export function PreviewModal({
 
   const retry = () => setRetryToken((value) => value + 1);
   const exportRows = () => {
-    const csv = rowsToCsv(rows);
+    const csv = rowsToCsv(observedRows);
     if (csv) downloadText(`${dataset.dataset_id || "evidence"}-preview.csv`, csv, "text/csv");
   };
 
@@ -251,14 +421,14 @@ export function PreviewModal({
         className={`rd-preview-shell kind-${kind}`}
         role="dialog"
         aria-modal="true"
-        aria-label={`${title} preview`}
+        aria-label={`${title} ${libraryExpandedSample ? "expanded sample" : "preview"}`}
       >
         <header className="rd-preview-header">
           <div className="rd-preview-identity">
             <span className="rd-preview-icon" aria-hidden="true">{kindIcon(kind)}</span>
             <div>
               <strong>{title}</strong>
-              <span>{kindLabel(kind)}</span>
+              <span>{kindLabel(kind, libraryExpandedSample)}</span>
             </div>
           </div>
           <button ref={closeButtonRef} type="button" className="rd-preview-close" onClick={onClose} aria-label="Close preview">
@@ -267,20 +437,71 @@ export function PreviewModal({
         </header>
 
         {metaParts.length ? (
-          <div className="rd-preview-meta-strip" aria-label="Preview metadata">
+          <div className="rd-preview-meta-strip" role="group" aria-label="Preview metadata">
             {metaParts.map((part) => <span key={part}>{part}</span>)}
           </div>
         ) : null}
 
-        {kind === "table" ? (
+        {kind === "table" && !libraryExpandedSample ? (
           <nav className="rd-preview-tabs" aria-label="Dataset preview views">
             <button type="button" className={tab === "rows" ? "active" : ""} onClick={() => setTab("rows")}>Rows</button>
             <button type="button" className={tab === "fields" ? "active" : ""} onClick={() => setTab("fields")}>Fields</button>
           </nav>
         ) : null}
 
+        {kind === "source" ? (
+          <nav className="rd-preview-tabs" aria-label="External source inspection views">
+            <button type="button" className={tab === "overview" ? "active" : ""} onClick={() => setTab("overview")}>Overview</button>
+            <button type="button" className={tab === "rows" ? "active" : ""} onClick={() => setTab("rows")}>Rows</button>
+            <button type="button" className={tab === "fields" ? "active" : ""} onClick={() => setTab("fields")}>Fields</button>
+          </nav>
+        ) : null}
+
         <div className="rd-preview-body">
-          {kind === "source" ? <SourceRecord dataset={dataset} /> : null}
+          {kind === "source" && tab === "overview" ? (
+            <>
+              {loading && !externalPreview ? (
+                <div className="rd-preview-loading" role="status"><span /><p>Inspecting the source sample preview…</p></div>
+              ) : null}
+              <SourceRecord dataset={dataset} preview={externalPreview} />
+            </>
+          ) : null}
+
+          {kind === "source" && tab === "rows" ? (
+            <>
+              {loading ? (
+                <div className="rd-preview-loading" role="status"><span /><p>Loading a source sample…</p></div>
+              ) : null}
+              {!loading && externalPreview?.status === "ready" && observedRows.length ? (
+                <div className="rd-preview-table-wrap" data-testid="discover-external-preview-rows">
+                  <table className="rd-preview-table">
+                    <thead><tr>{cols.map((column) => <th key={column}>{column}</th>)}</tr></thead>
+                    <tbody>
+                      {observedRows.slice(0, MAX_EXTERNAL_PREVIEW_ROWS).map((row, rowIndex) => (
+                        <tr key={rowIndex}>{cols.map((column) => <td key={column}>{previewCellValue(row[column], { empty: "", maxLength: 100 })}</td>)}</tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : null}
+              {!loading && externalPreview?.status !== "ready" ? (
+                <UnavailablePreview
+                  dataset={dataset}
+                  error={externalPreview?.reason || externalPreview?.notes || "The sample preview returned no observed rows."}
+                  onRetry={retry}
+                />
+              ) : null}
+              {!loading && externalPreview?.status === "ready" && !observedRows.length ? (
+                <UnavailablePreview dataset={dataset} error="The preview reported ready, but no sample rows were returned." onRetry={retry} />
+              ) : null}
+            </>
+          ) : null}
+
+          {kind === "source" && tab === "fields" ? (
+            loading && !externalPreview
+              ? <div className="rd-preview-loading" role="status"><span /><p>Inspecting source structure…</p></div>
+              : <ExternalFields preview={externalPreview} />
+          ) : null}
 
           {kind === "table" && tab === "rows" ? (
             <>
@@ -302,9 +523,9 @@ export function PreviewModal({
                       <tr>{cols.map((column) => <th key={column}>{column}</th>)}</tr>
                     </thead>
                     <tbody>
-                      {rows.slice(0, 12).map((row, rowIndex) => (
+                      {rows.slice(0, libraryExpandedSample ? MAX_PREVIEW_ROWS : 12).map((row, rowIndex) => (
                         <tr key={rowIndex}>
-                          {cols.map((column) => <td key={column}>{String(row[column] ?? "").slice(0, 100)}</td>)}
+                          {cols.map((column) => <td key={column}>{previewCellValue(row[column], { empty: "", maxLength: 100 })}</td>)}
                         </tr>
                       ))}
                     </tbody>
@@ -314,7 +535,7 @@ export function PreviewModal({
             </>
           ) : null}
 
-          {kind === "table" && tab === "fields" ? (
+          {kind === "table" && !libraryExpandedSample && tab === "fields" ? (
             <div className="rd-preview-fields">
               <div className="rd-preview-section-heading">
                 <strong>Field inventory</strong>
@@ -323,7 +544,7 @@ export function PreviewModal({
               {schemaRows.length ? (
                 <table className="rd-preview-table fields">
                   <thead>
-                    <tr><th>Field</th><th>Type</th><th>Authority</th></tr>
+                    <tr><th>Field</th><th>Type</th><th>Verification</th></tr>
                   </thead>
                   <tbody>
                     {schemaRows.map((row) => (
@@ -359,8 +580,15 @@ export function PreviewModal({
 
         <footer className="rd-preview-footer">
           <div className="rd-preview-footnote">
-            {kind === "table" && rows.length ? `Observed sample · ${Math.min(rows.length, 12)} displayed · ${MAX_PREVIEW_ROWS}-row request` : null}
-            {kind === "source" ? "Source record only · row-level contents not observed" : null}
+            {kind === "table" && rows.length
+              ? `${libraryExpandedSample ? "Expanded sample" : "Observed sample"} · ${Math.min(rows.length, libraryExpandedSample ? MAX_PREVIEW_ROWS : 12)} displayed · ${MAX_PREVIEW_ROWS}-row request`
+              : null}
+            {kind === "source" && externalPreview?.status === "ready"
+              ? `Observed source sample · ${Math.min(observedRows.length, MAX_EXTERNAL_PREVIEW_ROWS)} displayed · backend cap 8 rows`
+              : null}
+            {kind === "source" && externalPreview?.status === "schema_only" ? "Source structure only · no row sample claimed" : null}
+            {kind === "source" && externalPreview?.status === "access_required" ? "Access boundary preserved · no row sample claimed" : null}
+            {kind === "source" && (!externalPreview || externalPreview?.status === "failed") ? "Source record retained · row-level contents not claimed" : null}
             {(kind === "document" || kind === "image") && assetUrl ? "Backing evidence rendered from its current preview URL" : null}
           </div>
           <div className="rd-preview-actions">
@@ -368,13 +596,18 @@ export function PreviewModal({
               <>
                 <button type="button" onClick={exportRows} disabled={!rows.length}>Export sample</button>
                 {onAskAbout ? <button type="button" onClick={() => onAskAbout(dataset)}>Ask about data</button> : null}
-                <button type="button" className="primary" onClick={() => dataset?.dataset_id && openQueryInNewTab(dataset.dataset_id)}>
-                  Open query
+                <button
+                  type="button"
+                  className="primary"
+                  onClick={() => dataset?.dataset_id && (onOpenTable ? onOpenTable(dataset) : openQueryInNewTab(dataset.dataset_id))}
+                >
+                  View all rows
                 </button>
               </>
             ) : null}
             {kind === "source" ? (
               <>
+                <button type="button" onClick={exportRows} disabled={!observedRows.length}>Export sample</button>
                 <button type="button" disabled={!externalUrl} onClick={() => openExternal(externalUrl)}>View source</button>
                 {onAskAbout ? <button type="button" className="primary" onClick={() => onAskAbout(dataset)}>Ask about source</button> : null}
               </>

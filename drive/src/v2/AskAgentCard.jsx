@@ -1,3 +1,4 @@
+import { uiVocabularyLabel } from "./uiVocabularyLabels.js";
 import { LoaderCircle } from "lucide-react";
 import {
   formatAskText,
@@ -23,8 +24,10 @@ export function AskAgentCard({
   message,
   busy = false,
   approval = "",
+  approvalLabel = "Approve job",
   onSend,
   onApprove,
+  onOpenDataset,
 }) {
   const streaming = Boolean(message?.streaming);
   const parsed = parseAskReply(message?.text || "");
@@ -44,7 +47,7 @@ export function AskAgentCard({
       <header className="rd-v2-ask-card-head">
         <div className="rd-v2-ask-card-kicker">
           <span className="rd-v2-ask-card-eyebrow">
-            {streaming ? "Working" : "Grounded answer"}
+            {streaming ? "Working" : "Answer"}
           </span>
           {readiness ? (
             <span className={`rd-v2-ask-card-pill rd-v2-ask-card-pill-${tone}`}>
@@ -63,7 +66,7 @@ export function AskAgentCard({
 
       <div className="rd-v2-ask-card-body">
         {streaming && !message?.text ? (
-          <p className="rd-v2-ask-card-pending">Gathering grounded context…</p>
+          <p className="rd-v2-ask-card-pending">{String(message?.activity || "").trim() || "Gathering grounded context…"}</p>
         ) : null}
         {parsed.paragraphs.map((para, i) => (
           <p key={`p-${i}`} className="rd-v2-ask-card-para">
@@ -96,14 +99,26 @@ export function AskAgentCard({
                 <LoaderCircle className="rd-v2-inline-spinner" aria-hidden="true" /> Approving…
               </>
             ) : (
-              "Approve job"
+              approvalLabel
             )}
           </button>
         </div>
       ) : null}
 
+      {!streaming && onOpenDataset && message?.referencedDatasets?.length ? (
+        <div className="rd-v2-ask-card-datasets" role="group" aria-label="Library datasets in this answer" data-testid="ask-referenced-datasets">
+          <p className="rd-v2-ask-card-next-label">In your Library</p>
+          {message.referencedDatasets.slice(0, 4).map((row) => (
+            <button key={row.dataset_id} type="button" className="rd-v2-ask-card-dataset" onClick={() => onOpenDataset(row)}>
+              <span>{row.title || row.dataset_id}</span>
+              <b aria-hidden="true">Open →</b>
+            </button>
+          ))}
+        </div>
+      ) : null}
+
       {!streaming && steps.length ? (
-        <div className="rd-v2-ask-card-next" aria-label="Suggested next steps">
+        <div className="rd-v2-ask-card-next" role="group" aria-label="Suggested next steps">
           <p className="rd-v2-ask-card-next-label">Next steps</p>
           <div className="rd-v2-ask-card-next-list">
             {steps.slice(0, 4).map((step, idx) => {
@@ -118,7 +133,7 @@ export function AskAgentCard({
                   disabled={busy}
                   onClick={() => onSend?.(prompt)}
                 >
-                  {label}
+                  {uiVocabularyLabel(label)}
                 </button>
               );
             })}
@@ -126,13 +141,6 @@ export function AskAgentCard({
         </div>
       ) : null}
 
-      {!streaming && action ? (
-        <footer className="rd-v2-ask-card-foot">
-          <span>Evidence-bound</span>
-          <span aria-hidden="true">·</span>
-          <span>{action}</span>
-        </footer>
-      ) : null}
     </article>
   );
 }

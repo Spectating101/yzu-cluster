@@ -1,8 +1,11 @@
+import { collectionRouteTitle } from "./collectRouteLabel.js";
 import { useEffect, useMemo, useState } from "react";
 import { Chip } from "@/v2/ui";
 import { fenceHistoryEvents, systemVerificationClassification } from "@/v2/historyNoiseFence";
-import { historyLifecycleBucket } from "@/v2/discoverAdapters";
-import { historyLifecycleLabel } from "@/v2/historyLifecycleLabel";
+import { historyEvidenceSummary, historyLifecycleBucket } from "@/v2/discoverAdapters";
+import { waitingAge } from "./historyAge.js";
+import { useDeskPermission } from "@/v2/deskPermissions";
+import { historyEvidenceLabel, historyLifecycleLabel } from "@/v2/historyLifecycleLabel";
 
 const HISTORY_FILTERS = [
   { id: "all", label: "All" },
@@ -11,9 +14,12 @@ const HISTORY_FILTERS = [
   { id: "ready", label: "Ready" },
   { id: "needs_recovery", label: "Recovery" },
   { id: "scheduled", label: "Scheduled" },
-  { id: "search", label: "Search" },
-  { id: "system", label: "System" },
 ];
+
+function historyViewportBudget() {
+  if (typeof window === "undefined" || !window.matchMedia) return 8;
+  return window.matchMedia("(min-width: 1280px) and (min-height: 1200px)").matches ? 12 : 8;
+}
 
 function cleanTarget(value) {
   const valueText = String(value || "").replace(/\s+/g, " ").trim();
@@ -64,16 +70,16 @@ function eventTime(event) {
 
 function eventSummary(event) {
   const meta = event?.meta || {};
-  const summary = meta.summary || event?.summary;
+  const summary = historyEvidenceSummary(event);
   // Keep low-level collector diagnostics in Detail rather than making an
   // allow-list error read like the primary description of a research record.
   if (opaqueRunReference(event) && /script_key\s+not\s+allowlisted/i.test(String(summary || ""))) {
     return "Collector configuration blocked";
   }
-  if (summary) return String(summary);
+  if (summary) return historyEvidenceLabel(summary);
   if (meta.cadence) return `Cadence: ${meta.cadence}`;
   if (meta.candidate_key) return `Candidate: ${meta.candidate_key}`;
-  return "Durable Discover record";
+  return "Saved Discover record";
 }
 
 function eventSourceIdentity(event) {
@@ -95,7 +101,7 @@ function eventSourceIdentity(event) {
   // "Source pending" is an implementation fallback, not useful researcher
   // context. Preserve it in the record/rail but do not lead every ledger row
   // with the same empty phrase.
-  return [source === "Source pending" ? "" : source, identity, runReference ? `Run ${runReference}` : ""]
+  return [source === "Source pending" ? "" : collectionRouteTitle(source), identity, runReference ? `Run ${runReference}` : ""]
     .filter(Boolean)
     .join(" · ");
 }
@@ -107,7 +113,13 @@ function eventEvidenceLine(event) {
   if (meta.archive_note) parts.push(String(meta.archive_note));
   if (meta.progress_note) parts.push(String(meta.progress_note));
   parts.push(eventTime(event));
+  if (eventKind(event) === "needs_approval") parts.push(waitingAge(event?.ts));
   return parts.filter(Boolean).join(" · ");
+}
+
+function rowIdentity(event) {
+  const identity = eventSourceIdentity(event);
+  return /approval is required|waiting for (your|a researcher)/i.test(identity) ? "" : identity;
 }
 
 function eventMethodCue(event) {
@@ -156,7 +168,7 @@ function HistoryRow({ event, selectedId, index, onSelectEvent, secondary = false
           {selected ? <span className="rd-v2-history-selected-mark" aria-hidden>▌</span> : null}
           <strong>{title}</strong>
         </span>
-        <span className="rd-v2-history-line2">{eventSourceIdentity(event)}</span>
+        {rowIdentity(event) ? <span className="rd-v2-history-line2">{rowIdentity(event)}</span> : null}
         <span className="rd-v2-history-line3">{eventEvidenceLine(event)}</span>
         {systemCue ? <span className="rd-v2-history-system-cue">{systemCue}</span> : null}
         {methodCue ? <span className="rd-v2-history-method-cue">Method · {methodCue}</span> : null}
@@ -168,13 +180,13 @@ function HistoryRow({ event, selectedId, index, onSelectEvent, secondary = false
   );
 }
 
-function Territory({ title, events, selectedId, onSelectEvent, startIndex = 0, secondary = false }) {
+function Territory({ title, events, total, selectedId, onSelectEvent, startIndex = 0, secondary = false }) {
   if (!events.length) return null;
   return (
     <section className={`rd-v2-history-territory${secondary ? " is-secondary" : ""}`} aria-label={title}>
       <header className="rd-v2-history-territory-head">
         <h3>{title}</h3>
-        <span>{events.length}</span>
+        <span>{total ?? events.length}</span>
       </header>
       <div className="rd-v2-history-list">
         {events.map((event, index) => (
@@ -223,9 +235,18 @@ function SystemVerificationFold({ events, selectedId, onSelectEvent, startIndex 
   );
 }
 
-export function DiscoverHistoryPanel({ events = [], selectedId = "", onSelectEvent }) {
+export function DiscoverHistoryPanel({
+  events = [],
+  jobsLoaded = true,
+  jobsRefreshing = false,
+  jobsRefreshFailed = false,
+  selectedId = "",
+  onSelectEvent,
+}) {
   const [filter, setFilter] = useState("all");
-  const [visibleCount, setVisibleCount] = useState(8);
+  const canRequestCollection = useDeskPermission("submit_collection") !== false;
+  const [viewportBudget, setViewportBudget] = useState(historyViewportBudget);
+  const [visibleCount, setVisibleCount] = useState(historyViewportBudget);
   const fenced = useMemo(() => {
     const raw = [...events]
       .filter((event) => event && (event.id || event.ts || event.target))
@@ -240,9 +261,14 @@ export function DiscoverHistoryPanel({ events = [], selectedId = "", onSelectEve
     filter === "search" ? searchRows : filter === "system" ? systemRows : durable;
   const filtered = useMemo(
     () =>
-      filter === "all" || filter === "search" || filter === "system"
-        ? normalized
-        : normalized.filter((event) => eventKind(event) === filter),
+      filter === "all"
+        ? [
+            ...normalized.filter((event) => eventKind(event) === "needs_approval"),
+            ...normalized.filter((event) => eventKind(event) !== "needs_approval"),
+          ]
+        : filter === "search" || filter === "system"
+          ? normalized
+          : normalized.filter((event) => eventKind(event) === filter),
     [filter, normalized],
   );
   const visible = filtered.slice(0, visibleCount);
@@ -267,13 +293,27 @@ export function DiscoverHistoryPanel({ events = [], selectedId = "", onSelectEve
   );
 
   useEffect(() => {
-    setVisibleCount(8);
-  }, [filter]);
+    if (!window.matchMedia) return undefined;
+    const query = window.matchMedia("(min-width: 1280px) and (min-height: 1200px)");
+    const update = () => setViewportBudget(query.matches ? 12 : 8);
+    update();
+    query.addEventListener?.("change", update);
+    return () => query.removeEventListener?.("change", update);
+  }, []);
+
+  useEffect(() => {
+    setVisibleCount(viewportBudget);
+  }, [filter, viewportBudget]);
 
   useEffect(() => {
     if (!visible.length || !onSelectEvent) return;
     const hasVisibleSelection = visible.some((event, index) => eventId(event, index) === selectedId);
     if (hasVisibleSelection) return;
+    // Desktop benefits from a populated inspector beside the ledger. On a
+    // phone that same automatic selection opens the inspector sheet over the
+    // entire list before the researcher has touched a row. Keep the mobile
+    // ledger primary and open Detail only after an explicit tap.
+    if (!selectedId && window.matchMedia?.("(max-width: 760px)").matches) return;
     // Prefer researcher trail selection; only fall through to system rows on System filter.
     if (filter === "all" && systemRows.some((event, index) => eventId(event, index) === selectedId)) {
       return;
@@ -282,15 +322,28 @@ export function DiscoverHistoryPanel({ events = [], selectedId = "", onSelectEve
   }, [visible, onSelectEvent, selectedId, filter, systemRows]);
 
   return (
-    <section className="rd-v2-discover-history" data-testid="discover-history" aria-label="Research lifecycle">
+    <section
+      className="rd-v2-discover-history"
+      data-testid="discover-history"
+      aria-label="Request history"
+      aria-busy={!jobsLoaded || jobsRefreshing}
+    >
       <div className="rd-v2-history-intro">
         <div>
-          <span className="rd-v2-eyebrow">Research lifecycle</span>
+          <span className="rd-v2-eyebrow">Request history</span>
           <h2>Research requests and outcomes</h2>
           <p>
-            Approvals, collection, and registered assets. Search activity and host checks remain available without burying
-            research work.
+            Review approvals, collection, and data saved to Library. Search activity and system checks are also available.
           </p>
+          {!jobsLoaded ? (
+            <p className="rd-v2-history-sync" data-testid="discover-history-jobs-sync" role="status">
+              Checking pending approvals…
+            </p>
+          ) : jobsRefreshFailed ? (
+            <p className="rd-v2-history-sync is-warning" data-testid="discover-history-jobs-sync" role="status">
+              Pending approvals could not refresh. The last saved request history is shown.
+            </p>
+          ) : null}
           {fenced.hiddenNoise > 0 ||
           fenced.hiddenSearchTelemetry > 0 ||
           fenced.hiddenSystemVerification > 0 ? (
@@ -319,25 +372,31 @@ export function DiscoverHistoryPanel({ events = [], selectedId = "", onSelectEve
         </div>
       </div>
 
-      <div className="rd-v2-toolbar inline rd-v2-history-filters" aria-label="History filters">
-        {visibleFilters.map((item) => (
-          <Chip key={item.id} active={filter === item.id} onClick={() => setFilter(item.id)}>
-            {item.label} <b>{filterCounts[item.id] ?? 0}</b>
-          </Chip>
-        ))}
-      </div>
+      {filter === "all" && !visible.length && !systemRows.length ? null : (
+        <div className="rd-v2-toolbar inline rd-v2-history-filters" role="group" aria-label="History filters">
+          {visibleFilters.map((item) => (
+            <Chip key={item.id} active={filter === item.id} onClick={() => setFilter(item.id)}>
+              {item.label} <b>{filterCounts[item.id] ?? 0}</b>
+            </Chip>
+          ))}
+        </div>
+      )}
 
       {!visible.length && !(filter === "all" && systemRows.length) ? (
         <div className="rd-v2-discover-miss">
           <p className="rd-v2-empty-inline">
-            No durable Discover items match this filter. Requests, collections, schedules, and registered outputs appear here.
+            {filter === "all"
+              ? (canRequestCollection
+                ? "No requests yet. When you ask for data to be collected from Discover, the request and its progress appear here."
+                : "Asking for data to be collected is for Yuan Ze members. Everything Discover finds stays open to you; a member's requests and their progress appear here.")
+              : "Nothing under this filter."}
           </p>
         </div>
       ) : filter === "all" ? (
         <div className="rd-v2-history-territories">
-          <Territory title="Needs you" events={needsYou} selectedId={selectedId} onSelectEvent={onSelectEvent} />
+          <Territory title="Needs you" events={needsYou} total={filterCounts.needs_approval} selectedId={selectedId} onSelectEvent={onSelectEvent} />
           <Territory
-            title="Research lifecycle"
+            title="Request history"
             events={lifecycle}
             selectedId={selectedId}
             onSelectEvent={onSelectEvent}
@@ -363,7 +422,7 @@ export function DiscoverHistoryPanel({ events = [], selectedId = "", onSelectEve
       ) : (
         <div className="rd-v2-history-territories">
           <Territory
-            title={HISTORY_FILTERS.find((item) => item.id === filter)?.label || "Research lifecycle"}
+            title={HISTORY_FILTERS.find((item) => item.id === filter)?.label || "Request history"}
             events={lifecycle}
             selectedId={selectedId}
             onSelectEvent={onSelectEvent}

@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { fetchLiveIdentity } from "@/v2/api";
-import { detailFields, displayName } from "@/v2/datasetMeta";
+import { demotionSentence, detailFields, displayName, statusPillKind } from "@/v2/datasetMeta";
 import { EmptyRailState } from "@/v2/EmptyRailState";
 import { buildObjectEstateCrumb } from "@/v2/deskIntegration";
-import { applyLiveIdentity, identityLookupFromRow } from "@/v2/liveIdentity";
+import { applyLiveIdentity, liveIdentityReadinessLabel, identityLookupFromRow } from "@/v2/liveIdentity";
 import {
   RailDecisionSummary,
   RailEntityHeader,
@@ -90,11 +90,11 @@ function AtAGlance({ dataset, fields }) {
   const size = dataset.size || dataset.size_mb || dataset.size_gb || dataset.bytes;
   const owner = dataset.owner || dataset.publisher || dataset.domain;
   const rows = [
-    ["Grain", dataset.grain || fields.partition],
+    ["Unit of observation", dataset.grain || fields.partition],
     ["Coverage", fields.coverage || dataset.coverage || dataset.date_range],
     ["Source", fields.source],
     ["Location", estate.location || fields.vault || fields.access, true],
-    ["Authority", estate.authority],
+    ["Verification", estate.authority],
     ["Freshness", estate.freshness],
     ["Readiness", dataset.analysis_readiness || "unknown"],
     ["Rows", rowCount],
@@ -116,7 +116,7 @@ function AtAGlance({ dataset, fields }) {
 function EvidenceMap({ dataset, fields }) {
   const queryPath = dataset?.dataset_id ? `/query/${dataset.dataset_id}?limit=50` : "";
   const nodes = [
-    ["Registry", dataset?.dataset_id || "not registered"],
+    ["Registry", dataset?.dataset_id || "not saved to Library"],
     ["Vault", fields.vault || fields.access || "no vault path"],
     ["Source", fields.source || "unknown source"],
     ["Preview", queryPath || "select dataset"],
@@ -175,34 +175,40 @@ function ProvenanceBlock({ dataset, fields }) {
   );
 }
 
-function isDatasetReady(readiness) {
-  return /ready|query|instant|connected/i.test(String(readiness || ""));
+function isDatasetReady(dataset) {
+  return statusPillKind(dataset).kind === "query-ready";
 }
 
 function datasetUseStatus(dataset, fields) {
-  if (isDatasetReady(dataset.analysis_readiness)) return "Ready";
+  const demotion = demotionSentence(dataset);
+  if (demotion) return "In Library · not yet checked";
+  if (isDatasetReady(dataset)) return "Ready";
   return "Needs review";
 }
 
 function datasetPrimary(dataset, fields) {
-  const ready = isDatasetReady(dataset.analysis_readiness);
+  const demotion = demotionSentence(dataset);
+  if (demotion) return demotion;
+  const ready = isDatasetReady(dataset);
   let line = ready ? "Yes — preview rows or ask questions" : "Not yet confirmed";
   if (fields.vault || fields.access) {
-    line = ready ? `${line} · registered in vault` : `${line} · vault path pending review`;
+    line = ready ? `${line} · saved in the archive` : `${line} · vault path pending review`;
   }
   return line;
 }
 
 function datasetRisk(dataset, fields) {
-  if (isDatasetReady(dataset.analysis_readiness)) return "Low";
+  if (demotionSentence(dataset)) return "Runtime readiness is not confirmed";
+  if (isDatasetReady(dataset)) return "Low";
   return "Schema or access pending";
 }
 
 function datasetNextAction(dataset, fields) {
+  if (demotionSentence(dataset)) return "Restore the local panel or confirm runtime readiness before analysis";
   if (fields.joinKeys?.length) {
     return "Preview rows, compare/join, or ask about coverage";
   }
-  if (isDatasetReady(dataset.analysis_readiness)) {
+  if (isDatasetReady(dataset)) {
     return "Preview rows or ask for schema/coverage";
   }
   return "Confirm schema and access before analysis";
@@ -213,7 +219,6 @@ export function DetailPanel({
   loading = false,
   onPreview,
   onAskAbout,
-  onSeeCluster,
   onAddToLab,
 }) {
   const [liveIdentity, setLiveIdentity] = useState(null);
@@ -276,7 +281,7 @@ export function DetailPanel({
 
         {identity ? (
           <DetailSection label="Live identity" defaultOpen>
-            <FieldRow label="Readiness" value={identity.synthesis_expectation?.badge || identity.readiness} />
+            <FieldRow label="Readiness" value={liveIdentityReadinessLabel(identity)} />
             <FieldRow label="Worker" value={identity.worker_id} mono hideEmpty />
             <FieldRow label="Run" value={identity.run_id} mono hideEmpty />
             <FieldRow label="Attempt" value={identity.attempt ? String(identity.attempt) : null} hideEmpty />
@@ -299,7 +304,7 @@ export function DetailPanel({
 
         <DetailSection label="Coverage">
           <FieldRow label="Period" value={fields.coverage || view.coverage} loading={loading} />
-          <FieldRow label="Grain" value={view.grain} loading={loading} />
+          <FieldRow label="Unit of observation" value={view.grain} loading={loading} />
           <FieldRow label="Partition" value={fields.partition} loading={loading} />
         </DetailSection>
 
@@ -340,11 +345,6 @@ export function DetailPanel({
         <button type="button" className="rd-v2-btn sm" onClick={() => onAskAbout?.(view)}>
           Ask about this →
         </button>
-        {onSeeCluster ? (
-          <button type="button" className="rd-v2-btn sm" onClick={() => onSeeCluster(view)}>
-            See on Cluster →
-          </button>
-        ) : null}
         {onAddToLab ? (
           <button type="button" className="rd-v2-btn sm" onClick={() => onAddToLab(view)}>
             Add to lab

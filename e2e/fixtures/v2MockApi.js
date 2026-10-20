@@ -20,6 +20,7 @@ export const MOCK_DATASETS = {
       name: "Ticker week panel",
       grain: "country-week",
       analysis_readiness: "instant",
+      local_root: "research_panels/ticker_week",
       source_system: "In-house derived research panels",
       join_keys: ["ticker", "week", "country_iso3"],
     },
@@ -28,12 +29,72 @@ export const MOCK_DATASETS = {
       name: "Issuer weekly fundamentals",
       grain: "issuer_week",
       analysis_readiness: "instant",
+      local_root: "research_panels/issuer_weekly",
       source_system: "MOPS",
       source: "MOPS",
       join_keys: ["issuer_id", "week"],
     },
   ],
 };
+
+export const MOCK_OLS_ROWS = [
+  { term: "const", coef: 1050, se: 240, t: 4.375, p: 0.024, ci_low: 579.6, ci_high: 1520.4 },
+  { term: "year", coef: -0.520, se: 0.119, t: -4.37, p: 0.024, ci_low: -0.754, ci_high: -0.286 },
+];
+
+export const MOCK_OLS_ANALYSIS = {
+  type: "ols",
+  spec: { type: "ols", outcome: "unemployment", predictors: ["year"], covariance: "cluster", cluster: "county" },
+  n_obs: 288,
+  r2: 0.089,
+  adj_r2: 0.086,
+  F: 19.0,
+  F_p: 0.024,
+  df_resid: 286,
+  clusters: 4,
+  covariance: "cluster",
+  inference: "Student t",
+  dropped_rows: 0,
+  warnings: ["few clusters (<30); cluster inference may be unreliable"],
+};
+
+const correlationRows = [
+  { var1: "unemployment", var2: "unemployment", r: 1, n: 288 },
+  { var1: "unemployment", var2: "year", r: -0.298, n: 288 },
+  { var1: "year", var2: "unemployment", r: -0.298, n: 288 },
+  { var1: "year", var2: "year", r: 1, n: 288 },
+];
+
+export const MOCK_ANALYSIS_DATASETS = {
+  datasets: [
+    { dataset_id: "county_unemployment_ols", name: "County unemployment regression", analysis_readiness: "query_ready", registered: true, local_path: "research_panels/county_unemployment_ols.parquet", synthesis_analysis: MOCK_OLS_ANALYSIS, synthesis_artifacts: { "analysis.json": "analysis.json", "chart.json": "chart.json" } },
+    { dataset_id: "county_correlation", name: "County unemployment correlation", analysis_readiness: "query_ready", registered: true, local_path: "research_panels/county_correlation.parquet", synthesis_analysis: { type: "correlation", spec: { type: "correlation", columns: ["unemployment", "year"], method: "pearson" }, method: "pearson", n_obs: 288, dropped_rows: 0, warnings: [] }, synthesis_artifacts: { "chart.json": "chart.json" } },
+  ],
+};
+
+const MOCK_ANALYSIS_ROWS = {
+  county_unemployment_ols: MOCK_OLS_ROWS,
+  county_correlation: correlationRows,
+};
+
+const MOCK_ANALYSIS_CHARTS = {
+  county_unemployment_ols: { data: { values: MOCK_OLS_ROWS } },
+};
+
+export const MOCK_ANALYSIS_PREVIEW = {
+  status: "succeeded",
+  spec_hash: "analysis-spec-v1",
+  analysis: { ...MOCK_OLS_ANALYSIS, sample_only: true, label: "sample only — not the final estimate", n_obs: 48 },
+  chart: { data: { values: MOCK_OLS_ROWS } },
+  sampling: { source_rows: 288, previewed_rows: 48, strategy: "sample_window" },
+  rows: { after_transforms: 48, output: 2 },
+  output: { rows: MOCK_OLS_ROWS, columns: ["term", "coef", "se", "t", "p", "ci_low", "ci_high"] },
+};
+
+export const MOCK_ANALYSIS_THREADS = [
+  { id: "analysis-result", title: "County unemployment analysis", objective: "Estimate county unemployment over time.", materialisation: "registered", created_at: "2026-10-01T09:00:00Z", updated_at: "2026-10-01T09:01:00Z", state: { nodes: [], execution_spec: { input_dataset_id: "gdelt_asia_daily_country_panel", output_dataset_id: "county_unemployment_ols", analysis: MOCK_OLS_ANALYSIS.spec }, execution: { status: "query_ready", output_dataset_id: "county_unemployment_ols" } } },
+  { id: "analysis-preview", title: "County sample analysis", objective: "Test the regression on a sample.", materialisation: "not_materialised", created_at: "2026-10-01T09:00:00Z", updated_at: "2026-10-01T09:00:00Z", state: { nodes: [], accepted_spec_hash: "analysis-spec-v1", execution_spec: { input_dataset_id: "gdelt_asia_daily_country_panel", output_dataset_id: "county_sample_ols", analysis: MOCK_OLS_ANALYSIS.spec }, execution: { status: "spec_accepted" }, preview: null } },
+];
 
 export const MOCK_DISCOVER_HIT = {
   sections: [
@@ -65,6 +126,12 @@ export const MOCK_HEALTH = {
     jobs: { running: 1, pending_approval: 1, gdelt_progress: "18 / 99 mo" },
     composer_configured: true,
     composer_model: "composer-2.5",
+    composer_runtime: {
+      status: "ready",
+      configured: true,
+      verified: true,
+      checked_at: "2026-08-12T10:00:00Z",
+    },
     mcp_tools: { total: 62, core: 13, acquire: 28, ops: 21 },
     storage_tiers: {
       canonical: { label: "GDrive vault", quota_tb: 5, used_tb: 2.1, pool_tb: 5 },
@@ -314,20 +381,71 @@ export const MOCK_STABLECOIN_ASSESSMENT = {
   },
 };
 
+export const MOCK_SUBSCRIPTIONS = {
+  vendors: [
+    { id: "lseg", name: "LSEG Workspace / EDP", holder: "YZU university EDP / Workspace seat", status: "active", products: [
+      { kind: "dataset", dataset_id: "refinitiv_esg_snapshot", name: "Refinitiv ESG Pillar Snapshot", summary: "", state: "ready", note: "", row_count: 570, coverage: "Snapshot pulled 2026-07-06" },
+      { kind: "blocked", dataset_id: null, name: "institutional ownership", summary: "", state: "not_in_subscription", note: "G1 ownership not on YZU EDP", row_count: null, coverage: null },
+    ] },
+    { id: "crsp", name: "CRSP", holder: "YZU CRSP subscriber (MOVEit)", status: "active", products: [
+      { kind: "dataset", dataset_id: "crsp_us_stock_daily_ciz", name: "CRSP U.S. stock daily file (CIZ)", summary: "", state: "preparing", note: "Downloaded and converted; being checked before it opens for queries.", row_count: null, coverage: null },
+      { kind: "product", dataset_id: null, name: "STOCK_25i_CI_ASCII_Annual", summary: "us daily stock ciz alt", state: "not_collected", note: "In the subscription; not collected yet.", row_count: null, coverage: null },
+    ] },
+    { id: "compustat", name: "Compustat (Capital IQ)", holder: "YZU Capital IQ seat", status: "active", products: [
+      { kind: "dataset", dataset_id: "compustat_na_fundamentals_annual", name: "Compustat North America Fundamentals (Annual)", summary: "", state: "needs_export", note: "Export from Capital IQ Fundamentals screen", row_count: null, coverage: null },
+    ] },
+  ],
+};
+
 export async function mockV2Api(
   page,
   {
     discoverBody = { sections: [], total: 0 },
+    discoverSourcesBody = null,
+    discoverLiveSourcesBody = null,
+    discoverDelayMs = 0,
+    discoverSourcesDelayMs = 0,
+    discoverLiveSourcesDelayMs = 0,
+    discoverWebBody = MOCK_WEB_DISCOVER,
+    healthBody = MOCK_HEALTH,
+    healthDelayMs = 0,
+    datasetsBody = MOCK_DATASETS,
+    analysisThreads = false,
+    datasetsDelayMs = 0,
+    datasetsStatus = 200,
+    resourcesBody = MOCK_RESOURCES_ROLLUP,
+    resourcesDelayMs = 0,
+    resourcesStatus = 200,
     jobsBody = MOCK_JOBS,
+    jobsDelayMs = 0,
+    libraryNavBody = { partitions: [], shelves: [] },
+    libraryNavDelayMs = 0,
     historyBody = { items: [] },
     profileBody = { found: true, profile: { name_en: "Test Prof", discipline: "YZU" } },
     assessmentBody = null,
+    gapRoutesBody = {
+      gaps: ["fields"],
+      routes: [{
+        dimension: "fields",
+        source_id: "mops_taiwan",
+        label: "MOPS governance disclosures",
+        provider: "TWSE / MOPS",
+        access_mode: "live_connector",
+        reason: "Official governance disclosures can close the missing board fields.",
+        actionable: true,
+        action: "collect",
+      }],
+      reason: "ok",
+    },
     chatReply = "",
   } = {},
 ) {
   const liveJobs = {
     jobs: Array.isArray(jobsBody?.jobs) ? [...jobsBody.jobs] : [],
   };
+  await page.route("**/library/subscriptions", (route) => route.fulfill({ contentType: "application/json", body: JSON.stringify(MOCK_SUBSCRIPTIONS) }));
+  await page.route("**/library/provider-connections", route => route.fulfill({ contentType: "application/json", body: JSON.stringify({ ok: true, providers: [], connections: [] }) }));
+  await page.route("**/library/account/tokens", route => route.fulfill({ contentType: "application/json", body: JSON.stringify({ configured: false, tokens: [], connections: [] }) }));
   const liveIntents = new Map();
   let nextIntentId = 1;
   await page.route("**/library/desk/capabilities", (route) =>
@@ -346,6 +464,8 @@ export async function mockV2Api(
         },
         permissions: {
           view_research_data: true,
+          download_research_data: true,
+          view_licensed_data: true,
           view_faculty_profile: true,
           view_operations: true,
           use_ask: true,
@@ -370,24 +490,46 @@ export async function mockV2Api(
       body: JSON.stringify({ ok: true, authorized: true }),
     }),
   );
-  await page.route("**/datasets", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(MOCK_DATASETS) }),
-  );
+  await page.route("**/datasets", async (route) => {
+    if (datasetsDelayMs > 0) await new Promise((resolve) => setTimeout(resolve, datasetsDelayMs));
+    return route.fulfill({
+      status: datasetsStatus,
+      contentType: "application/json",
+      body: JSON.stringify(datasetsStatus >= 400 ? { error: "registry unavailable" } : datasetsBody),
+    });
+  });
   await page.route("**/datasets/*", (route) => {
     const id = decodeURIComponent(route.request().url().split("/datasets/")[1]?.split("?")[0] || "");
-    const row = MOCK_DATASETS.datasets.find((d) => d.dataset_id === id) || MOCK_DATASETS.datasets[0];
-    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(row) });
+    const rows = Array.isArray(datasetsBody?.datasets) ? datasetsBody.datasets : [];
+    const row = rows.find((d) => d.dataset_id === id) || rows[0] || { dataset_id: id };
+    const described = row.synthesis_analysis ? { ...row, analysis: row.synthesis_analysis, chart: MOCK_ANALYSIS_CHARTS[row.dataset_id], artifacts: row.synthesis_artifacts } : row;
+    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(described) });
   });
-  await page.route("**/library/desk/resources*", (route) =>
-    route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify(MOCK_RESOURCES_ROLLUP),
+  await page.route("**/library/reach", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({
+      families: [
+        { id: "licensed", title: "Licensed through Yuan Ze", sources: [{ id: "crsp_moveit", label: "CRSP", status: "licensed", status_label: "Yuan Ze members" }] },
+        { id: "markets", title: "Markets and filings", sources: [{ id: "sec_edgar", label: "SEC EDGAR", status: "held", status_label: "In the Library" }] },
+        { id: "statistics", title: "Official and economic statistics", sources: [{ id: "fred_observations", label: "FRED, St. Louis Fed", status: "on_request", status_label: "Collected on request" }] },
+      ],
+      layers: ["Discover search", "Direct download", "Lab machine jobs"],
+      counts: { sources: 3, tools: 104, archive_used_tb: 0.95, lab_machines: 6 },
     }),
-  );
-  await page.route("**/health*", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(MOCK_HEALTH) }),
-  );
+  }));
+  await page.route("**/library/desk/resources*", async (route) => {
+    if (resourcesDelayMs > 0) await new Promise((resolve) => setTimeout(resolve, resourcesDelayMs));
+    return route.fulfill({
+      status: resourcesStatus,
+      contentType: "application/json",
+      body: JSON.stringify(resourcesStatus >= 400 ? { error: "resources unavailable" } : resourcesBody),
+    });
+  });
+  await page.route("**/*health*", async (route) => {
+    if (healthDelayMs > 0) await new Promise((resolve) => setTimeout(resolve, healthDelayMs));
+    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(healthBody) });
+  });
   await page.route("**/library/discover/probe", (route) => {
     if (route.request().method() !== "POST") {
       return route.continue();
@@ -419,6 +561,10 @@ export async function mockV2Api(
       });
     });
   }
+  await page.route("**/library/discover/routes", (route) => {
+    if (route.request().method() !== "POST") return route.continue();
+    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(gapRoutesBody) });
+  });
   await page.route("**/library/discover/collect", (route) => {
     if (route.request().method() !== "POST") {
       return route.continue();
@@ -571,31 +717,110 @@ export async function mockV2Api(
   };
   await page.route("**/library/discover/intents", handleDiscoverIntent);
   await page.route("**/library/discover/intents/**", handleDiscoverIntent);
+  await page.route("**/library/craft/discover-proposal", (route) => {
+    if (route.request().method() !== "POST") return route.continue();
+    let body = {};
+    try {
+      body = route.request().postDataJSON?.() || JSON.parse(route.request().postData() || "{}");
+    } catch {
+      body = {};
+    }
+    const current = liveIntents.get(body.intent_id || "");
+    if (!current) {
+      return route.fulfill({ status: 404, contentType: "application/json", body: JSON.stringify({ error: "intent not found" }) });
+    }
+    const proposal = {
+      id: "craft_example_e2e",
+      summary: `Custom acquisition plan for ${body.title || "public source"}.`,
+      reason: "A concrete public artifact can be compiled into a bounded generic acquisition.",
+      routes: [{
+        id: "craft_primary",
+        title: "Custom HTTP acquisition",
+        summary: "Bounded HTTP manifest for the selected public artifact.",
+        access: "http_manifest",
+        destination: "data_lake/procured/example_public",
+        cost: "cluster worker · researcher approval",
+        limitation: "Transfer size is not measured yet.",
+        url: body.url || "https://example.com/data.csv",
+        pipeline: "custom",
+        crafted: true,
+        collect_plan: {
+          job_type: "http_manifest",
+          required_capabilities: ["http"],
+          resource_requirements: { cpu_cores: 0.5, memory_mb: 256 },
+          cluster_execution: {
+            contract_hash: "compiled-contract-e2e",
+            engineering_summary: {
+              status: "compiled",
+              primitive: "http_manifest",
+              required_capabilities: ["http"],
+              capability_count: 1,
+              resource_basis: "baseline_only",
+              placement: "runtime",
+              parallelism_hint: 1,
+              preflight: "recommended",
+              post_acquisition_reassessment: true,
+            },
+          },
+        },
+      }],
+      recommended_route_id: "craft_primary",
+      proposal_hash: "proposal-hash-crafted-e2e",
+    };
+    const next = {
+      ...current,
+      state: { ...current.state, status: "proposal_ready", proposal },
+    };
+    liveIntents.set(current.id, next);
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ intent: next, proposal }),
+    });
+  });
   await page.route("**/library/discover/web*", (route) =>
     route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify(MOCK_WEB_DISCOVER),
+      body: JSON.stringify(discoverWebBody),
     }),
   );
   await page.route("**/library/discover/history?*", (route) =>
     route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(historyBody) }),
   );
-  await page.route("**/library/discover?*", (route) =>
-    route.fulfill({
+  await page.route("**/library/discover?*", async (route) => {
+    if (discoverDelayMs > 0) await new Promise((resolve) => setTimeout(resolve, discoverDelayMs));
+    return route.fulfill({
       status: 200,
       contentType: "application/json",
       body: JSON.stringify(discoverBody),
-    }),
-  );
-  await page.route("**/library/discover", (route) =>
-    route.fulfill({
+    });
+  });
+  await page.route("**/library/discover", async (route) => {
+    if (discoverDelayMs > 0) await new Promise((resolve) => setTimeout(resolve, discoverDelayMs));
+    return route.fulfill({
       status: 200,
       contentType: "application/json",
       body: JSON.stringify(discoverBody),
-    }),
-  );
-  await page.route("**/library/discover/sources?*", (route) => {
+    });
+  });
+  await page.route("**/library/discover/sources?*", async (route) => {
+    const url = new URL(route.request().url());
+    const isLiveSourceSearch = url.searchParams.get("live") === "1" || url.searchParams.get("semantic") === "1";
+    const sourceBody = isLiveSourceSearch && discoverLiveSourcesBody
+      ? discoverLiveSourcesBody
+      : discoverSourcesBody;
+    if (sourceBody) {
+      const sourceDelay = isLiveSourceSearch ? discoverLiveSourcesDelayMs : discoverSourcesDelayMs;
+      if (sourceDelay > 0) {
+        await new Promise((resolve) => setTimeout(resolve, sourceDelay));
+      }
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(sourceBody),
+      });
+    }
     const sections = Array.isArray(discoverBody?.sections) ? discoverBody.sections : [];
     const rows = sections.length
       ? sections.flatMap((section) => section?.rows || [])
@@ -627,12 +852,18 @@ export async function mockV2Api(
   await page.route("**/yzu/status*", (route) =>
     route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(MOCK_CLUSTER) }),
   );
-  await page.route("**/library/jobs*", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(liveJobs) }),
-  );
-  await page.route("**/library/partitions*", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ partitions: [] }) }),
-  );
+  await page.route("**/library/jobs*", async (route) => {
+    if (jobsDelayMs > 0) await new Promise((resolve) => setTimeout(resolve, jobsDelayMs));
+    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(liveJobs) });
+  });
+  await page.route("**/library/partitions*", async (route) => {
+    if (libraryNavDelayMs > 0) await new Promise((resolve) => setTimeout(resolve, libraryNavDelayMs));
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(libraryNavBody),
+    });
+  });
   await page.route("**/library/synthesis/profiles", (route) =>
     route.fulfill({
       status: 200,
@@ -740,13 +971,40 @@ export async function mockV2Api(
       body: JSON.stringify(profileBody),
     }),
   );
-  await page.route("**/query/*", (route) =>
+  await page.route("**/library/profile", (route) =>
     route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ rows: [{ date: "2026-04-30", country: "TW", score: 0.82 }] }),
+      body: JSON.stringify({ configured: false }),
     }),
   );
+  await page.route("**/query/*", (route) => {
+    const id = decodeURIComponent(new URL(route.request().url()).pathname.split("/query/")[1] || "");
+    const dataset = datasetsBody.datasets?.find((item) => item.dataset_id === id);
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ rows: MOCK_ANALYSIS_ROWS[dataset?.dataset_id] || [{ date: "2026-04-30", country: "TW", score: 0.82 }] }),
+    });
+  });
+  if (analysisThreads) {
+    const threads = structuredClone(MOCK_ANALYSIS_THREADS);
+    await page.route("**/library/synthesis/threads**", (route) => {
+      const path = new URL(route.request().url()).pathname.split("/threads")[1] || "";
+      const [id, action] = path.split("/").filter(Boolean);
+      const respond = (body) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(body) });
+      if (!id) return respond({ threads });
+      const thread = threads.find((item) => item.id === id);
+      if (!action) return respond(thread);
+      if (action === "preview" || (action === "execute" && route.request().postDataJSON()?.action === "preview")) {
+        thread.state.preview = structuredClone(MOCK_ANALYSIS_PREVIEW);
+        return respond({ thread, preview: thread.state.preview, preview_only: true });
+      }
+      if (action === "measurements") return respond({ thread_id: id, input_dataset_ids: [], column_profiles: [], unmeasured: [], writes: false });
+      if (action === "evidence-map") return respond({ thread_id: id, nodes: [], writes: false });
+      return respond({});
+    });
+  }
 }
 
 export async function v2Nav(page, label) {
@@ -754,5 +1012,11 @@ export async function v2Nav(page, label) {
 }
 
 export async function waitForShell(page) {
-  await page.locator(".rd-v2-shell").waitFor({ timeout: 30_000 });
+  await page.locator(".rd-v2-shell:not(.rd-v2-session-bootstrap)").waitFor({ timeout: 30_000 });
+}
+
+export async function searchDiscover(page, query) {
+  await page.getByLabel("Search or describe a research need").fill(query);
+  await page.getByRole("button", { name: "Explore", exact: true }).click();
+  await page.getByTestId("discover-result-summary").waitFor({ timeout: 15_000 });
 }

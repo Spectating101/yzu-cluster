@@ -55,6 +55,7 @@ async function shot(page, name) {
 }
 
 test("capture the frozen adaptive Discover composition after polish", async ({ page }) => {
+  test.skip(true, "the best-fit card and Custom strategy control were withdrawn; discover-freeze-conformance covers the current composition");
   await page.setViewportSize({ width: 1440, height: 900 });
   await mockV2Api(page, {
     discoverBody: DISCOVER_BODY,

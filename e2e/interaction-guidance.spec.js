@@ -5,6 +5,21 @@ async function openTab(page, label) {
   await page.locator("aside.yzu-sidebar").getByRole("button", { name: label, exact: true }).click();
 }
 
+async function openSettingsStatus(page) {
+  await openTab(page, "Settings");
+  const status = page.locator("details.rd-v2-settings-advanced").first();
+  await expect(status.getByText("System status and technical details", { exact: true })).toBeVisible();
+  if (!(await status.evaluate((element) => element.open))) {
+    await status.getByText("System status and technical details", { exact: true }).click();
+  }
+  await expect(status.locator(".rd-v2-settings-advanced-body").first()).toBeVisible();
+  return status;
+}
+
+function assistantStatusRow(status) {
+  return status.locator(".rd-v2-statement-row").filter({ hasText: "Assistant runtime" });
+}
+
 test.describe("Research Drive interaction guidance", () => {
   test.beforeEach(async ({ page }) => {
     await mockV2Api(page);
@@ -14,13 +29,15 @@ test.describe("Research Drive interaction guidance", () => {
   });
 
   test("readiness states open a richer explanation by click and keyboard", async ({ page }) => {
+    await openTab(page, "Library");
+    await page.getByRole("textbox", { name: "Search your Library" }).fill("Asia");
     const help = page.getByRole("button", { name: /^Explain / }).first();
     await expect(help).toBeVisible();
 
     await help.click();
     const popover = page.getByTestId("rich-context-popover");
     await expect(popover).toBeVisible();
-    await expect(popover).toContainText(/Query ready|Registered|Connected source/);
+    await expect(popover).toContainText(/Ready to query|Saved to Library|Connected source/);
     await expect(popover).toContainText("Safest next step");
     await page.keyboard.press("Escape");
     await expect(popover).toHaveCount(0);
@@ -34,7 +51,7 @@ test.describe("Research Drive interaction guidance", () => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
-    await page.getByRole("textbox", { name: "Search library holdings" }).fill("Asia");
+    await page.getByRole("textbox", { name: "Search your Library" }).fill("Asia");
 
     const help = page.getByRole("button", { name: /^Explain / }).first();
     await expect(help).toBeVisible();
@@ -58,27 +75,21 @@ test.describe("Research Drive interaction guidance", () => {
         composer_model: "composer-2.5",
       },
     };
-    await page.unroute("**/health*");
-    await page.route("**/health*", (route) =>
+    await page.unroute("**/*health*");
+    await page.route("**/*health*", (route) =>
       route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(health) }),
     );
     await page.reload({ waitUntil: "domcontentloaded" });
     await waitForShell(page);
-    await openTab(page, "Settings");
 
-    const summary = page.getByRole("region", { name: "Research desk status" });
-    const assistant = summary.locator(".rd-v2-settings-summary-card").filter({ hasText: "Research assistant" });
+    const status = await openSettingsStatus(page);
+    const assistant = assistantStatusRow(status);
     await expect(assistant).toContainText("Ready");
     await expect(assistant).toContainText("composer-2.5");
     await expect(assistant).not.toContainText("Needs setup");
   });
 
   test("Settings does not claim Ready when the assistant is configured but unverified", async ({ page }) => {
-    // Regression: /health.desk.composer_runtime distinguishes configured from
-    // verified-live (this is also exactly why /health.status can flip to
-    // "degraded" while composer_configured stays true). Settings must not
-    // collapse that distinction back into a bare "Ready" — its own tooltip
-    // says "never invents Ready."
     const health = {
       ...MOCK_HEALTH,
       status: "degraded",
@@ -95,16 +106,15 @@ test.describe("Research Drive interaction guidance", () => {
         },
       },
     };
-    await page.unroute("**/health*");
-    await page.route("**/health*", (route) =>
+    await page.unroute("**/*health*");
+    await page.route("**/*health*", (route) =>
       route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(health) }),
     );
     await page.reload({ waitUntil: "domcontentloaded" });
     await waitForShell(page);
-    await openTab(page, "Settings");
 
-    const summary = page.getByRole("region", { name: "Research desk status" });
-    const assistant = summary.locator(".rd-v2-settings-summary-card").filter({ hasText: "Research assistant" });
+    const status = await openSettingsStatus(page);
+    const assistant = assistantStatusRow(status);
     await expect(assistant).not.toContainText("Ready");
     await expect(assistant).toContainText("Unverified");
   });
@@ -125,24 +135,51 @@ test.describe("Research Drive interaction guidance", () => {
         },
       },
     };
-    await page.unroute("**/health*");
-    await page.route("**/health*", (route) =>
+    await page.unroute("**/*health*");
+    await page.route("**/*health*", (route) =>
       route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(health) }),
     );
     await page.reload({ waitUntil: "domcontentloaded" });
     await waitForShell(page);
-    await openTab(page, "Settings");
 
-    const summary = page.getByRole("region", { name: "Research desk status" });
-    const assistant = summary.locator(".rd-v2-settings-summary-card").filter({ hasText: "Research assistant" });
+    const status = await openSettingsStatus(page);
+    const assistant = assistantStatusRow(status);
     await expect(assistant).toContainText("Ready");
     await expect(assistant).toContainText("confirmed live");
   });
 
+  test("Settings names the active Copilot pool without pinning an auto-resolved probe model", async ({ page }) => {
+    const health = {
+      ...MOCK_HEALTH,
+      desk: {
+        ...MOCK_HEALTH.desk,
+        brain: "copilot_composer",
+        composer_configured: true,
+        composer_model: "gpt-5-mini",
+        composer_runtime: {
+          status: "ready",
+          configured: true,
+          verified: true,
+          checked_at: "2026-08-25T10:00:00Z",
+          model: "gpt-5-mini",
+        },
+      },
+    };
+    await page.unroute("**/*health*");
+    await page.route("**/*health*", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(health) }),
+    );
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+
+    const status = await openSettingsStatus(page);
+    const assistant = assistantStatusRow(status);
+    await expect(assistant).toContainText("Ready");
+    await expect(assistant).toContainText("Copilot pool · confirmed live");
+    await expect(assistant).not.toContainText("gpt-5-mini");
+  });
+
   test("Settings does not claim Ready for a degraded (failed-probe) runtime, even though verified is true", async ({ page }) => {
-    // Regression (caught in review): record_composer_failure() sets
-    // verified: true because a real probe DID run — it just failed.
-    // Branching on `verified` alone renders a failed provider as Ready.
     const health = {
       ...MOCK_HEALTH,
       status: "degraded",
@@ -159,16 +196,15 @@ test.describe("Research Drive interaction guidance", () => {
         },
       },
     };
-    await page.unroute("**/health*");
-    await page.route("**/health*", (route) =>
+    await page.unroute("**/*health*");
+    await page.route("**/*health*", (route) =>
       route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(health) }),
     );
     await page.reload({ waitUntil: "domcontentloaded" });
     await waitForShell(page);
-    await openTab(page, "Settings");
 
-    const summary = page.getByRole("region", { name: "Research desk status" });
-    const assistant = summary.locator(".rd-v2-settings-summary-card").filter({ hasText: "Research assistant" });
+    const status = await openSettingsStatus(page);
+    const assistant = assistantStatusRow(status);
     await expect(assistant).not.toContainText("Ready");
     await expect(assistant).toContainText("Degraded");
   });
@@ -190,16 +226,15 @@ test.describe("Research Drive interaction guidance", () => {
         },
       },
     };
-    await page.unroute("**/health*");
-    await page.route("**/health*", (route) =>
+    await page.unroute("**/*health*");
+    await page.route("**/*health*", (route) =>
       route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(health) }),
     );
     await page.reload({ waitUntil: "domcontentloaded" });
     await waitForShell(page);
-    await openTab(page, "Settings");
 
-    const summary = page.getByRole("region", { name: "Research desk status" });
-    const assistant = summary.locator(".rd-v2-settings-summary-card").filter({ hasText: "Research assistant" });
+    const status = await openSettingsStatus(page);
+    const assistant = assistantStatusRow(status);
     await expect(assistant).not.toContainText("Ready");
     await expect(assistant).toContainText("Needs recheck");
   });
