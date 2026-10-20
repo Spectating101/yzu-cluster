@@ -149,7 +149,7 @@ test("the Library says how many datasets are members only instead of calling the
   await expect(summary).toContainText("1 for Yuan Ze members");
   await expect(summary).toContainText(`${total - 1} ready to query`);
   await expect(summary).not.toContainText(`${total} ready to query`);
-  await page.getByTestId("library-state-filter").selectOption("members");
+  await page.getByTestId("library-access-members").click();
   await expect(page.getByTestId("library-evidence-row")).toHaveCount(1);
 });
 

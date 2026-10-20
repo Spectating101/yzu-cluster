@@ -231,7 +231,7 @@ test("a signed-in public member sees the collection authority boundary, not anot
   await page.getByTestId("discover-ranked-results").getByRole("button", { name: /MOPS financial statements/ }).click();
 
   const restricted = page.locator("aside.rd-v2-rail").getByRole("button", {
-    name: "Lab membership required",
+    name: "Yuan Ze members only",
   });
   await expect(restricted).toBeVisible();
   await expect(restricted).toBeDisabled();

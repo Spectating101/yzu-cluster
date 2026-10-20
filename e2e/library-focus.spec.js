@@ -85,7 +85,8 @@ test("All shows every dataset, and Featured comes back", async ({ page }) => {
 test("searching looks across everything and hides the view switch", async ({ page }) => {
   await openLibrary(page, "public_guest");
   await page.getByLabel("Search your Library").fill("stablecoin");
-  await expect(page.getByTestId("library-lens")).toHaveCount(0);
+  await expect(page.getByTestId("library-lens-featured")).toHaveCount(0);
+  await expect(page.getByTestId("library-access-filter")).toBeVisible();
   await expect(listed(page)).toHaveCount(2);
   await expect(page.getByTestId("library-evidence-estate")).toContainText("Stablecoin de-peg weeks");
   await page.getByLabel("Search your Library").fill("");
@@ -94,11 +95,11 @@ test("searching looks across everything and hides the view switch", async ({ pag
 
 test("choosing a status filter shows all matching datasets, and picking Featured clears it", async ({ page }) => {
   await openLibrary(page, "public_guest");
-  await page.getByTestId("library-state-filter").selectOption("ready");
+  await page.getByTestId("library-access-ready").click();
   await expect(page.getByTestId("library-lens-all")).toHaveAttribute("aria-pressed", "true");
   await expect(listed(page).first()).toBeVisible();
   await page.getByTestId("library-lens-featured").click();
-  await expect(page.getByTestId("library-state-filter")).toHaveValue("all");
+  await expect(page.locator("[data-testid^=library-access-][aria-pressed=true]")).toHaveCount(0);
   await expect(listed(page)).toHaveCount(3);
 });
 

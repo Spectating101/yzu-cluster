@@ -3337,3 +3337,8 @@
 .rd-analysis-band {
   fill-opacity: 0.18;
 }
+
+.s04-home > .rd-v2-guest-showcase {
+  max-width: none;
+  padding-inline: 2px;
+}

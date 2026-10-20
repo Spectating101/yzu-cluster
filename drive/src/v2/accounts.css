@@ -16,6 +16,7 @@
 .rd-account-invitation textarea { width: 100%; min-height: 60px; padding: 10px; resize: vertical; font-size: 13px; overflow-wrap: anywhere; box-sizing: border-box; }
 .rd-account-confirm button + button { margin-left: 8px; }
 .rd-account-welcome { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; border: 1px solid var(--rd-border, #ddd); border-radius: 10px; padding: 10px 14px; margin: 16px 20px 0; background: var(--rd-surface, #fffdf6); }
+.rd-v2-home-page .rd-account-welcome { margin: 0 0 14px; }
 .rd-account-welcome-text { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; min-width: 0; }
 .rd-account-welcome h2 { margin: 0; font-size: var(--rd-text-md); font-weight: 700; }
 .rd-account-welcome p { margin: 0; max-width: 780px; color: var(--rd-muted); font-size: var(--rd-text-sm); line-height: 1.5; }

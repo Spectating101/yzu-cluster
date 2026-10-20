@@ -39,6 +39,7 @@ test("a guest's Resources page shows everything the desk reaches, with a padlock
   const access = page.getByTestId("guest-resources-access");
   await expect(access.locator("li", { hasText: "Preview, query and download" })).toContainText("Open to you");
   await expect(access.locator("li", { hasText: "Ask, the research assistant" })).toContainText("With an account");
+  await expect(access.locator("li", { hasText: "Request a new collection" })).toContainText("Yuan Ze members");
   await expect(access.locator("li", { hasText: "LSEG, CRSP and Compustat" })).toContainText("Yuan Ze members");
 });
 

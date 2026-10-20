@@ -1,3 +1,4 @@
+import { ASK_ABILITIES, ASK_EXAMPLES } from "@/v2/askIntro";
 import { LockMark, LockTag } from "@/v2/Lock";
 import { useEffect, useState } from "react";
 import {
@@ -114,19 +115,6 @@ function DiscoverAssessmentRailSummary({ state, onClose }) {
     </section>
   );
 }
-
-const ASK_ABILITIES = [
-  "Finds the Library data that fits your question",
-  "Reads a dataset's columns, coverage and limits",
-  "Plans a collection for data the Library lacks",
-  "Starts a Synthesis build from the conversation",
-];
-
-const ASK_EXAMPLES = [
-  "Which datasets cover Asian stock returns and news?",
-  "What would I need to study stablecoin de-pegs?",
-  "Compare the CRSP daily file with Yahoo prices",
-];
 
 function AskSignInPanel({
   providerAvailable,

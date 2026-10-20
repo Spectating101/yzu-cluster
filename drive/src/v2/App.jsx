@@ -1942,6 +1942,7 @@ function DeskWorkspace({ onIdentityChanged }) {
     case "home":
       main = (
         <HomePage
+          welcome={<ResearcherWelcome deskAccess={deskAccess} onGoTab={goTab} />}
           researchTopics={personalFocus.topics}
           datasets={catalog}
           catalogLoading={catalogLoading}
@@ -1982,6 +1983,7 @@ function DeskWorkspace({ onIdentityChanged }) {
     case "library":
       main = (
         <LibraryPage
+          canBrowseFolders={canViewOperations}
           datasets={filteredDatasets}
           loading={catalogLoading}
           navigationLoading={libraryNavLoading}
@@ -2106,7 +2108,7 @@ function DeskWorkspace({ onIdentityChanged }) {
           onAskQuery={askDiscoverQuery}
           askAvailable={canUseAsk}
           onReviewAcquisition={canSubmitCollection ? askAddToLab : undefined}
-          acquisitionLock={canSubmitCollection ? undefined : canUseAsk ? { who: "lab" } : { who: "account", onClick: memberSignInAvailable ? beginMemberSignIn : undefined }}
+          acquisitionLock={canSubmitCollection ? undefined : { who: "yuanze", onClick: memberSignInAvailable ? beginMemberSignIn : undefined }}
           onStartSynthesis={canUseAsk ? startSynthesisFromDiscover : undefined}
           assessmentActive={discoverAssessment.active}
           assessmentResult={discoverAssessment.result}
@@ -2421,7 +2423,6 @@ function DeskWorkspace({ onIdentityChanged }) {
         }}
       />
       <main id="rd-main" tabIndex={-1} className="yzu-main rd-v2-shell-main">
-        {tab === "home" ? <ResearcherWelcome deskAccess={deskAccess} onGoTab={goTab} /> : null}
         <Suspense fallback={<p className="rd-v2-route-pending" role="status" aria-busy="true">Loading…</p>}>
           {main}
         </Suspense>

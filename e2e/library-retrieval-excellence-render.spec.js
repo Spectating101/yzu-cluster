@@ -18,7 +18,7 @@ test.describe("Library retrieval excellence", () => {
 
     await expect(page.getByTestId("library-auto-catalog")).toHaveCount(0);
     await expect(page.getByTestId("library-type-filter")).toHaveValue("all");
-    await expect(page.getByTestId("library-state-filter")).toHaveValue("all");
+    await expect(page.locator("[data-testid^=library-access-][aria-pressed=true]")).toHaveCount(0);
     await expect(page.getByTestId("library-sort-filter")).toHaveValue("name");
 
     await page.locator(".rd-v2-page-head h1").focus();

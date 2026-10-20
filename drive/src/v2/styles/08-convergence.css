@@ -893,6 +893,7 @@ body:has(.rd-v2-synthesis-page [data-testid="synthesis-execution-state"] .s04-ex
   .rd-v2-synthesis-page .s04-home > .s04-home-runtime,
   .rd-v2-synthesis-page .s04-home > .s04-home-empty-row,
   .rd-v2-synthesis-page .s04-home > .s04-home-loading,
+  .rd-v2-synthesis-page .s04-home > .rd-v2-guest-showcase,
   .rd-v2-synthesis-page .s04-home > .s04-home-methods {
     grid-column: 1 / -1;
   }
@@ -1352,4 +1353,11 @@ body:has(.rd-v2-synthesis-page [data-testid="synthesis-execution-state"] .s04-ex
   .rd-v2-synthesis-page .sj-journey ol {
     min-width: 590px;
   }
+}
+
+.rd-v2-guided-state-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
 }

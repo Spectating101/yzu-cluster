@@ -51,6 +51,11 @@ function Product({ product, row, onOpen }) {
     : <li><div className="rd-v2-subscription-product">{body}</div></li>;
 }
 
+const sentenceCase = (value) => {
+  const text = String(value || "").trim();
+  return text ? text.charAt(0).toUpperCase() + text.slice(1) : text;
+};
+
 const HELD = new Set(["ready", "members", "preparing"]);
 
 export function LibrarySubscriptionStrip({ datasets = [], onSeeAll }) {
@@ -94,7 +99,7 @@ export function LibrarySubscriptions({ datasets = [], onSelectDataset }) {
               {vendor.holder ? <p>{vendor.holder}</p> : null}
             </header>
             <ul>
-              {vendor.products.map((product) => (
+              {vendor.products.filter((product) => product.state !== "not_in_subscription").map((product) => (
                 <Product
                   key={`${product.kind}:${product.dataset_id || product.name}`}
                   product={product}
@@ -103,6 +108,12 @@ export function LibrarySubscriptions({ datasets = [], onSelectDataset }) {
                 />
               ))}
             </ul>
+            {vendor.products.some((product) => product.state === "not_in_subscription") ? (
+              <p className="rd-v2-subscription-missing">
+                <b>Not in our subscription</b>
+                {vendor.products.filter((product) => product.state === "not_in_subscription").map((product) => sentenceCase(product.name)).join(" · ")}
+              </p>
+            ) : null}
           </article>
         ))}
       </div>

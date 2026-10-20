@@ -1,3 +1,4 @@
+import { GuestSynthesisShowcase } from "@/v2/GuestSynthesisShowcase";
 import { synthesisObjectiveDisplay } from "./uiVocabularyLabels.js";
 import { DeskError } from "@/v2/DeskError";
 import {
@@ -83,6 +84,8 @@ function ThreadSection({ eyebrow, title, description, rows, onOpen, priority = f
 }
 
 export function SynthesisHome({
+  catalog = [],
+  onOpenDataset,
   threads = [],
   loading = false,
   profiles = [],
@@ -280,6 +283,7 @@ export function SynthesisHome({
           <p className="s04-home-empty-row">No saved methods yet.</p>
         ) : null}
       </section>
+      <GuestSynthesisShowcase catalog={catalog} onOpen={onOpenDataset} />
     </section>
   );
 }

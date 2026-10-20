@@ -1640,3 +1640,19 @@
 .rd-v2-library-licensed-access p {
   margin: 0;
 }
+
+.rd-v2-subscription-missing {
+  display: grid;
+  gap: 2px;
+  margin: 12px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--rd-border);
+  color: var(--rd-muted);
+  font-size: var(--rd-text-2xs);
+  line-height: 1.5;
+}
+
+.rd-v2-subscription-missing b {
+  color: var(--rd-body);
+  font-weight: 600;
+}

@@ -219,7 +219,7 @@ test("render current Library evidence and decision states", async ({ page }) => 
   await setup(page, { width: 1440, height: 900 });
   await expect(page.getByTestId("library-auto-catalog")).toHaveCount(0);
   await expect(page.getByTestId("library-type-filter")).toHaveValue("all");
-  await expect(page.getByTestId("library-state-filter")).toHaveValue("all");
+  await expect(page.locator("[data-testid^=library-access-][aria-pressed=true]")).toHaveCount(0);
   await expect(page.getByTestId("library-sort-filter")).toHaveValue("name");
   const outside = page.getByTestId("library-available-evidence");
   await expect(outside).toContainText("1 known record");
@@ -250,10 +250,10 @@ test("render current Library evidence and decision states", async ({ page }) => 
   await settleVisualState(page);
   await page.screenshot({ path: `${OUT}/01-root-1440.png`, fullPage: false });
 
-  await page.getByTestId("library-state-filter").selectOption("not_ready");
+  await page.getByTestId("library-access-not_ready").click();
   await expect(page.getByTestId("library-evidence-row").filter({ hasText: "MOPS financial statements" })).toBeVisible();
   await expect(page.getByTestId("library-evidence-row").filter({ hasText: "Asia daily news-risk panel" })).toHaveCount(0);
-  await page.getByTestId("library-state-filter").selectOption("all");
+  await page.getByTestId("library-access-not_ready").click();
 
   await openAsset(page, "Asia daily news-risk panel");
   await expect(page.getByLabel("Evidence claims")).toBeHidden();

@@ -4072,7 +4072,7 @@ summary:focus-visible {
 }
 
 .rd-v2-ask-guided-empty {
-  padding: 4px 2px;
+  padding: 14px 16px;
 }
 
 .rd-v2-browse-loading {
@@ -5367,6 +5367,7 @@ body,
 .rd-v2-subscription-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
   gap: 16px;
   margin-top: 10px;
 }

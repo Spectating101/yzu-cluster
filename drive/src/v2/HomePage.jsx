@@ -280,6 +280,7 @@ function threadRows(payload) {
 }
 
 export function HomePage({
+  welcome = null,
   datasets = [],
   researchTopics = [],
   catalogLoading = false,
@@ -427,6 +428,7 @@ export function HomePage({
       footer={null}
       surfaceState={surfaceState}
     >
+      {welcome}
       {loadError ? <DeskError raw={loadError} surface="Home's Library briefing" onRetry={onRetryLoad} /> : null}
       <div className="rd-v2-home-topband" data-home-posture={isGuest ? "welcome" : homePosture.id}>
         {isGuest ? (

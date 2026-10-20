@@ -86,8 +86,9 @@ const ABILITIES = [
   { label: "Check what the Library covers in Discover", need: null },
   { label: "Read finished Synthesis builds", need: null },
   { label: "Ask, the research assistant", need: "account" },
-  { label: "Request a new collection", need: "account" },
-  { label: "Build a dataset in Synthesis", need: "account" },
+  { label: "Plan a build in Synthesis", need: "account" },
+  { label: "Request a new collection", need: "yuanze" },
+  { label: "Run a Synthesis build into the Library", need: "yuanze" },
   { label: "A research profile that tunes the Library", need: "account" },
   { label: "Rows from LSEG, CRSP and Compustat", need: "yuanze" },
 ];

@@ -314,6 +314,7 @@ function LibraryAssetInspector({ dataset, onClose, onPreview, onOpenQuery, onAsk
 }
 
 export function LibraryPage({
+  canBrowseFolders = true,
   datasets,
   loading = false,
   navigationLoading = false,
@@ -685,28 +686,6 @@ export function LibraryPage({
                 </select>
               </label>
               <label className="rd-v2-library-filter-control">
-                <span>Status</span>
-                <select
-                  data-testid="library-state-filter"
-                  aria-label="Filter Library by state"
-                  value={filterMode}
-                  onChange={(event) => setFilterMode(event.target.value)}
-                >
-                  <option value="all">Any</option>
-                  <optgroup label="Query readiness">
-                    <option value="ready">Ready to query · {readyCount}</option>
-                    {lockedCount > 0 || filterMode === "members" ? <option value="members">Yuan Ze members · {lockedCount}</option> : null}
-                    <option value="not_ready">Not ready to query · {nonReadyCount}</option>
-                  </optgroup>
-                  {(confirmedCount > 0 && confirmedCount < branchDatasetRows.length) || filterMode === "confirmed" || filterMode === "unconfirmed" ? (
-                    <optgroup label="Source verification">
-                      <option value="confirmed">Source confirmed · {confirmedCount}</option>
-                      <option value="unconfirmed">Source not confirmed · {branchDatasetRows.length - confirmedCount}</option>
-                    </optgroup>
-                  ) : null}
-                </select>
-              </label>
-              <label className="rd-v2-library-filter-control">
                 <span>Sort</span>
                 <select
                   data-testid="library-sort-filter"
@@ -813,6 +792,7 @@ export function LibraryPage({
               referenceCount={searchActive ? 0 : referenceCount}
               onOpenCollection={(collection) => onFolderChange(collection.id)}
               onReviewAvailable={onReviewAvailable}
+              showFolders={canBrowseFolders}
               onSelectDataset={onSelectDataset}
               searchQuery={searchQuery}
               searchMatchCount={rankedSearchDatasets.length}
@@ -820,13 +800,17 @@ export function LibraryPage({
               onSearchWider={onSearchWider}
               onResetFilters={resetFilters}
               lens={lensControl}
-              access={!searchActive && branchDatasetRows.length ? {
+              access={branchDatasetRows.length ? {
                 active: filterMode,
                 onChange: setFilterMode,
                 options: [
                   { id: "ready", label: "Ready to query", count: readyCount },
                   ...(lockedCount ? [{ id: "members", label: "Yuan Ze members", count: lockedCount }] : []),
                   ...(nonReadyCount ? [{ id: "not_ready", label: "Not ready yet", count: nonReadyCount }] : []),
+                  ...(confirmedCount > 0 && confirmedCount < branchDatasetRows.length ? [
+                    { id: "confirmed", label: "Source confirmed", count: confirmedCount },
+                    { id: "unconfirmed", label: "Source not confirmed", count: branchDatasetRows.length - confirmedCount },
+                  ] : []),
                 ],
               } : null}
               axisRows={branchDatasetRows}

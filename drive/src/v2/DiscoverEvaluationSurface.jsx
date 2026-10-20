@@ -356,7 +356,7 @@ export function DiscoverEvaluationSurface({
   const actionLabel = (action) =>
     action?.id === "add_lab" && !onAddToLab
       ? hasMemberSession
-        ? "Lab membership required"
+        ? "Yuan Ze members only"
         : "Sign in to request evidence"
       : action?.label;
 

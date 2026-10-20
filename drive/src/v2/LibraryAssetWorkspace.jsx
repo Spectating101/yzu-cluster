@@ -28,6 +28,8 @@ import { licensedRowsLocked } from "@/v2/licensedAccess";
 import { LicensedBrief } from "./LicensedBrief.jsx";
 import { datasetCitation } from "./datasetCitation.js";
 
+const INTERNAL_GRAINS = new Set(["procured_snapshot", "catalog_harvest", "scrape_snapshot"]);
+
 function value(...candidates) {
   return candidates.map((item) => String(item || "").trim()).find(Boolean) || "Not documented";
 }
@@ -410,6 +412,12 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
   }
   const coverage = coverageText(fields.coverage || dataset?.coverage).trim() || glanceCoverage(dataset);
   const grain = String(dataset?.grain || "").trim();
+  const footFacts = [
+    coverage ? `Coverage: ${coverage}` : "",
+    !liveSource && grain && !INTERNAL_GRAINS.has(grain) ? `Unit of observation: ${grain.replace(/_/g, " ")}` : "",
+    !liveSource && rowCount ? `Scale: ${Number.isFinite(Number(rowCount)) ? Number(rowCount).toLocaleString("en-US") : rowCount} rows` : "",
+    joinKeys.length ? `Keys: ${joinKeys.join(" · ")}` : "",
+  ].filter(Boolean);
 
   return (
     <section className="rd-v2-library-data-preview" aria-label="Dataset table and structure" data-testid="library-data-preview">
@@ -527,13 +535,12 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
         </div>
       )}
 
-      <div className="rd-v2-library-preview-foot">
-        <span>{observed ? (profileBasis(preview.profile) || "Values read from the stored data") : "Documented structure only"}</span>
-        {coverage ? <span>Coverage: {coverage}</span> : !liveSource ? <span>Coverage: Not documented</span> : null}
-        {liveSource ? null : <span>Unit of observation: {grain ? grain.replace(/_/g, " ") : "Not documented"}</span>}
-        {liveSource ? null : <span>Scale: {rowCount ? `${Number.isFinite(Number(rowCount)) ? Number(rowCount).toLocaleString("en-US") : rowCount} rows` : "Not documented"}</span>}
-        {liveSource ? (joinKeys.length ? <span>Keys: {joinKeys.join(" · ")}</span> : null) : <span>Keys: {joinKeys.length ? joinKeys.join(" · ") : "Not documented"}</span>}
-      </div>
+      {observed || footFacts.length ? (
+        <div className="rd-v2-library-preview-foot">
+          <span>{observed ? (profileBasis(preview.profile) || "Values read from the stored data") : "Documented structure only"}</span>
+          {footFacts.map((fact) => <span key={fact}>{fact}</span>)}
+        </div>
+      ) : null}
     </section>
   );
 }

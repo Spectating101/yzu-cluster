@@ -922,7 +922,8 @@
 .rd-v2-reach-sources > header h2,
 .rd-v2-reach-abilities h2 { margin: 0; color: var(--rd-text); font-size: var(--rd-text-lg); }
 .rd-v2-reach-sources > header p { margin: 4px 0 0; color: var(--rd-muted); font-size: var(--rd-text-2xs); line-height: 1.5; }
-.rd-v2-reach-families { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 24px; margin-top: 14px; }
+.rd-v2-reach-families { column-count: 2; column-gap: 24px; margin-top: 14px; }
+.rd-v2-reach-families > section { break-inside: avoid; margin-bottom: 16px; }
 .rd-v2-reach-families h3 { margin: 0 0 4px; color: var(--rd-muted); font-size: var(--rd-text-2xs); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
 .rd-v2-reach-families ul,
 .rd-v2-reach-abilities ul { display: grid; margin: 0; padding: 0; list-style: none; }

@@ -127,6 +127,7 @@ export function LibraryEvidenceEstate({
   axisRows = null,
   banner = null,
   access = null,
+  showFolders = true,
 }) {
   const visibleAssets = assets;
   const showKind = true;
@@ -204,6 +205,7 @@ export function LibraryEvidenceEstate({
                   </button>
                 );
               })}
+{showFolders ? (
               <button
                 type="button"
                 className="rd-v2-cap-collection rd-v2-cap-folders-root"
@@ -215,6 +217,7 @@ export function LibraryEvidenceEstate({
                 <span>Browse folders</span>
                 <span aria-hidden="true">→</span>
               </button>
+              ) : null}
             </div>
           ) : (
             <span className="rd-v2-cap-collections-loading" role="status" data-testid="library-collections-loading">
@@ -252,6 +255,7 @@ export function LibraryEvidenceEstate({
                   key={option.id}
                   type="button"
                   className={`rd-v2-cap-access-option is-${option.id}`}
+                  data-testid={`library-access-${option.id}`}
                   aria-pressed={access.active === option.id}
                   onClick={() => access.onChange(access.active === option.id ? "all" : option.id)}
                 >

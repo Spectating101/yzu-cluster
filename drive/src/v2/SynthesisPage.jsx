@@ -1774,6 +1774,7 @@ function MeasurementStatus({ phase, measurements, onRetry }) {
 }
 
 export function SynthesisPage({
+  datasets = [],
   onAskComposer,
   assistantRuntime = null,
   assistantAllowed = false,
@@ -2441,6 +2442,8 @@ export function SynthesisPage({
           ) : null}
           {!newMode && !loading && !selected ? (
             <SynthesisHome
+              catalog={datasets}
+              onOpenDataset={onOpenDataset}
               threads={threads}
               loading={loading}
               profiles={profiles}

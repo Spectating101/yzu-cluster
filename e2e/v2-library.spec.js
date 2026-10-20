@@ -19,7 +19,7 @@ test.describe("v2 Library evidence estate", () => {
     await expect(page.getByTestId("library-collection-filter").first()).toBeVisible();
     await expect(estate.getByText("Research collections", { exact: true })).toBeVisible();
     await expect(page.getByTestId("library-type-filter")).toHaveValue("all");
-    await expect(page.getByTestId("library-state-filter")).toHaveValue("all");
+    await expect(page.locator("[data-testid^=library-access-][aria-pressed=true]")).toHaveCount(0);
     await expect(page.getByTestId("library-sort-filter")).toHaveValue("name");
     await expect(page.getByTestId("research-situation")).toContainText("Library");
     await expect(page.locator("aside.rd-v2-rail")).toContainText("In this library");
@@ -30,14 +30,15 @@ test.describe("v2 Library evidence estate", () => {
   });
 
   test("query readiness filters; source verification is offered only when it splits the Library", async ({ page }) => {
-    const filter = page.getByTestId("library-state-filter");
-    await filter.selectOption("ready");
+    await page.getByTestId("library-access-ready").click();
+    await expect(page.getByTestId("library-access-ready")).toHaveAttribute("aria-pressed", "true");
     await expect(page.getByTestId("library-evidence-row")).toHaveCount(3);
-    await expect(filter.locator("option[value=confirmed]")).toHaveCount(0);
-    await expect(filter.locator("option[value=unconfirmed]")).toHaveCount(0);
-    await filter.selectOption("not_ready");
-    await expect(page.getByTestId("library-evidence-row")).toHaveCount(0);
-    await expect(filter).not.toContainText("not yet checked");
+    await expect(page.getByTestId("library-access-confirmed")).toHaveCount(0);
+    await expect(page.getByTestId("library-access-unconfirmed")).toHaveCount(0);
+    await expect(page.getByTestId("library-access-not_ready")).toHaveCount(0);
+    await expect(page.getByTestId("library-access-filter")).not.toContainText("not yet checked");
+    await page.getByTestId("library-access-ready").click();
+    await expect(page.getByTestId("library-access-ready")).toHaveAttribute("aria-pressed", "false");
   });
 
   test("Escape returns keyboard focus to the selected evidence row", async ({ page }) => {
