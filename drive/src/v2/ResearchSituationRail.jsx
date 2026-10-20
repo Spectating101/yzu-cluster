@@ -300,17 +300,6 @@ export function ResearchSituationRail({
 
   return (
     <section className="rd-v2-situation" data-testid="research-situation" aria-label="Current research context">
-      <div className="rd-v2-situation-topline">
-        <span>{surfaceLabel(mainTab)}</span>
-        <span className={`rd-v2-situation-state state-${situation.statusKind || "neutral"}`}>{situation.status}</span>
-      </div>
-      <h2 title={selectionHint}>{selectionHint}</h2>
-      {facts.length ? (
-        <div className="rd-v2-situation-facts" role="group" aria-label="Context facts">
-          {facts.map((fact) => <span key={fact}>{fact}</span>)}
-        </div>
-      ) : null}
-      {situation.next ? <p className="rd-v2-situation-next">{situation.next}</p> : null}
       <div className="rd-v2-situation-tabs" role="tablist" aria-label="Inspector mode">
         <button
           type="button"
@@ -332,6 +321,17 @@ export function ResearchSituationRail({
           {askAvailable ? "Ask" : "Ask · sign in"}
         </button>
       </div>
+      <div className="rd-v2-situation-topline">
+        <span>{surfaceLabel(mainTab)}</span>
+        <span className={`rd-v2-situation-state state-${situation.statusKind || "neutral"}`}>{situation.status}</span>
+      </div>
+      <h2 title={selectionHint}>{selectionHint}</h2>
+      {facts.length ? (
+        <div className="rd-v2-situation-facts" role="group" aria-label="Context facts">
+          {facts.map((fact) => <span key={fact}>{fact}</span>)}
+        </div>
+      ) : null}
+      {situation.next ? <p className="rd-v2-situation-next">{situation.next}</p> : null}
       {!askAvailable && railTab === "ask" && onMemberSignIn ? (
         <button type="button" className="rd-v2-situation-sign-in" onClick={onMemberSignIn}>
           Sign in to continue

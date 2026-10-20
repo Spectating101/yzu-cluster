@@ -54,7 +54,8 @@
 .rd-v2-guest-feature-hero h2,
 .rd-v2-profile-public-state h2,
 .rd-v2-library-asset-header h1,
-.rd-v2-profile-name {
+.rd-v2-profile-name,
+.s04-home-hero h1 {
   font-family: "IBM Plex Serif", Georgia, "Times New Roman", serif;
   font-weight: 600;
 }
@@ -1028,6 +1029,7 @@ button {
 
 .rd-v2-scroll-foot {
   flex-shrink: 0;
+  margin-right: var(--rd-main-pad-x);
   text-align: center;
   font-size: var(--rd-text-2xs);
   color: var(--rd-muted);
@@ -1050,7 +1052,6 @@ button {
 }
 
 .rd-v2-home-page .rd-v2-page-head h1 {
-  font-size: var(--rd-text-2xl);
   margin-bottom: 2px;
 }
 

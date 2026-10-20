@@ -231,6 +231,12 @@
   font-size: var(--rd-text-2xs);
 }
 
+.s04-home > .s04-home-empty-row {
+  padding: 0 2px;
+  border: 0;
+  background: transparent;
+}
+
 .s04-home-section {
   display: grid;
   gap: 10px;
@@ -359,6 +365,7 @@
 
 .s04-home-method-grid button {
   display: grid;
+  grid-template-rows: auto auto 1fr;
   gap: 7px;
   min-height: 132px;
   padding: 14px 15px;
@@ -1121,7 +1128,7 @@
   width: 100%;
   box-sizing: border-box;
   margin: 0 auto;
-  padding: 0 clamp(18px, 2.4vw, 34px) 28px 2px;
+  padding: 0 0 28px 2px;
 }
 
 .s04-thread-picker { display: none; }

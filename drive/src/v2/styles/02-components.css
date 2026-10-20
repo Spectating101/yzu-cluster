@@ -1855,10 +1855,6 @@ summary:focus-visible {
 }
 
 /* Home — resume object, three entrances, one decision queue, recent evidence. */
-.rd-v2-home-page {
-  padding-right: var(--rd-main-pad-x);
-}
-
 .rd-v2-eyebrow,
 .rd-v2-profile-kicker,
 .s04-head small,
@@ -4461,10 +4457,6 @@ body,
   .rd-v2-header {
     gap: 10px;
     padding: 0 14px;
-  }
-
-  .rd-v2-page-head h1 {
-    font-size: clamp(22px, 2.2vw, 28px);
   }
 }
 

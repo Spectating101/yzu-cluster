@@ -249,11 +249,13 @@
   }
 
   .rd-v2-synthesis-page .s04-main {
-    padding: var(--s04-main-top, 18px) 20px 30px !important;
+    padding: var(--s04-main-top, 18px) var(--s04-main-end, 20px) 30px var(--s04-main-start, 20px) !important;
   }
 
   .rd-v2-synthesis-page .s04-main:has(> .s04-home) {
     --s04-main-top: 0px;
+    --s04-main-start: 2px;
+    --s04-main-end: 0px;
   }
 
   .rd-v2-synthesis-page .s04-main > * {
@@ -1065,7 +1067,7 @@
   }
 
   #root .rd-v2-synthesis-page .s04-main {
-    padding-inline: 16px !important;
+    padding-inline: var(--s04-main-start, 16px) var(--s04-main-end, 16px) !important;
   }
 
   /* Recommendation: preserve the legitimate 8/4 analytical split while giving

@@ -253,7 +253,6 @@ export function SynthesisHome({
       <section className="s04-home-section s04-home-methods" id="synthesis-home-methods">
         <header>
           <div>
-            <small>Saved methods</small>
             <h2>Start from a saved method</h2>
             <p>Using one starts a new build. You review its assumptions before anything runs.</p>
           </div>
@@ -270,7 +269,6 @@ export function SynthesisHome({
                 onClick={() => onStartBlueprint?.(profile)}
                 title={text(profile.title, profile.id)}
               >
-                <small>Saved method</small>
                 <strong>{text(profile.title, profile.id)}</strong>
                 <span>{text(profile.description, "Recorded build recipe")}</span>
                 <em>Use as starting point →</em>
