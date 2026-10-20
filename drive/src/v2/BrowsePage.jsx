@@ -364,8 +364,11 @@ function DiscoverQueryComposer({
       <button type="submit" className="rd-v2-btn sm primary">
         Explore
       </button>
-      <p role={prompt ? "status" : undefined} data-testid={prompt ? "discover-bounded-prompt" : undefined}>
-        {prompt || "Keywords return fast results. A research question also checks what your Library already covers."}
+      {prompt ? (
+        <div className="rd-v2-discover-composer-prompt" role="status" data-testid="discover-bounded-prompt">{prompt}</div>
+      ) : null}
+      <p>
+        Keywords return fast results. A research question also checks what your Library already covers.
       </p>
       <div className="rd-v2-discover-composer-scope" role="group" aria-label="Discover search universe">
         <span>Library index</span>

@@ -47,6 +47,16 @@
   line-height: 1.5;
 }
 
+.rd-v2-discover-page .rd-v2-discover-composer-prompt {
+  grid-column: 1 / -1;
+  padding: 8px 12px;
+  border-left: 3px solid var(--rd-accent);
+  background: var(--rd-accent-soft);
+  color: var(--rd-ink, #101820);
+  font-size: var(--rd-text-xs);
+  line-height: 1.45;
+}
+
 .rd-v2-discover-page .rd-v2-discover-composer-examples {
   grid-column: 1 / -1;
   display: flex;
