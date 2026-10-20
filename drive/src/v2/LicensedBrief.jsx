@@ -1,4 +1,4 @@
-import { MEMBERS_ONLY_TEXT } from "@/v2/licensedAccess";
+import { LockTag } from "@/v2/Lock";
 import { coverageText } from "./coverageText.js";
 
 const text = (value) => String(value ?? "").trim();
@@ -13,7 +13,7 @@ export function licensedFacts(dataset, columns = []) {
     ["One row per", grainLabel(dataset?.grain)],
     ["Joins on", keys.join(", ")],
     ["Best for", text(dataset?.best_use || dataset?.recommended_use)],
-    ["Columns", columns.slice(0, 14).join(", ")],
+    ["Columns", columns.some((name) => !keys.includes(name)) ? columns.slice(0, 14).join(", ") : ""],
     ["Limits", text(dataset?.limitations)],
   ].filter(([, value]) => value);
 }
@@ -28,9 +28,9 @@ export function LicensedBrief({ dataset, columns }) {
           <p>{value}</p>
         </div>
       ))}
-      <div className="is-wide">
-        <span className="rd-v2-eyebrow">Access</span>
-        <p>{MEMBERS_ONLY_TEXT}</p>
+      <div className="is-wide rd-v2-library-licensed-access">
+        <LockTag who="yuanze" />
+        <p>Rows, samples and downloads open after a Yuan Ze sign-in. Everything above is open to everyone.</p>
       </div>
     </div>
   );

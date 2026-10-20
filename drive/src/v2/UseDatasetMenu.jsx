@@ -18,6 +18,7 @@ export function formatHref(href, format) {
 }
 
 export function downloadStem(dataset) {
+  if (dataset?.download_name) return dataset.download_name;
   const revision = String(dataset?.revision_id || "held").replace(/[^A-Za-z0-9_.-]/g, "_");
   return `${dataset?.dataset_id || "dataset"}_${revision}`;
 }

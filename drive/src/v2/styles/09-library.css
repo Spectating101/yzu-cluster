@@ -1630,3 +1630,13 @@
   gap: 10px;
   margin-top: 8px;
 }
+
+.rd-v2-library-licensed-access {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rd-v2-library-licensed-access p {
+  margin: 0;
+}

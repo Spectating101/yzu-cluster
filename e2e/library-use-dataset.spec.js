@@ -14,6 +14,7 @@ const datasets = {
     dataset_id: "fred_yields", name: "Treasury yields", grain: "day", analysis_readiness: "query_ready",
     local_root: "lake/fred_yields", source_system: "FRED", featured_rank: 1, revision_id: "rev 7",
     full_download: "/library/datasets/fred_yields/download?revision=rev%207",
+    download_name: "us_treasury_yields_daily",
   }],
 };
 
@@ -28,9 +29,9 @@ test("Use this dataset offers every download format and a snippet that opens the
   for (const format of ["csv", "xlsx", "dta", "parquet"]) {
     await expect(page.getByTestId(`library-download-${format}`)).toHaveAttribute("href", new RegExp(`/library/datasets/fred_yields/download\\?revision=rev%207&format=${format}$`));
   }
-  await expect(page.getByTestId("library-use-dataset-code")).toHaveText('use "fred_yields_rev_7.dta", clear');
+  await expect(page.getByTestId("library-use-dataset-code")).toHaveText('use "us_treasury_yields_daily.dta", clear');
   await page.getByRole("tab", { name: "Python" }).click();
-  await expect(page.getByTestId("library-use-dataset-code")).toContainText('pd.read_csv("fred_yields_rev_7.csv")');
+  await expect(page.getByTestId("library-use-dataset-code")).toContainText('pd.read_csv("us_treasury_yields_daily.csv")');
   await page.keyboard.press("Escape");
   await expect(menu).not.toHaveAttribute("open", "");
   await expect(page.getByTestId("library-workspace-download")).toBeVisible();
