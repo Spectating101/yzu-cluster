@@ -98,6 +98,16 @@ function GlanceCell({ row, span, axis }) {
   );
 }
 
+const MACHINE_ID = /^[a-z0-9]+(?:[_./:-][a-z0-9]+)+$/i;
+
+function matchText(reason, row) {
+  const value = String(reason.value ?? "");
+  const machine = MACHINE_ID.test(value) && !/\s/.test(value);
+  if (reason.kind === "identity" && (machine || value === row.dataset_id)) return <>name · {displayName(row)}</>;
+  if (reason.kind === "source" && machine) return <>source · {sourceLabel(row)}</>;
+  return <>{reason.label} · {value}</>;
+}
+
 export function LibraryEvidenceEstate({
   assets = [],
   collections = [],
@@ -129,7 +139,7 @@ export function LibraryEvidenceEstate({
   const ledgerClass = `rd-v2-cap-ledger ${showVerify ? "with-verify" : "without-verify"} show-kind`;
   const query = String(searchQuery || "").trim();
   const [visibleLimit, setVisibleLimit] = useState(PAGE_SIZE);
-  const [collectionsOpen, setCollectionsOpen] = useState(() => (typeof window === "undefined" ? true : window.innerHeight >= 860));
+  const [collectionsOpen, setCollectionsOpen] = useState(() => (typeof window === "undefined" ? true : window.innerHeight >= 1000));
 
   // A new search is a new semantic scope, so begin it from the first page.
   useEffect(() => {
@@ -272,9 +282,7 @@ export function LibraryEvidenceEstate({
                         <b>Matched</b>
                         {row.search_match.reasons.slice(0, 2).map((reason) => (
                           <span key={`${reason.kind}-${reason.value}`}>
-                            {reason.kind === "name" && reason.value === row.dataset_id
-                              ? <>Dataset · {displayName(row)}</>
-                              : <>{reason.label} · {reason.value}</>}
+                            {matchText(reason, row)}
                           </span>
                         ))}
                       </span>

@@ -214,7 +214,7 @@ function AssetOverlay({ kind, dataset, fields, presentation, onClose }) {
                 <p className="rd-v2-library-muted">No fields are documented in the current Library record.</p>
               )}
               <dl className="rd-v2-library-overlay-facts">
-                <div><dt>Unit of observation</dt><dd>{value(dataset?.grain)}</dd></div>
+                <div><dt>Unit of observation</dt><dd>{value(String(dataset?.grain ?? "").replace(/_/g, " "))}</dd></div>
                 <div><dt>Coverage</dt><dd>{value(fields.coverage, dataset?.coverage)}</dd></div>
                 <div><dt>Join keys</dt><dd>{names.filter((name) => (fields.joinKeys || []).includes(name)).join(" · ") || "Not documented"}</dd></div>
               </dl>
@@ -529,7 +529,7 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
       <div className="rd-v2-library-preview-foot">
         <span>{observed ? (profileBasis(preview.profile) || "Values read from the stored data") : "Documented structure only"}</span>
         {coverage ? <span>Coverage: {coverage}</span> : !liveSource ? <span>Coverage: Not documented</span> : null}
-        {liveSource ? null : <span>Unit of observation: {grain || "Not documented"}</span>}
+        {liveSource ? null : <span>Unit of observation: {grain ? grain.replace(/_/g, " ") : "Not documented"}</span>}
         {liveSource ? null : <span>Scale: {rowCount ? `${Number.isFinite(Number(rowCount)) ? Number(rowCount).toLocaleString("en-US") : rowCount} rows` : "Not documented"}</span>}
         {liveSource ? (joinKeys.length ? <span>Keys: {joinKeys.join(" · ")}</span> : null) : <span>Keys: {joinKeys.length ? joinKeys.join(" · ") : "Not documented"}</span>}
       </div>
@@ -573,7 +573,7 @@ function EvidenceShape({ dataset, fields, presentation, rowCount, state }) {
   }
   return (
     <dl className="rd-v2-library-evidence-facts">
-      <div><dt>Unit of observation</dt><dd>{value(dataset?.grain)}</dd></div>
+      <div><dt>Unit of observation</dt><dd>{value(String(dataset?.grain ?? "").replace(/_/g, " "))}</dd></div>
       <div><dt>Period</dt><dd>{value(fields.coverage, dataset?.date_range, dataset?.temporal_coverage, glanceCoverage(dataset))}</dd></div>
       <div><dt>Scope</dt><dd>{value(dataset?.scope, dataset?.universe, dataset?.geography, dataset?.entity_universe)}</dd></div>
       <div><dt>Meaningful keys</dt><dd>{(fields.joinKeys || []).join(" · ") || "Not documented"}</dd></div>

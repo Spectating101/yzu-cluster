@@ -71,8 +71,13 @@ test("collections show as one row on a short window and all of them on a tall on
   await expect(list).not.toHaveClass(/is-single-row/);
 });
 
-test("collections are fully shown on a tall window", async ({ page }) => {
+test("collections stay on one row until the window is tall enough to spare the height", async ({ page }) => {
   await open(page, { width: 1440, height: 900 });
+  await expect(page.locator(".rd-v2-cap-collection-list")).toHaveClass(/is-single-row/);
+});
+
+test("collections are fully shown on a tall window", async ({ page }) => {
+  await open(page, { width: 1920, height: 1080 });
   await expect(page.locator(".rd-v2-cap-collection-list")).not.toHaveClass(/is-single-row/);
   await expect(page.getByTestId("library-collections-toggle")).toHaveText(/Show fewer/);
 });

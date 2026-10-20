@@ -1584,6 +1584,8 @@ button {
 .rd-v2-status-failed   .rd-v2-status-dot { background: var(--rd-fail-fg); }
 .rd-v2-status-external { background: var(--rd-ext-bg); color: var(--rd-ext-fg); }
 .rd-v2-status-external .rd-v2-status-dot { display: none; }
+.rd-v2-status-locked   { background: var(--rd-ext-bg); color: var(--rd-body); }
+.rd-v2-status-lock     { flex-shrink: 0; }
 
 /* Legacy pill (strips / inline use) */
 .rd-v2-pill {
