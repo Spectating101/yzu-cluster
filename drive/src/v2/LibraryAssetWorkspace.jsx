@@ -1,3 +1,4 @@
+import { UseDatasetMenu } from "@/v2/UseDatasetMenu";
 import { AnalysisResults } from "./AnalysisResults.jsx";
 import { plainRoute } from "./plainText.js";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -687,7 +688,10 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onOpenQuery,
             <button type="button" className="rd-v2-btn primary" onClick={() => requestDeskSignIn("signin")} data-testid="library-workspace-members-sign-in">Sign in with Yuan Ze email</button>
           ) : null}
           {datasetDownloadHref(dataset) ? (
-            <a className="rd-v2-btn" href={datasetDownloadHref(dataset)} download data-testid="library-workspace-download">Download CSV</a>
+            <>
+              <a className="rd-v2-btn" href={datasetDownloadHref(dataset)} download data-testid="library-workspace-download">Download CSV</a>
+              <UseDatasetMenu dataset={dataset} href={datasetDownloadHref(dataset)} />
+            </>
           ) : dataset?.download_requires_account ? (
             <button type="button" className="rd-v2-btn" onClick={() => requestDeskSignIn("signup")} data-testid="library-workspace-download-sign-in">Sign in to download</button>
           ) : null}
