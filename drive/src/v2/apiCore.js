@@ -35,7 +35,6 @@ export async function fetchJson(path, init = {}) {
     const mayBootstrap =
       path !== "/library/desk/session" && path !== "/library/desk/capabilities";
     if (r.status === 401 && mayBootstrap) {
-      notifyDeskAuthenticationFailure(r.status);
       // A rotated token or v1-cookie revocation can leave sessionStorage stale.
       // Clear the optimistic marker and let concurrent callers share one mint.
       markDeskSessionBootstrapped(false);
@@ -43,6 +42,8 @@ export async function fetchJson(path, init = {}) {
       if (session?.ok) {
         assertDeskIdentity(identity);
         r = await fetch(`${API}${path}`, options);
+      } else {
+        notifyDeskAuthenticationFailure(r.status);
       }
     }
     const raw = await r.text();
@@ -91,7 +92,7 @@ export async function ensureDeskSession({ force = false } = {}) {
   if (!force && deskSessionBootstrapped()) {
     return { ok: true, bootstrapped: true, reused: true };
   }
-  if (!force && ensureDeskSessionInflight) {
+  if (ensureDeskSessionInflight) {
     return ensureDeskSessionInflight;
   }
 

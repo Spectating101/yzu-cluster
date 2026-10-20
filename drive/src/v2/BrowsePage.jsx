@@ -722,7 +722,7 @@ export function BrowsePage({
   const startBoundedRequest = (row) => {
     const name = String(row.provider || row.title || "This source").trim();
     setQueryDraft(`${String(row.title || name).trim()}: `);
-    setBoundedPrompt(`${name} collects one bounded request at a time. Name the places, measures and years you need, then press Explore.`);
+    setBoundedPrompt(`${name} collects one bounded request at a time. Say exactly what you need, such as which places, symbols or series and which dates, then press Explore.`);
     requestAnimationFrame(() => {
       const input = composerInputRef.current;
       if (!input) return;

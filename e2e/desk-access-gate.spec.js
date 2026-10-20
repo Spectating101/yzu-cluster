@@ -126,3 +126,38 @@ test("Library loading never presents a fabricated empty estate", async ({ page }
   await expect(rail).toContainText(`${MOCK_DATASETS.datasets.length} datasets`);
   await expect(rail).not.toContainText("Reading your Library…");
 });
+
+test("a dataset link opened before the session exists does not land on the access gate", async ({ page }) => {
+  await mockV2Api(page);
+  const id = MOCK_DATASETS.datasets[0].dataset_id;
+  let sessionMinted = false;
+  let mints = 0;
+  const guest = (authenticated, id = "") => ({
+    version: 2,
+    authenticated,
+    server_configured: true,
+    access: authenticated ? "public_guest" : "locked",
+    principal: authenticated ? { id, role: "public_guest" } : null,
+    permissions: { view_static_ui: true, view_research_data: authenticated, download_research_data: authenticated },
+    session: { bootstrap_available: true, public_guest_available: true, member_sign_in_available: true },
+  });
+  await page.route("**/library/desk/capabilities", (route) =>
+    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(guest(sessionMinted, `guest-${mints}`)) }));
+  await page.route("**/library/desk/session", async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    sessionMinted = true;
+    mints += 1;
+    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, authorized: true, capabilities: guest(true, `guest-${mints}`) }) });
+  });
+  await page.route(`**/datasets/${id}`, (route) => {
+    if (sessionMinted) return route.fallback();
+    return route.fulfill({ status: 401, contentType: "application/json", body: JSON.stringify({ error: "unauthorized" }) });
+  });
+
+  await page.goto(`/?tab=library&dataset=${id}`, { waitUntil: "domcontentloaded" });
+  await expect(page.locator(".rd-v2-shell")).toBeVisible();
+  await page.waitForTimeout(1500);
+  await expect(page.getByTestId("desk-access-gate")).toHaveCount(0);
+  await expect(page.locator(".rd-v2-shell")).toBeVisible();
+  expect(mints).toBe(1);
+});

@@ -178,7 +178,7 @@ test.describe("v2 Discover tab", () => {
     await waitForShell(page);
     const row = page.locator("main li", { hasText: "County unemployment official source" }).first();
     await row.locator(".rd-v2-discover-row-add").click();
-    await expect(page.getByTestId("discover-bounded-prompt")).toContainText(/Name the places, measures and years/);
+    await expect(page.getByTestId("discover-bounded-prompt")).toContainText(/Say exactly what you need/);
     const composer = page.getByTestId("discover-query-composer").locator("textarea");
     await expect(composer).toBeFocused();
     await expect(composer).toHaveValue("County unemployment official source: ");
