@@ -35,7 +35,7 @@ const DECISION = {
     body: "The connection has been tested. Review the checked evidence and remaining unknowns.",
   },
   "external-acquirable": {
-    headline: "External · collection available",
+    headline: "External · available to collect",
     body: "A known collection route is available.",
   },
   "external-unavailable": {

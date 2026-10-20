@@ -95,7 +95,7 @@ test.describe("Discover evaluation screenshots", () => {
 
     // 3. acquisition-available (no stale probe toast)
     await page.locator(".rd-v2-discover-candidate", { hasText: "MOPS financial statements" }).click();
-    await expect(page.getByTestId("discover-eval-surface")).toContainText(/acquisition available|can be collected/i);
+    await expect(page.getByTestId("discover-eval-surface")).toContainText(/available to collect/i);
     await expect(page.getByTestId("discover-eval-actions").getByRole("button", { name: "Request this data" })).toBeVisible();
     await expect(page.locator(".rd-v2-toast[data-toast-scope='discover-probe']")).toHaveCount(0);
     await shot(page, "03-desktop-acquisition-available");

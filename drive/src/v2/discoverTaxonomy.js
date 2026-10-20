@@ -70,7 +70,7 @@ export const TAXONOMY = {
     filter: ["external"],
   },
   "external-acquirable": {
-    label: "External · collection available",
+    label: "External · available to collect",
     possession: "External",
     readiness: "Acquisition available",
     className: "ext",
