@@ -1,5 +1,6 @@
 import { collectionRouteTitle } from "./collectRouteLabel.js";
 import { uiVocabularyLabel } from "./uiVocabularyLabels.js";
+import { plainAccess, plainGrain } from "./plainText.js";
 import { collectionStatusLabel } from "@/v2/procurementJobs";
 import { useMemo, useRef, useState } from "react";
 import {
@@ -62,8 +63,8 @@ function RouteCard({ route, sourceTitle, selected, recommended = false, disabled
       ) : null}
       <dl>
         <Fact label="Coverage" value={route.coverage} />
-        <Fact label="Unit of observation" value={route.grain} />
-        <Fact label="Access" value={uiVocabularyLabel(route.access)} />
+        <Fact label="Unit of observation" value={plainGrain(route.grain)} />
+        <Fact label="Access" value={uiVocabularyLabel(plainAccess(route.access))} />
         <Fact label="Destination" value={route.destination} />
         <Fact label="Refresh" value={route.refresh} />
         <Fact label="Cost" value={route.cost} unknown />
@@ -71,6 +72,13 @@ function RouteCard({ route, sourceTitle, selected, recommended = false, disabled
       </dl>
     </article>
   );
+}
+
+function serverRefusal(failure) {
+  const status = Number(failure?.status);
+  const message = String(failure?.message || "").trim();
+  if (!(status >= 400 && status < 500) || !message || /^\d{3}\b/.test(message)) return "";
+  return /[.!?]$/.test(message) ? message : `${message}.`;
 }
 
 export function DiscoverIntentWorkspace({
@@ -147,7 +155,7 @@ export function DiscoverIntentWorkspace({
     }
   };
 
-  const reconcileSubmissionStatus = async () => {
+  const reconcileSubmissionStatus = async (refusal = "") => {
     if (!intent?.id) throw new Error("No Discover request is available to check.");
     const durableIntent = await getDiscoverIntent(intent.id);
     const durableState = intentState(durableIntent);
@@ -186,7 +194,9 @@ export function DiscoverIntentWorkspace({
     setSubmissionUncertain(false);
     if (canSubmitDiscoverIntent(durableIntent)) {
       setError("");
-      setSubmissionNotice("The saved status confirms no approval request was created. You can retry.");
+      setSubmissionNotice(refusal
+        ? `Not requested: ${refusal} Go back to results and search with those specifics, then add it again.`
+        : "The saved status confirms no approval request was created. You can retry.");
       return "not_committed";
     }
 
@@ -230,13 +240,13 @@ export function DiscoverIntentWorkspace({
       setSubmissionUncertain(false);
       onChange?.(nextRecord);
       onSubmitted?.(out?.job || null, nextRecord);
-    } catch {
+    } catch (failure) {
       // A failed transport does not prove the submit failed. The server may
       // already have committed a pending-approval job, so reconcile the durable
       // intent before allowing any further consequential action.
       setBusy("reconcile");
       try {
-        await reconcileSubmissionStatus();
+        await reconcileSubmissionStatus(serverRefusal(failure));
       } catch {
         setSubmissionUncertain(true);
         setSubmissionNotice("");

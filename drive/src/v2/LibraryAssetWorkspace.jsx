@@ -1,6 +1,6 @@
 import { UseDatasetMenu } from "@/v2/UseDatasetMenu";
 import { AnalysisResults } from "./AnalysisResults.jsx";
-import { plainRoute } from "./plainText.js";
+import { plainGrain, plainRoute } from "./plainText.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { plainIdentifiers } from "@/v2/plainText";
 import { queryDataset } from "@/v2/api";
@@ -28,7 +28,6 @@ import { licensedRowsLocked } from "@/v2/licensedAccess";
 import { LicensedBrief } from "./LicensedBrief.jsx";
 import { datasetCitation } from "./datasetCitation.js";
 
-const INTERNAL_GRAINS = new Set(["procured_snapshot", "catalog_harvest", "scrape_snapshot"]);
 
 function value(...candidates) {
   return candidates.map((item) => String(item || "").trim()).find(Boolean) || "Not documented";
@@ -217,7 +216,7 @@ function AssetOverlay({ kind, dataset, fields, presentation, onClose }) {
                 <p className="rd-v2-library-muted">No fields are documented in the current Library record.</p>
               )}
               <dl className="rd-v2-library-overlay-facts">
-                <div><dt>Unit of observation</dt><dd>{value(String(dataset?.grain ?? "").replace(/_/g, " "))}</dd></div>
+                <div><dt>Unit of observation</dt><dd>{value(plainGrain(dataset?.grain))}</dd></div>
                 <div><dt>Coverage</dt><dd>{value(fields.coverage, dataset?.coverage)}</dd></div>
                 <div><dt>Join keys</dt><dd>{names.filter((name) => (fields.joinKeys || []).includes(name)).join(" · ") || "Not documented"}</dd></div>
               </dl>
@@ -411,10 +410,10 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
     );
   }
   const coverage = coverageText(fields.coverage || dataset?.coverage).trim() || glanceCoverage(dataset);
-  const grain = String(dataset?.grain || "").trim();
+  const grain = plainGrain(dataset?.grain);
   const footFacts = [
     coverage ? `Coverage: ${coverage}` : "",
-    !liveSource && grain && !INTERNAL_GRAINS.has(grain) ? `Unit of observation: ${grain.replace(/_/g, " ")}` : "",
+    !liveSource && grain ? `Unit of observation: ${grain}` : "",
     !liveSource && rowCount ? `Scale: ${Number.isFinite(Number(rowCount)) ? Number(rowCount).toLocaleString("en-US") : rowCount} rows` : "",
     joinKeys.length ? `Keys: ${joinKeys.join(" · ")}` : "",
   ].filter(Boolean);
@@ -581,7 +580,7 @@ function EvidenceShape({ dataset, fields, presentation, rowCount, state }) {
   }
   return (
     <dl className="rd-v2-library-evidence-facts">
-      <div><dt>Unit of observation</dt><dd>{value(String(dataset?.grain ?? "").replace(/_/g, " "))}</dd></div>
+      <div><dt>Unit of observation</dt><dd>{value(plainGrain(dataset?.grain))}</dd></div>
       <div><dt>Period</dt><dd>{value(fields.coverage, dataset?.date_range, dataset?.temporal_coverage, glanceCoverage(dataset))}</dd></div>
       <div><dt>Scope</dt><dd>{value(dataset?.scope, dataset?.universe, dataset?.geography, dataset?.entity_universe)}</dd></div>
       <div><dt>Meaningful keys</dt><dd>{(fields.joinKeys || []).join(" · ") || "Not documented"}</dd></div>

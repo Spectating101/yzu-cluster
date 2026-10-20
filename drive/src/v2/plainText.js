@@ -31,3 +31,21 @@ export function plainRoute(value) {
   if (!key) return "";
   return ROUTES[key.toLowerCase()] || plainIdentifiers(key);
 }
+
+const INTERNAL_GRAINS = new Set(["procured_snapshot", "catalog_harvest", "scrape_snapshot"]);
+
+export function plainGrain(value) {
+  const key = String(value || "").trim();
+  if (!key || INTERNAL_GRAINS.has(key)) return "";
+  return key.split("_").filter(Boolean).join(" × ");
+}
+
+const ACCESS = {
+  procurement_catalog: "Collected on request", materialized_instant: "Collected directly", materialized_bulk: "Bulk archive",
+  live_connector: "Searched live", public_http: "Public download", catalog_reference: "Catalogue reference",
+};
+
+export function plainAccess(value) {
+  const key = String(value || "").trim();
+  return ACCESS[key.toLowerCase()] || plainIdentifiers(key);
+}

@@ -323,6 +323,11 @@ export function isDiscoverResearchQuestion(value) {
   return text.split(/\s+/).length >= 8;
 }
 
+function needsBoundedRequest(row) {
+  const routes = [row?.collect_via, row?.fetch_modes].flat().map((value) => String(value || ""));
+  return routes.includes("public_api_collect");
+}
+
 function DiscoverQueryComposer({
   value,
   onValueChange,
@@ -331,6 +336,8 @@ function DiscoverQueryComposer({
   onAssess,
   idle = false,
   examples = NEUTRAL_EXAMPLES,
+  inputRef,
+  prompt = "",
 }) {
   const submit = (event) => {
     event.preventDefault();
@@ -346,6 +353,7 @@ function DiscoverQueryComposer({
       onSubmit={submit}
     >
       <textarea
+        ref={inputRef}
         value={value}
         onChange={(event) => onValueChange?.(event.target.value)}
         onKeyDown={handleEnterToRequestSubmit}
@@ -356,8 +364,8 @@ function DiscoverQueryComposer({
       <button type="submit" className="rd-v2-btn sm primary">
         Explore
       </button>
-      <p>
-        Keywords return fast results. A research question also checks what your Library already covers.
+      <p role={prompt ? "status" : undefined} data-testid={prompt ? "discover-bounded-prompt" : undefined}>
+        {prompt || "Keywords return fast results. A research question also checks what your Library already covers."}
       </p>
       <div className="rd-v2-discover-composer-scope" role="group" aria-label="Discover search universe">
         <span>Library index</span>
@@ -709,6 +717,19 @@ export function BrowsePage({
   const [routeComparisonOpen, setRouteComparisonOpen] = useState(false);
   const [sortMode, setSortMode] = useState("relevance");
   const [queryDraft, setQueryDraft] = useState(searchQuery || "");
+  const [boundedPrompt, setBoundedPrompt] = useState("");
+  const composerInputRef = useRef(null);
+  const startBoundedRequest = (row) => {
+    const name = String(row.provider || row.title || "This source").trim();
+    setQueryDraft(`${String(row.title || name).trim()}: `);
+    setBoundedPrompt(`${name} collects one bounded request at a time. Name the places, measures and years you need, then press Explore.`);
+    requestAnimationFrame(() => {
+      const input = composerInputRef.current;
+      if (!input) return;
+      input.focus();
+      input.setSelectionRange(input.value.length, input.value.length);
+    });
+  };
   const [showAllSources, setShowAllSources] = useState(false);
   const researchFocus = useResearchFocus(askAvailable);
   const [searchRevision, setSearchRevision] = useState(0);
@@ -758,6 +779,7 @@ export function BrowsePage({
 
   useEffect(() => {
     setQueryDraft(searchQuery || "");
+    setBoundedPrompt("");
     setRouteComparisonOpen(false);
     setEnrichedQuestion("");
     setSortMode("relevance");
@@ -1553,6 +1575,8 @@ export function BrowsePage({
               onAsk={askAvailable ? (question) => onAskQuery?.(question, { kind: "investigation" }) : undefined}
               onAssess={askAvailable ? onOpenAssessment : undefined}
               examples={discoverExamples(researchFocus)}
+              inputRef={composerInputRef}
+              prompt={boundedPrompt}
               idle
             />
             <div className="rd-v2-discover-idle-held">
@@ -1575,7 +1599,7 @@ export function BrowsePage({
                     labIds={labIds}
                     selectedId={selectedId}
                     onSelectRow={onSelectRow}
-                    onAdd={onReviewAcquisition}
+                    onAdd={onReviewAcquisition ? (row) => (needsBoundedRequest(row) ? startBoundedRequest(row) : onReviewAcquisition(row)) : undefined}
                     addLock={acquisitionLock}
                   />
                   {idleRecommendations.length > IDLE_SOURCE_PREVIEW ? (

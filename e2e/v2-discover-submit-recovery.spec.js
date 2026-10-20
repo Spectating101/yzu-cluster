@@ -62,7 +62,7 @@ function durableIntent(intentId, { committed = false } = {}) {
   };
 }
 
-async function installLostSubmit(page, { durable = "committed" } = {}) {
+async function installLostSubmit(page, { durable = "committed", refusal = "" } = {}) {
   let submitCalls = 0;
   let getCalls = 0;
 
@@ -91,6 +91,9 @@ async function installLostSubmit(page, { durable = "committed" } = {}) {
   await page.route("**/library/discover/intents/*/submit", async (route) => {
     if (route.request().method() !== "POST") return route.fallback();
     submitCalls += 1;
+    if (refusal) {
+      return route.fulfill({ status: 400, contentType: "application/json", body: JSON.stringify({ error: refusal }) });
+    }
     return route.abort("connectionreset");
   });
 
@@ -149,5 +152,16 @@ test.describe("Discover submit transport recovery", () => {
     await expect(workspace.getByRole("button", { name: "Submit for approval" })).toBeEnabled();
     await expect.poll(calls.submitCalls).toBe(1);
     await expect.poll(calls.getCalls).toBe(1);
+  });
+
+  test("a refused submit shows the server's reason", async ({ page }) => {
+    await mockV2Api(page, { discoverBody: MOCK_DISCOVER_HIT });
+    const workspace = await readyForSubmit(page);
+    await installLostSubmit(page, { durable: "not_committed", refusal: "Please clarify the unknown county name and its state." });
+
+    await workspace.getByRole("button", { name: "Submit for approval" }).click();
+
+    await expect(workspace).toContainText("Not requested: Please clarify the unknown county name and its state.");
+    await expect(workspace).not.toContainText("The saved status confirms no approval request was created.");
   });
 });

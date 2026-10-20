@@ -163,6 +163,28 @@ test.describe("v2 Discover tab", () => {
     await expect(results).toContainText("County unemployment published dataset");
   });
 
+  test("adding a bounded-request source asks for specifics instead of opening a request", async ({ page }) => {
+    await mockV2Api(page, {
+      discoverSourcesBody: { results: [{
+        kind: "source", source_id: "bls", provider: "U.S. Bureau of Labor Statistics",
+        title: "County unemployment official source", collect_via: ["public_api_collect"],
+      }] },
+    });
+    let intentPosts = 0;
+    page.on("request", (request) => {
+      if (request.method() === "POST" && /discover\/intents?/.test(request.url())) intentPosts += 1;
+    });
+    await page.goto("/?tab=discover", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    const row = page.locator("main li", { hasText: "County unemployment official source" }).first();
+    await row.locator(".rd-v2-discover-row-add").click();
+    await expect(page.getByTestId("discover-bounded-prompt")).toContainText(/Name the places, measures and years/);
+    const composer = page.getByTestId("discover-query-composer").locator("textarea");
+    await expect(composer).toBeFocused();
+    await expect(composer).toHaveValue("County unemployment official source: ");
+    expect(intentPosts).toBe(0);
+  });
+
   test("late Library hydration never erases a painted candidate field", async ({ page }) => {
     // Production can return the first Discover leg before the larger Library
     // registry has finished hydrating. Updating possession IDs legitimately
