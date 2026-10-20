@@ -133,7 +133,8 @@ function provenanceBasis(dataset, receipt) {
   return "Not established";
 }
 
-function nextMove({ state, presentation, previewOpen, receipt, verification, freshness, locked }) {
+function nextMove({ state, presentation, previewOpen, receipt, verification, freshness, locked, downloadable }) {
+  const workWith = downloadable ? "View all rows or download it to work with it." : "View all rows to work with it.";
   if (locked) {
     return "Read what it holds here. Sign in with your Yuan Ze email to query the rows.";
   }
@@ -145,10 +146,10 @@ function nextMove({ state, presentation, previewOpen, receipt, verification, fre
   }
   if (state.kind === "query-ready") {
     if (!hasReproductionMethod(receipt)) {
-      return "View all rows or download the CSV to work with it. Check the Source record before you rely on it for a paper.";
+      return `${workWith} Check the Source record before you rely on it for a paper.`;
     }
     if (verification.kind !== "verified" && verification.kind !== "matched") {
-      return "View all rows or download the CSV to work with it.";
+      return workWith;
     }
     return "Use the sample for a quick value check. Open a query for analysis beyond the sample.";
   }
@@ -187,7 +188,7 @@ function DecisionBasis({ state, verification, dataset, receipt, previewOpen, pre
       </div>
       <div className="rd-v2-library-inspector-next">
         <span>{previewOpen ? "Sample state" : "Next move"}</span>
-        <p>{nextMove({ state, presentation, previewOpen, receipt, verification, freshness, locked: licensedRowsLocked(dataset) })}</p>
+        <p>{nextMove({ state, presentation, previewOpen, receipt, verification, freshness, locked: licensedRowsLocked(dataset), downloadable: Boolean(dataset?.full_download) })}</p>
       </div>
     </section>
   );
