@@ -55,4 +55,17 @@ test("stale authentication offers sign-in again and does not display a token", a
   await page.getByRole("button", { name: "Create personal token", exact: true }).click();
   await expect(page.getByRole("button", { name: "Sign in again", exact: true })).toBeVisible();
   await expect(page.getByLabel("Personal token", { exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "Sign in again", exact: true }).click();
+  await expect(page.getByRole("dialog", { name: "Sign in to Research Drive", exact: true })).toBeVisible();
 });
+
+for (const role of ["member", "operator"]) {
+  test(`${role} can reauthenticate without signing out or losing the pending connector`, async ({ page }) => {
+    await mockV2Api(page);
+    await page.route("**/library/desk/capabilities", route => fulfill(route, { ...actor, principal: { ...actor.principal, role } }));
+    await page.goto(`/?tab=settings&access=signin&connect_request=${"a".repeat(43)}`);
+    await waitForShell(page);
+    await expect(page.getByRole("dialog", { name: "Sign in to Research Drive", exact: true })).toBeVisible();
+    await expect(page.getByRole("textbox", { name: "Invitation code", exact: true })).toBeVisible();
+  });
+}

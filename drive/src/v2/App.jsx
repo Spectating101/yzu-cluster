@@ -2356,7 +2356,7 @@ function DeskWorkspace({ onIdentityChanged }) {
   return (
     <div className={`yzu-shell with-inspector rd-theme-light rd-v2-shell${hideRail ? " no-rail" : ""}${railFolded ? " rail-folded" : ""}`}>
       <a className="rd-v2-skip-link" href="#rd-main">Skip to main content</a>
-      {accessMode && (deskAccess?.principal?.role === "public_guest" || (deskAccess?.principal?.role === "public_member" && accessMode === "signin")) ? (
+      {accessMode && (deskAccess?.principal?.role === "public_guest" || (canUseAsk && accessMode === "signin")) ? (
         <AccessScreen
           mode={accessMode}
           session={deskAccess?.session}
