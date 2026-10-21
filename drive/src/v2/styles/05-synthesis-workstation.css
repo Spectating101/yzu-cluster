@@ -1313,7 +1313,7 @@
     grid-row: 2;
     max-width: 72ch;
     padding: var(--rd-space-1) var(--rd-space-5) var(--rd-space-3) 0;
-    color: #465164;
+    color: var(--rd-muted);
     font-size: var(--rd-text-2xs);
     line-height: 1.45;
   }
@@ -1342,7 +1342,7 @@
   }
 
   #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-brief) > .s04-opening-brief dt {
-    color: #60696f;
+    color: var(--rd-muted);
     font-size: var(--rd-text-2xs);
     line-height: 1.2;
   }
@@ -1400,7 +1400,7 @@
   min-width: 0;
   padding: var(--rd-space-2) var(--rd-space-3) var(--rd-space-2) 0;
   background: transparent;
-  color: #5d6574;
+  color: var(--rd-muted);
 }
 
 .rd-v2-synthesis-page .s04-opening-workflow li + li {
@@ -1423,7 +1423,7 @@
 .rd-v2-synthesis-page .s04-opening-workflow li b,
 .rd-v2-synthesis-page .s04-opening-workflow li.done b,
 .rd-v2-synthesis-page .s04-opening-workflow li.now b {
-  color: #5b6578;
+  color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
   font-weight: 600;
   letter-spacing: 0.01em;
@@ -1431,7 +1431,7 @@
 
 .rd-v2-synthesis-page .s04-opening-workflow li small {
   margin-top: 2px;
-  color: #5d6574;
+  color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
 }
 
@@ -1443,7 +1443,7 @@
   margin: 0;
   padding: var(--rd-space-2) 0 var(--rd-space-2);
   border-bottom: 1px solid #e8ebf1;
-  color: #5b6578;
+  color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
   line-height: 1.45;
 }
@@ -1454,7 +1454,7 @@
 
 .rd-v2-synthesis-page .s04-opening-workflow-note > b::after {
   content: "Current operation";
-  color: #315f4d;
+  color: var(--rd-link);
   font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -1538,7 +1538,7 @@
   > .s04-opening-next > footer::before {
   content: "Method reasoning becomes available after you add data from your Library.";
   margin-right: auto;
-  color: #5d6574;
+  color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
   line-height: 1.35;
 }
@@ -1636,7 +1636,7 @@
 
 .rd-v2-synthesis-page .s04-steps::before {
   content: "EXECUTION STAGES";
-  color: #315f4d;
+  color: var(--rd-link);
   font-size: var(--rd-text-2xs);
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -1644,7 +1644,7 @@
 
 .rd-v2-synthesis-page .s04-steps::after {
   content: "Method accepted → sample preview → your approval → build → archive and Library checks → saved to Library";
-  color: #5b6578;
+  color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
   line-height: 1.45;
 }
@@ -1681,7 +1681,7 @@
   content: "Ask is drafting one reviewable method proposal. Nothing is accepted or executed yet.";
   margin-right: auto;
   max-width: 60ch;
-  color: #5d6574;
+  color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
   line-height: 1.35;
 }
@@ -1872,7 +1872,7 @@
   }
 
   .rd-v2-synthesis-page .s04-opening-workflow-note > span {
-    color: #3e4759;
+    color: var(--rd-body);
     font-size: var(--rd-text-2xs) !important;
     font-weight: 600;
   }
@@ -1938,7 +1938,7 @@
   .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
     > [data-testid="synthesis-evidence-state"] > .s04-title small::after {
     content: "EVIDENCE · CURRENT OPERATION";
-    color: #315f4d;
+    color: var(--rd-link);
     font-size: var(--rd-text-2xs);
     font-weight: 700;
     letter-spacing: 0.06em;
@@ -1947,7 +1947,7 @@
   .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
     > [data-testid="synthesis-evidence-state"] > .s04-title h2::after {
     content: "Choose the Library inputs that belong";
-    color: #101820;
+    color: var(--rd-text);
     font-size: var(--rd-text-2xl);
     font-weight: 700;
     letter-spacing: -0.01em;
@@ -2020,7 +2020,7 @@
     > .s04-opening-next > footer::before {
     content: "Method reasoning becomes available after you add at least one input from your Library.";
     margin-right: auto;
-    color: #5d6574;
+    color: var(--rd-muted);
     font-size: var(--rd-text-2xs);
     line-height: 1.35;
   }
@@ -2068,7 +2068,7 @@
     > .s04-opening-next > footer::before {
     margin-right: auto;
     max-width: 55ch;
-    color: #41505d;
+    color: var(--rd-body);
     font-size: var(--rd-text-2xs);
     font-weight: 600;
     line-height: 1.4;
@@ -2209,7 +2209,7 @@
     border-color: #d8dee2;
     background: transparent;
     box-shadow: none;
-    color: #536371;
+    color: var(--rd-muted);
     font-size: var(--rd-text-2xs);
     font-weight: 600;
   }
@@ -2535,7 +2535,7 @@
   #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
     > .s04-opening-next > p {
     margin-top: var(--rd-space-3);
-    color: #41505d;
+    color: var(--rd-body);
     font-size: var(--rd-text-2xs);
     line-height: 1.55;
   }
@@ -2909,7 +2909,7 @@
   #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-measurement-status)):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
     > .s04-opening-next > p {
     margin: var(--rd-space-3) 0 var(--rd-space-3);
-    color: #41505d;
+    color: var(--rd-body);
     font-size: var(--rd-text-2xs);
     line-height: 1.5;
   }
@@ -3474,14 +3474,14 @@
   }
 
   #root .rd-v2-synthesis-page :is(.s04-rail-gates,.s04-rail-evidence-ledger,.s04-rail-measurement) > header span {
-    color: #5b6578 !important;
+    color: var(--rd-muted) !important;
     font-size: var(--rd-text-2xs) !important;
     font-weight: 600 !important;
     letter-spacing: 0.01em !important;
   }
 
   #root .rd-v2-synthesis-page :is(.s04-rail-gates,.s04-rail-evidence-ledger,.s04-rail-measurement) > header strong {
-    color: #365447 !important;
+    color: var(--rd-body) !important;
     font-size: var(--rd-text-2xs) !important;
     font-weight: 700 !important;
   }
@@ -3506,10 +3506,10 @@
   }
 
   #root .rd-v2-synthesis-page .s04-rail-gates li:first-child { border-top: 0 !important; }
-  #root .rd-v2-synthesis-page .s04-rail-gates li span { color: #65727e !important; }
-  #root .rd-v2-synthesis-page .s04-rail-gates li strong { color: #65727e !important; font-size: var(--rd-text-2xs) !important; text-align: right !important; }
-  #root .rd-v2-synthesis-page .s04-rail-gates li.is-ready strong { color: #397059 !important; }
-  #root .rd-v2-synthesis-page .s04-rail-gates li.is-blocked strong { color: #9a5d3e !important; }
+  #root .rd-v2-synthesis-page .s04-rail-gates li span { color: var(--rd-muted) !important; }
+  #root .rd-v2-synthesis-page .s04-rail-gates li strong { color: var(--rd-muted) !important; font-size: var(--rd-text-2xs) !important; text-align: right !important; }
+  #root .rd-v2-synthesis-page .s04-rail-gates li.is-ready strong { color: var(--rd-link) !important; }
+  #root .rd-v2-synthesis-page .s04-rail-gates li.is-blocked strong { color: var(--rd-review-fg) !important; }
 
   #root .rd-v2-synthesis-page .s04-rail-evidence-ledger li {
     display: grid !important;
@@ -3520,13 +3520,13 @@
   #root .rd-v2-synthesis-page .s04-rail-evidence-ledger li:first-child { border-top: 0 !important; }
   #root .rd-v2-synthesis-page .s04-rail-evidence-ledger li b {
     overflow: hidden !important;
-    color: #314453 !important;
+    color: var(--rd-body) !important;
     font-size: var(--rd-text-2xs) !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
   }
   #root .rd-v2-synthesis-page .s04-rail-evidence-ledger li span {
-    color: #60696f !important;
+    color: var(--rd-muted) !important;
     font-size: var(--rd-text-2xs) !important;
     line-height: 1.3 !important;
   }
@@ -3545,12 +3545,12 @@
     background: rgba(255,255,255,.5) !important;
   }
   #root .rd-v2-synthesis-page .s04-rail-measurement dt {
-    color: #5b6578 !important;
+    color: var(--rd-muted) !important;
     font-size: var(--rd-text-2xs) !important;
   }
   #root .rd-v2-synthesis-page .s04-rail-measurement dd {
     margin: 2px 0 0 !important;
-    color: #314453 !important;
+    color: var(--rd-body) !important;
     font-size: var(--rd-text-2xs) !important;
     font-weight: 700 !important;
   }
@@ -3612,7 +3612,7 @@
     .s04-rail-evidence-ledger,
     .s04-rail-measurement
   ) > header span {
-    color: #5b6578;
+    color: var(--rd-muted);
     font-size: var(--rd-text-2xs);
     font-weight: 600;
     letter-spacing: 0.01em;
@@ -3624,7 +3624,7 @@
     .s04-rail-evidence-ledger,
     .s04-rail-measurement
   ) > header strong {
-    color: #365447;
+    color: var(--rd-body);
     font-size: var(--rd-text-2xs);
     font-weight: 700;
     line-height: 1.2;
@@ -3665,12 +3665,12 @@
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-gates li span {
-    color: #65727e;
+    color: var(--rd-muted);
     font-size: var(--rd-text-2xs);
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-gates li strong {
-    color: #65727e;
+    color: var(--rd-muted);
     font-size: var(--rd-text-2xs);
     font-weight: 700;
     text-align: right;
@@ -3678,11 +3678,11 @@
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-gates li.is-ready strong {
-    color: #397059;
+    color: var(--rd-link);
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-gates li.is-blocked strong {
-    color: #9a573c;
+    color: var(--rd-review-fg);
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-evidence-ledger li {
@@ -3707,7 +3707,7 @@
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-evidence-ledger li b {
     overflow: hidden;
-    color: #314453;
+    color: var(--rd-body);
     font-size: var(--rd-text-2xs);
     font-weight: 700;
     line-height: 1.28;
@@ -3716,7 +3716,7 @@
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-evidence-ledger li span {
-    color: #60696f;
+    color: var(--rd-muted);
     font-size: var(--rd-text-2xs);
     line-height: 1.35;
   }
@@ -3743,7 +3743,7 @@
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-measurement dt {
-    color: #5b6578;
+    color: var(--rd-muted);
     font-size: var(--rd-text-2xs);
     font-weight: 600;
     letter-spacing: 0.01em;
@@ -3751,7 +3751,7 @@
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-measurement dd {
     margin-top: 3px;
-    color: #314453;
+    color: var(--rd-body);
     font-size: var(--rd-text-2xs);
     font-weight: 700;
     line-height: 1.2;
@@ -3904,7 +3904,7 @@
   margin-left: 1px;
   padding-left: var(--rd-space-2);
   border-left: 1px solid #dbd4c5;
-  color: #4e5c55;
+  color: var(--rd-muted);
   font-style: normal;
 }
 
@@ -3919,7 +3919,7 @@
 
 .rd-v2-synthesis-page-authority > span {
   flex: 0 0 auto;
-  color: #5b6578;
+  color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
   font-weight: 600;
   letter-spacing: 0.01em;
@@ -3935,7 +3935,7 @@
   border: 0;
   outline: 0;
   background: transparent;
-  color: #31463d;
+  color: var(--rd-body);
   font: inherit;
   font-size: var(--rd-text-2xs);
   font-weight: 700;
@@ -3944,7 +3944,7 @@
 }
 
 .rd-v2-synthesis-page-authority.is-auto_choose {
-  color: #49675a;
+  color: var(--rd-muted);
 }
 
 .rd-v2-synthesis-page-authority.is-auto_choose::before {
@@ -3952,7 +3952,7 @@
 }
 
 .rd-v2-synthesis-page-authority.is-auto_approve {
-  color: #315f4d;
+  color: var(--rd-link);
 }
 
 .rd-v2-synthesis-page-authority.is-auto_approve::before {
@@ -4043,7 +4043,7 @@
     .s04-rail-evidence-ledger,
     .s04-rail-measurement
   ) > header span {
-    color: #5b6578;
+    color: var(--rd-muted);
     font-size: var(--rd-text-2xs);
     font-weight: 600;
     letter-spacing: 0.01em;
@@ -4055,7 +4055,7 @@
     .s04-rail-evidence-ledger,
     .s04-rail-measurement
   ) > header strong {
-    color: #365447;
+    color: var(--rd-body);
     font-size: var(--rd-text-2xs);
     font-weight: 700;
     line-height: 1.2;
@@ -4096,12 +4096,12 @@
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-gates li span {
-    color: #65727e;
+    color: var(--rd-muted);
     font-size: var(--rd-text-2xs);
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-gates li strong {
-    color: #65727e;
+    color: var(--rd-muted);
     font-size: var(--rd-text-2xs);
     font-weight: 700;
     text-align: right;
@@ -4110,11 +4110,11 @@
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-gates li.is-ready strong {
-    color: #397059;
+    color: var(--rd-link);
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-gates li.is-blocked strong {
-    color: #9a573c;
+    color: var(--rd-review-fg);
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-evidence-ledger li {
@@ -4135,7 +4135,7 @@
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-evidence-ledger li b {
     overflow: hidden;
-    color: #314453;
+    color: var(--rd-body);
     font-size: var(--rd-text-2xs);
     font-weight: 700;
     line-height: 1.28;
@@ -4144,7 +4144,7 @@
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-evidence-ledger li span {
-    color: #60696f;
+    color: var(--rd-muted);
     font-size: var(--rd-text-2xs);
     line-height: 1.35;
     overflow-wrap: anywhere;
@@ -4172,7 +4172,7 @@
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-measurement dt {
-    color: #5b6578;
+    color: var(--rd-muted);
     font-size: var(--rd-text-2xs);
     font-weight: 600;
     letter-spacing: 0.01em;
@@ -4180,7 +4180,7 @@
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-measurement dd {
     margin-top: 3px;
-    color: #314453;
+    color: var(--rd-body);
     font-size: var(--rd-text-2xs);
     font-weight: 700;
     line-height: 1.2;
@@ -4296,7 +4296,7 @@
   }
 
   body:has(.rd-v2-synthesis-page) .s04-rail-proof > header span {
-    color: #5b6578;
+    color: var(--rd-muted);
     font-size: var(--rd-text-2xs);
     font-weight: 600;
     letter-spacing: 0.01em;
@@ -4336,21 +4336,21 @@
   }
 
   body:has(.rd-v2-synthesis-page) .s04-rail-proof li span {
-    color: #60696f;
+    color: var(--rd-muted);
   }
 
   body:has(.rd-v2-synthesis-page) .s04-rail-proof li strong {
-    color: #536371;
+    color: var(--rd-muted);
     font-weight: 700;
     overflow-wrap: anywhere;
   }
 
   body:has(.rd-v2-synthesis-page) .s04-rail-proof li.is-done strong {
-    color: #397059;
+    color: var(--rd-link);
   }
 
   body:has(.rd-v2-synthesis-page) .s04-rail-proof li.is-current strong {
-    color: #8a6544;
+    color: var(--rd-review-fg);
   }
 }
 
@@ -4482,7 +4482,7 @@
 .rd-v2-synthesis-agent-activity > small,
 .rd-v2-synthesis-agent-run-head small,
 .rd-v2-synthesis-forensics small {
-  color: #5b6578;
+  color: var(--rd-muted);
   font-family: var(--rd-font);
   font-size: var(--rd-text-2xs);
   font-weight: 600;
@@ -4490,7 +4490,7 @@
 }
 
 .rd-v2-synthesis-agent-head strong {
-  color: #182033;
+  color: var(--rd-text);
   font-size: var(--rd-text-xs);
   letter-spacing: -0.01em;
 }
@@ -4500,7 +4500,7 @@
   padding: 3px var(--rd-space-2);
   border: 1px solid #d6ddd9;
   border-radius: 999px;
-  color: #52695f;
+  color: var(--rd-muted);
   background: #eef1ee;
   font-size: var(--rd-text-2xs);
   font-weight: 700;
@@ -4515,7 +4515,7 @@
   padding: var(--rd-space-2) var(--rd-space-3);
   background: #fffdf6;
   border-bottom: 1px solid #eef1ee;
-  color: #4e5c55;
+  color: var(--rd-muted);
 }
 
 .rd-v2-synthesis-agent-current > span {
@@ -4536,7 +4536,7 @@
 
 .rd-v2-synthesis-agent-current b {
   margin-top: 3px;
-  color: #29352f;
+  color: var(--rd-text);
   font-size: var(--rd-text-2xs);
   font-weight: 600;
   line-height: 1.42;
@@ -4565,7 +4565,7 @@
   padding: 2px var(--rd-space-1);
   border: 1px solid #dfe6e2;
   border-radius: 999px;
-  color: #607166;
+  color: var(--rd-muted);
   background: #eef1ee;
   font-family: var(--rd-mono);
   font-size: var(--rd-text-2xs);
@@ -4575,13 +4575,13 @@
 
 .rd-v2-synthesis-agent-run[data-run-state="running"] .rd-v2-synthesis-agent-run-head span {
   border-color: #c5d2cb;
-  color: #315f4d;
+  color: var(--rd-link);
   background: #eef1ee;
 }
 
 .rd-v2-synthesis-agent-run[data-run-state="paused"] .rd-v2-synthesis-agent-run-head span {
   border-color: #e6d9b8;
-  color: #8c5d11;
+  color: var(--rd-review-fg);
   background: #fffbeb;
 }
 
@@ -4640,7 +4640,7 @@
 
 .rd-v2-synthesis-agent-run button > span:last-child > b {
   display: block;
-  color: #334039;
+  color: var(--rd-body);
   font-size: var(--rd-text-2xs);
   font-weight: 600;
   line-height: 1.35;
@@ -4650,7 +4650,7 @@
 .rd-v2-synthesis-agent-run button > span:last-child > small {
   display: block;
   margin-top: 1px;
-  color: #858d98;
+  color: var(--rd-muted);
   font-family: var(--rd-mono);
   font-size: var(--rd-text-2xs);
   font-weight: 600;
@@ -4666,7 +4666,7 @@
 
 .rd-v2-synthesis-agent-trace > summary {
   padding: var(--rd-space-2) var(--rd-space-1) 2px;
-  color: #55635d;
+  color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
   font-weight: 700;
   cursor: pointer;
@@ -4697,12 +4697,12 @@
 }
 
 .rd-v2-synthesis-agent-trace section > header b {
-  color: #334039;
+  color: var(--rd-body);
   font-size: var(--rd-text-2xs);
 }
 
 .rd-v2-synthesis-agent-trace section > header span {
-  color: #858d98;
+  color: var(--rd-muted);
   font-family: var(--rd-mono);
   font-size: var(--rd-text-2xs);
 }
@@ -4724,7 +4724,7 @@
   margin-top: 1px;
   border-radius: 999px;
   background: #eef1ee;
-  color: #3f6f5c;
+  color: var(--rd-link);
   font-size: var(--rd-text-2xs);
   font-weight: 700;
 }
@@ -4732,13 +4732,13 @@
 .rd-v2-synthesis-agent-run li.is-current .rd-v2-synthesis-agent-mark,
 .rd-v2-synthesis-agent-activity li.is-current .rd-v2-synthesis-agent-mark {
   background: #e8ebf1;
-  color: #435677;
+  color: var(--rd-muted);
 }
 
 .rd-v2-synthesis-agent-run li.is-warn .rd-v2-synthesis-agent-mark,
 .rd-v2-synthesis-agent-activity li.is-warn .rd-v2-synthesis-agent-mark {
   background: #fef7e0;
-  color: #9a650e;
+  color: var(--rd-review-fg);
 }
 
 .rd-v2-synthesis-agent-activity button > span:last-child {
@@ -4751,7 +4751,7 @@
 }
 
 .rd-v2-synthesis-agent-activity b {
-  color: #29352f;
+  color: var(--rd-text);
   font-size: var(--rd-text-2xs);
   font-weight: 700;
   line-height: 1.3;
@@ -4759,7 +4759,7 @@
 
 .rd-v2-synthesis-agent-activity button small {
   margin-top: 1px;
-  color: #5d6574;
+  color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
   line-height: 1.34;
   overflow-wrap: anywhere;
@@ -4787,7 +4787,7 @@
 .rd-v2-synthesis-forensics > summary::after {
   content: "▸";
   flex: 0 0 auto;
-  color: #66706c;
+  color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
 }
 
@@ -4806,13 +4806,13 @@
 
 .rd-v2-synthesis-forensics > summary b {
   margin-top: 2px;
-  color: #29352f;
+  color: var(--rd-text);
   font-size: var(--rd-text-2xs);
 }
 
 .rd-v2-synthesis-forensics > summary em {
   margin-left: auto;
-  color: #7b817d;
+  color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
   font-style: normal;
   text-align: right;
@@ -4841,7 +4841,7 @@
 
 .rd-v2-synthesis-forensics-body > section > header strong {
   min-width: 0;
-  color: #334039;
+  color: var(--rd-body);
   font-size: var(--rd-text-2xs);
   text-align: right;
   overflow-wrap: anywhere;
@@ -4869,7 +4869,7 @@
 
 .rd-v2-synthesis-forensic-diff dt,
 .rd-v2-synthesis-runtime-proof dt {
-  color: #758078;
+  color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
   font-weight: 700;
   text-transform: capitalize;
@@ -4878,7 +4878,7 @@
 .rd-v2-synthesis-forensic-diff dd,
 .rd-v2-synthesis-runtime-proof dd {
   margin: 0;
-  color: #334039;
+  color: var(--rd-body);
   font-size: var(--rd-text-2xs);
   line-height: 1.35;
   overflow-wrap: anywhere;
@@ -4891,7 +4891,7 @@
 }
 
 .rd-v2-synthesis-forensic-diff dd > span {
-  color: #7b817d;
+  color: var(--rd-muted);
   text-decoration: line-through;
   text-decoration-color: rgba(123, 129, 125, 0.42);
 }
@@ -4902,7 +4902,7 @@
 }
 
 .rd-v2-synthesis-forensic-diff dd > strong {
-  color: #315f4d;
+  color: var(--rd-link);
   font-weight: 700;
 }
 
@@ -4927,14 +4927,14 @@
 }
 
 .rd-v2-synthesis-recipe b {
-  color: #5b6578;
+  color: var(--rd-muted);
   font-family: var(--rd-font);
   font-size: var(--rd-text-label);
   text-transform: uppercase;
 }
 
 .rd-v2-synthesis-recipe span {
-  color: #334039;
+  color: var(--rd-body);
   font-size: var(--rd-text-2xs);
   line-height: 1.35;
   overflow-wrap: anywhere;
@@ -4947,7 +4947,7 @@
 
 .rd-v2-synthesis-raw-spec > summary {
   padding-top: var(--rd-space-2);
-  color: #55635d;
+  color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
   font-weight: 700;
   cursor: pointer;
@@ -4960,7 +4960,7 @@
   overflow: auto;
   border-radius: 7px;
   background: #eef1ee;
-  color: #334039;
+  color: var(--rd-body);
   font-family: var(--rd-mono);
   font-size: var(--rd-text-2xs);
   line-height: 1.45;
@@ -4978,7 +4978,7 @@
 .rd-v2-synthesis-row-effects td {
   padding: var(--rd-space-1) 3px;
   border-top: 1px solid #eef1ee;
-  color: #48534d;
+  color: var(--rd-body);
   text-align: right;
 }
 
@@ -4989,7 +4989,7 @@
 
 .rd-v2-synthesis-row-effects thead th {
   border-top: 0;
-  color: #5b6578;
+  color: var(--rd-muted);
   font-size: var(--rd-text-label);
   text-transform: uppercase;
 }
@@ -4997,7 +4997,7 @@
 .rd-v2-synthesis-forensic-notes {
   margin: var(--rd-space-2) 0 0;
   padding-left: var(--rd-space-4);
-  color: #72551f;
+  color: var(--rd-review-fg);
   font-size: var(--rd-text-2xs);
   line-height: 1.4;
 }
@@ -5025,7 +5025,7 @@
   padding: var(--rd-space-2) var(--rd-space-2);
   border-radius: 7px;
   background: #fbf1e5;
-  color: #814d11;
+  color: var(--rd-review-fg);
   font-size: var(--rd-text-2xs);
   line-height: 1.4;
 }
@@ -5038,7 +5038,7 @@
 }
 
 .rd-v2-synthesis-agent-prompts small {
-  color: #5b6578;
+  color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
   font-weight: 600;
 }
@@ -5048,7 +5048,7 @@
   border: 1px solid #dfe6e2;
   border-radius: 7px;
   background: #fff;
-  color: #315f4d;
+  color: var(--rd-link);
   font-size: var(--rd-text-2xs);
   line-height: 1.35;
   text-align: left;
@@ -5075,7 +5075,7 @@
   border: 1px solid #dfe6e2;
   border-radius: 7px;
   background: #fff;
-  color: #4e5c55;
+  color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
   font-weight: 600;
   cursor: pointer;
@@ -5155,7 +5155,7 @@
 }
 
 .rd-v2-synthesis-ask-object-context small {
-  color: #5b6578;
+  color: var(--rd-muted);
   font-family: var(--rd-font);
   font-size: var(--rd-text-label);
   font-weight: 700;
@@ -5165,14 +5165,14 @@
 
 .rd-v2-synthesis-ask-object-context b {
   margin-top: 2px;
-  color: #29352f;
+  color: var(--rd-text);
   font-size: var(--rd-text-2xs);
   line-height: 1.28;
 }
 
 .rd-v2-synthesis-ask-object-context span {
   margin-top: 1px;
-  color: #758078;
+  color: var(--rd-muted);
   font-family: var(--rd-mono);
   font-size: var(--rd-text-2xs);
   line-height: 1.28;
@@ -5184,7 +5184,7 @@
   border: 0;
   border-radius: 6px;
   background: transparent;
-  color: #66706c;
+  color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
   font-weight: 700;
   cursor: pointer;
@@ -5194,7 +5194,7 @@
 .rd-v2-synthesis-ask-object-context button:focus-visible {
   outline: none;
   background: #eef1ee;
-  color: #334039;
+  color: var(--rd-body);
 }
 
 @media (prefers-reduced-motion: reduce) {

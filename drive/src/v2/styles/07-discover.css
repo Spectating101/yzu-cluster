@@ -83,7 +83,7 @@
 }
 
 .rd-v2-discover-page .rd-v2-discover-composer-examples span {
-  color: #5b6578;
+  color: var(--rd-muted);
   font: 600 var(--rd-text-2xs)/1.2 var(--rd-font);
 }
 
@@ -104,7 +104,7 @@
 }
 
 .rd-v2-discover-page .rd-v2-discover-coverage-eyebrow {
-  color: #5b6578;
+  color: var(--rd-muted);
   font: 600 var(--rd-text-2xs)/1.2 var(--rd-font);
 }
 
@@ -211,7 +211,7 @@
 
 .rd-v2-discover-page .rd-v2-discover-interpreting > .rd-v2-eyebrow {
   margin-right: 2px;
-  color: #5b6a7c;
+  color: var(--rd-muted);
 }
 
 .rd-v2-discover-page .rd-v2-discover-interpreting-chips {
@@ -271,7 +271,7 @@
   border: 1px solid rgb(219, 212, 197);
   border-radius: 8px;
   background: rgb(255, 253, 246);
-  color: rgb(62, 71, 89);
+  color: var(--rd-body);
   font: inherit;
   font-size: var(--rd-text-xs);
   font-weight: 600;
@@ -281,7 +281,7 @@
 
 .rd-v2-discover-page .rd-v2-discover-assess-action:hover {
   border-color: #b9ae98;
-  color: #182033;
+  color: var(--rd-text);
 }
 
 /* Territories become the evidence ledger headline. */
@@ -407,7 +407,7 @@
 }
 
 .rd-v2-discover-page .rd-v2-discover-ranked-results-head .rd-v2-eyebrow {
-  color: #5b6a7c;
+  color: var(--rd-muted);
   letter-spacing: 0.06em;
 }
 
@@ -485,7 +485,7 @@
 .rd-v2-discover-page .rd-v2-discover-possession {
   flex: 0 0 auto;
   max-width: 190px;
-  color: #5b6a7c;
+  color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
   font-style: normal;
   font-weight: 600;
@@ -522,7 +522,7 @@
 }
 
 .rd-v2-discover-page .rd-v2-discover-offering-facts b {
-  color: #5d6574;
+  color: var(--rd-muted);
   font-weight: 700;
 }
 
@@ -535,7 +535,7 @@
   width: fit-content;
   padding-left: var(--rd-space-2);
   border-left: 2px solid #aebfb6;
-  color: #52695f;
+  color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
   font-weight: 600;
 }
@@ -545,11 +545,11 @@
   right: 12px;
   bottom: 10px;
   min-height: 28px;
-  padding: 0 var(--rd-space-2);
-  border: 1px solid #a9bba7;
-  border-radius: 5px;
-  background: #fffdf6;
-  color: #356147;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--rd-link);
   font-size: var(--rd-text-2xs);
   font-weight: 700;
 }
@@ -600,7 +600,7 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-block {
 
 body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-section-label {
   margin: 0;
-  color: #5b6578;
+  color: var(--rd-muted);
   font: 700 11px/1.25 var(--rd-font);
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -608,7 +608,7 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-section-label {
 
 body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-question {
   margin: var(--rd-space-1) 0 var(--rd-space-3);
-  color: #182033;
+  color: var(--rd-text);
   font-size: var(--rd-text-md);
   font-weight: 600;
   line-height: 1.35;
@@ -792,7 +792,7 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose b {
 
 .rd-v2-discover-page .rd-v2-discover-coverage .rd-v2-discover-coverage-gap {
   margin: 0;
-  color: #74592a;
+  color: var(--rd-review-fg);
   font-size: var(--rd-text-2xs);
   white-space: nowrap;
 }
@@ -845,7 +845,7 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose b {
   grid-row: 1 / 3;
   grid-column: 2;
   align-self: center;
-  color: #52667a;
+  color: var(--rd-muted);
   font: 700 14px/1 var(--rd-mono, ui-monospace, monospace);
 }
 
@@ -1407,13 +1407,13 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
   place-items: center;
   border: 1px solid #9daf9f;
   border-radius: 50%;
-  color: #557064;
+  color: var(--rd-muted);
   font: 700 13px/1 var(--rd-mono, ui-monospace, monospace);
 }
 
 .rd-v2-discover-assembly > div:nth-child(2) { min-width: 0; }
 .rd-v2-discover-assembly > div:nth-child(2) > span,
-.rd-v2-discover-assembly-state > span { color: #5b6578; font: 700 11px/1.2 var(--rd-mono, ui-monospace, monospace); letter-spacing: 0.06em; text-transform: uppercase; }
+.rd-v2-discover-assembly-state > span { color: var(--rd-muted); font: 700 11px/1.2 var(--rd-mono, ui-monospace, monospace); letter-spacing: 0.06em; text-transform: uppercase; }
 .rd-v2-discover-assembly > div:nth-child(2) > strong { display: block; margin-top: 2px; color: var(--rd-text, #182033); font-size: var(--rd-text-2xs); }
 .rd-v2-discover-assembly p { margin: 2px 0 0; color: var(--rd-muted, #5d6574); font-size: var(--rd-text-2xs); line-height: 1.35; }
 
@@ -1423,7 +1423,7 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
   gap: 3px;
   text-align: right;
 }
-.rd-v2-discover-assembly-state b { color: #557064; font-size: var(--rd-text-2xs); }
+.rd-v2-discover-assembly-state b { color: var(--rd-muted); font-size: var(--rd-text-2xs); }
 .rd-v2-discover-assembly-state button { margin-top: 2px; padding: var(--rd-space-1) var(--rd-space-2); }
 .rd-v2-discover-assembly.is-checking { grid-template-columns: 30px minmax(0, 1fr); border-left-color: #ac9e77; background: color-mix(in srgb, #eeeae0 72%, var(--rd-surface, #fffdf6)); }
 
@@ -1520,7 +1520,7 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
 }
 
 .rd-v2-discover-ranked-results .rd-v2-discover-offering-facts b {
-  color: #5b6578;
+  color: var(--rd-muted);
   font-size: var(--rd-text-2xs) !important;
 }
 

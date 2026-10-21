@@ -566,7 +566,7 @@ export function HomePage({
                     onGoTab?.(item.dest === "library" ? "library" : "browse");
                   }}
                 >
-                  <span className="rd-v2-home-trail-kind">{item.kind === "REGISTERED ASSET" ? "Library dataset" : item.kind}</span>
+                  <span className="rd-v2-home-trail-kind">{item.kind === "REGISTERED ASSET" ? "Library dataset" : item.kind.charAt(0) + item.kind.slice(1).toLowerCase()}</span>
                   <strong>{item.title}</strong>
                   <span>{item.summary}</span>
                   <em>{item.dest === "library" ? "Library →" : "History →"}</em>

@@ -445,7 +445,7 @@
 }
 
 .rd-v2-access-lockup strong {
-  color: #101820;
+  color: var(--rd-text);
   font-size: var(--rd-text-md);
   font-weight: 700;
   letter-spacing: -0.01em;
@@ -453,14 +453,14 @@
 
 .rd-v2-access-lockup small {
   margin: 0;
-  color: #5d6574;
+  color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
   line-height: 1.2;
 }
 
 .rd-v2-access-kicker {
   margin-bottom: var(--rd-space-3);
-  color: #3f6f5c;
+  color: var(--rd-link);
   font-size: var(--rd-text-2xs);
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -469,7 +469,7 @@
 .rd-v2-access-card h1 {
   max-width: 500px;
   margin-bottom: var(--rd-space-4);
-  color: #182033;
+  color: var(--rd-text);
   font-size: clamp(30px, 4vw, 40px);
   font-weight: 700;
   line-height: 1.06;
@@ -478,7 +478,7 @@
 
 .rd-v2-access-card > p {
   max-width: 520px;
-  color: #5b6578;
+  color: var(--rd-muted);
   font-size: var(--rd-text-md);
   line-height: 1.6;
 }
@@ -498,7 +498,7 @@
   align-items: center;
   min-height: 42px;
   padding: var(--rd-space-2) var(--rd-space-3);
-  color: #536371;
+  color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
 }
 
@@ -512,14 +512,14 @@
 
 .rd-v2-access-boundary i {
   width: 18px;
-  color: #3f6f5c;
+  color: var(--rd-link);
   font-size: var(--rd-text-lg);
   line-height: 1;
 }
 
 .rd-v2-access-card form label {
   margin-bottom: var(--rd-space-2);
-  color: #344054;
+  color: var(--rd-body);
   font-size: var(--rd-text-2xs);
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -535,7 +535,7 @@
   border: 1px solid #d2d8e2;
   border-radius: 10px;
   background: #fff;
-  color: #182033;
+  color: var(--rd-text);
   box-shadow: inset 0 1px 0 rgba(16, 24, 32, 0.02);
   transition: border-color var(--rd-polish-fast) ease, box-shadow var(--rd-polish-fast) ease, background var(--rd-polish-fast) ease;
 }
@@ -570,7 +570,7 @@
 .rd-v2-access-form-row button:disabled {
   border-color: #e2ddd2;
   background: #eeeae0;
-  color: #969389;
+  color: var(--rd-muted);
   box-shadow: none;
   cursor: not-allowed;
   opacity: 1;
@@ -587,7 +587,7 @@
   border: 1px solid #e2ddd2;
   border-radius: 10px;
   background: #fffdf6;
-  color: #5d6574;
+  color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
   line-height: 1.45;
 }
@@ -595,7 +595,7 @@
 .rd-v2-access-status.warning {
   border-color: #f0d7a8;
   background: #fffbeb;
-  color: #72551f;
+  color: var(--rd-review-fg);
 }
 
 .rd-v2-access-retry {
@@ -607,7 +607,7 @@
   border: 0;
   border-radius: 6px;
   background: transparent;
-  color: #3f6f5c;
+  color: var(--rd-link);
   box-shadow: none;
   font-size: var(--rd-text-2xs);
   font-weight: 700;
@@ -615,7 +615,7 @@
 }
 
 .rd-v2-access-retry:hover:not(:disabled) {
-  color: #294d40;
+  color: var(--rd-link);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -637,7 +637,7 @@
 
 ::selection {
   background: rgba(63, 111, 92, 0.2);
-  color: #101820;
+  color: var(--rd-text);
 }
 
 /* ── Inspector density: one decision surface, then quieter supporting facts ── */
@@ -663,7 +663,7 @@
 }
 
 .rd-v2-rail-panel .rd-v2-rail-decision-label {
-  color: #60696f;
+  color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
   letter-spacing: 0.06em;
 }
@@ -685,7 +685,7 @@
 .rd-v2-rail-section-label {
   margin-top: var(--rd-space-3);
   margin-bottom: var(--rd-space-2);
-  color: #5b6578;
+  color: var(--rd-muted);
 }
 
 .rd-v2-rail-fieldgrid {
@@ -725,7 +725,7 @@
 
 .rd-v2-rail-empty-hint {
   max-width: 32ch;
-  color: #65727e;
+  color: var(--rd-muted);
   line-height: 1.55;
 }
 
@@ -748,7 +748,7 @@
   border: 1px dashed #dbd4c5;
   border-radius: 9px;
   background: #fffdf6;
-  color: #65727e;
+  color: var(--rd-muted);
   line-height: 1.5;
 }
 
@@ -876,7 +876,7 @@
     border: 1px solid rgba(210, 216, 226, 0.96);
     border-radius: 999px;
     background: rgba(255, 253, 246, 0.985);
-    color: #344054;
+    color: var(--rd-body);
     box-shadow: 0 12px 32px rgba(17, 24, 39, 0.16);
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -886,7 +886,7 @@
   .yzu-inspector.rd-v2-rail-collapsed .rd-v2-rail-mobile-grip:hover,
   .yzu-inspector.rd-v2-rail-collapsed .rd-v2-rail-mobile-grip:focus-visible {
     border-color: rgba(63, 111, 92, 0.42);
-    color: #1a3030;
+    color: var(--rd-text);
   }
 }
 

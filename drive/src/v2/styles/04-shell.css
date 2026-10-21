@@ -141,7 +141,7 @@
   max-width: 680px;
   margin: 0 0 var(--rd-space-5);
   padding-left: var(--rd-space-4);
-  color: #5b6578;
+  color: var(--rd-muted);
   font-size: var(--rd-text-sm);
   line-height: 1.5;
 }
@@ -166,7 +166,7 @@
   padding: 0;
   border: 0;
   background: none;
-  color: #3f6f5c;
+  color: var(--rd-link);
   font: inherit;
   font-weight: 600;
   cursor: pointer;
@@ -212,7 +212,7 @@
 .rd-v2-home-guest-desc {
   display: -webkit-box;
   overflow: hidden;
-  color: #5b6578;
+  color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
   line-height: 1.45;
   -webkit-box-orient: vertical;
@@ -241,7 +241,7 @@
 .rd-v2-home-pickup-state {
   max-width: 680px;
   margin: 0;
-  color: #5b6578;
+  color: var(--rd-muted);
   font-size: var(--rd-text-sm);
   line-height: 1.5;
 }
@@ -271,7 +271,7 @@
 
 .rd-v2-home-continue-id {
   margin: var(--rd-space-2) 0 0;
-  color: #858d98;
+  color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
 }
 
@@ -318,7 +318,7 @@
 .rd-v2-home-pickup-secondary > em {
   grid-column: 2;
   grid-row: 1 / span 2;
-  color: #52695f;
+  color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
   font-style: normal;
   font-weight: 600;
@@ -500,7 +500,7 @@
 }
 
 .rd-v2-home-recommended-row > em {
-  color: #5b6578;
+  color: var(--rd-muted);
   font-family: var(--rd-font);
   font-size: var(--rd-text-label);
   font-style: normal;
@@ -510,7 +510,7 @@
 }
 
 .rd-v2-home-recommended-go {
-  color: #49675a;
+  color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
   font-weight: 600;
   white-space: nowrap;
@@ -537,12 +537,10 @@
 }
 
 .rd-v2-home-trail-kind {
-  color: #5b6578;
+  color: var(--rd-muted);
   font-family: var(--rd-font);
-  font-size: var(--rd-text-label);
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: var(--rd-text-2xs);
+  font-weight: 500;
 }
 
 .rd-v2-home-trail-row > strong {
@@ -562,7 +560,7 @@
 }
 
 .rd-v2-home-trail-row > em {
-  color: #52695f;
+  color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
   font-style: normal;
   font-weight: 600;
@@ -609,7 +607,7 @@
   padding: 3px var(--rd-space-2);
   border: 1px solid #d6ddd9;
   border-radius: 999px;
-  color: #5b6578;
+  color: var(--rd-muted);
   font-family: var(--rd-font);
   font-size: var(--rd-text-label);
   font-weight: 700;
@@ -629,7 +627,7 @@
 
 .rd-v2-profile-org {
   margin: var(--rd-space-2) 0 0;
-  color: #465164;
+  color: var(--rd-muted);
   font-size: var(--rd-text-xs);
   font-weight: 600;
 }
@@ -937,7 +935,7 @@
 
 .rd-v2-profile-memory-card > span,
 .rd-v2-profile-memory-anchor > span {
-  color: #5b6578;
+  color: var(--rd-muted);
   font-family: var(--rd-font);
   font-size: var(--rd-text-label);
   font-weight: 700;
@@ -986,7 +984,7 @@
 }
 
 .rd-v2-profile-memory-anchor > span {
-  color: #557064;
+  color: var(--rd-muted);
 }
 
 .rd-v2-profile-memory-anchor > strong {
@@ -1002,7 +1000,7 @@
 
 .rd-v2-profile-memory-anchor > p {
   margin: var(--rd-space-4) 0 0;
-  color: #66706c;
+  color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
   line-height: 1.48;
 }
@@ -1033,7 +1031,7 @@
 }
 
 .rd-v2-profile-works li > span {
-  color: #8b918d;
+  color: var(--rd-muted);
 }
 
 .rd-v2-profile-works li > strong {
@@ -1044,7 +1042,7 @@
 }
 
 .rd-v2-profile-works li > em {
-  color: #607166;
+  color: var(--rd-muted);
 }
 
 .rd-v2-profile-lab-rows li {
@@ -1057,7 +1055,7 @@
 }
 
 .rd-v2-profile-lab-action {
-  color: #52695f;
+  color: var(--rd-muted);
 }
 
 /* --------------------------------------------------------------------------
@@ -1128,7 +1126,7 @@
 }
 
 .rd-v2-settings-label {
-  color: #465164;
+  color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
   font-weight: 600;
 }
@@ -1178,7 +1176,7 @@
 }
 
 .rd-v2-settings-statement .rd-v2-statement-label {
-  color: #465164;
+  color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
   font-weight: 600;
 }
@@ -1196,7 +1194,7 @@
 }
 
 .rd-v2-settings-statement .rd-v2-statement-detail {
-  color: #5b6578;
+  color: var(--rd-muted);
   font-family: var(--rd-font);
   font-size: var(--rd-text-2xs);
   font-weight: 600;
@@ -1205,7 +1203,7 @@
 
 .rd-v2-settings-statement .rd-v2-statement-row.warn .rd-v2-statement-metric,
 .rd-v2-settings-statement .rd-v2-statement-row.warn .rd-v2-statement-detail {
-  color: #8b6215;
+  color: var(--rd-review-fg);
 }
 
 .rd-v2-settings-advanced {
@@ -1218,7 +1216,7 @@
 
 .rd-v2-settings-advanced > summary {
   padding: var(--rd-space-3) var(--rd-space-3);
-  color: #5f6a62;
+  color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
   font-weight: 600;
 }

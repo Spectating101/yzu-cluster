@@ -293,7 +293,7 @@
   border: 1px solid #f0d7a8;
   border-radius: 6px;
   background: #fffbeb;
-  color: #8a5b00;
+  color: var(--rd-review-fg);
   font-size: var(--rd-text-2xs);
 }
 

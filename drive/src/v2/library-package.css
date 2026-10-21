@@ -91,7 +91,7 @@
   border-radius: 10px;
   background: #fff4f2;
   border: 1px solid #f0c7bf;
-  color: #913c30;
+  color: var(--rd-fail-fg);
 }
 
 .rd-v2-library-package-ready {
