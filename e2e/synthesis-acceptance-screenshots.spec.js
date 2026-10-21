@@ -377,7 +377,8 @@ test.describe("Synthesis acceptance screenshots", () => {
     await expect(main.getByRole("region", { name: "Research brief" })).toBeVisible();
     await expect(main.getByRole("region", { name: "Suggested build" })).toBeVisible();
     await expect(main.getByRole("region", { name: "What happens next" })).toBeVisible();
-    await expect(main.locator(':text-is("asset × week"):visible')).toHaveCount(1);
+    await expect(main.getByRole("region", { name: "Research brief" }).locator(':text-is("asset × week"):visible')).toHaveCount(1);
+    await expect(main.locator(".s04-opening-map li span").filter({ hasText: /_|-week/ })).toHaveCount(0);
     await expect(main.getByText("Composite weekly attention index", { exact: true })).toHaveCount(1);
     const accept = main.getByRole("button", { name: "Accept & design method" });
     await expect(accept).toBeEnabled();

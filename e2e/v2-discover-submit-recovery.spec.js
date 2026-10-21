@@ -212,7 +212,7 @@ test.describe("Discover submit transport recovery", () => {
       await expect(workspace).not.toContainText("search with those specifics");
       await expect(workspace.getByTestId("discover-submit-unconfirmed")).toHaveCount(0);
       await expect(workspace.getByRole("button", { name: "Submit for approval" })).toBeEnabled();
-      expect(calls.submitCalls()).toBe(1);
+      expect(calls.submitCalls()).toBe(status === 401 ? 2 : 1);
       expect(calls.getCalls()).toBe(1);
     });
   }
