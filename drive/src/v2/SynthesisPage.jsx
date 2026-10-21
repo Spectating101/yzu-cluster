@@ -63,6 +63,7 @@ function text(value, fallback = "") {
 // in seconds) untouched while giving a genuine stall an honest fallback
 // instead of silent, indefinite optimism.
 const INTERPRETING_STALL_MS = 60000;
+const INTERPRETING_GIVE_UP_MS = 360000;
 
 const MEASURED_STATE_FIELDS = [
   "column_profiles",
@@ -2009,7 +2010,7 @@ export function SynthesisPage({
     }
 
     if (!executing && !interpreting) return undefined;
-    if (interpreting && interpretingStalled) return undefined;
+    if (interpreting && interpretingStalled && Date.now() - (interpretingSinceRef.current || 0) > INTERPRETING_GIVE_UP_MS) return undefined;
 
     const timer = window.setInterval(async () => {
       const next = await refreshThread().catch(() => null);
@@ -2021,7 +2022,7 @@ export function SynthesisPage({
       ) {
         setInterpretingStalled(true);
       }
-    }, 4000);
+    }, interpreting && interpretingStalled ? 10000 : 4000);
     return () => window.clearInterval(timer);
   }, [selected, refreshThread, interpretingStalled, reasoningPending]);
 

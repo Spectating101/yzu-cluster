@@ -104,8 +104,9 @@ export async function ensureDeskSession({ force = false } = {}) {
   if (!force && deskSessionBootstrapped()) {
     return { ok: true, bootstrapped: true, reused: true };
   }
-  if (ensureDeskSessionInflight && (!force || ensureDeskSessionToken === loadDeskToken())) {
-    return ensureDeskSessionInflight;
+  if (ensureDeskSessionInflight) {
+    if (!force || ensureDeskSessionToken === loadDeskToken()) return ensureDeskSessionInflight;
+    await ensureDeskSessionInflight.catch(() => null);
   }
 
   recentHistoryReads.clear();
@@ -828,8 +829,15 @@ export async function sendChatMessage(
             body,
           }),
         );
-        payload = await fallback.json().catch(() => ({}));
-        if (fallback.ok) break;
+        payload = await fallback.json().catch(() => null);
+        if (fallback.ok) {
+          payload = payload || {};
+          break;
+        }
+        if (payload === null && Date.now() - started > 60000) {
+          throw new Error("The connection closed while the assistant was still working. Anything it records, such as a Synthesis proposal, still appears when it finishes; a plain answer needs asking again.");
+        }
+        payload = payload || {};
         // Transient proxy blips while Composer is busy / service restarts.
         if (![502, 503, 504].includes(fallback.status) || attempt === 1) {
           throw new Error(normalizeApiError(payload, fallback.status, "/library/chat"));

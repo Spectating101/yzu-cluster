@@ -325,12 +325,13 @@ test("member access code is exchanged for a cookie session and then discarded", 
 test("a forced mint with a newly saved token does not join an in-flight guest mint", async () => {
   let releaseGuest;
   const guestGate = new Promise((resolve) => { releaseGuest = resolve; });
-  const tokens = [];
+  const events = [];
   globalThis.fetch = async (url, init = {}) => {
     if (String(url).includes("/library/desk/session")) {
       const token = init.headers?.["x-desk-token"] || "";
-      tokens.push(token);
+      events.push(`start:${token}`);
       if (!token) await guestGate;
+      events.push(`end:${token}`);
       return mockResponse({ ok: true, authorized: true });
     }
     return mockResponse({ ok: true });
@@ -338,9 +339,10 @@ test("a forced mint with a newly saved token does not join an in-flight guest mi
   const guest = ensureDeskSession();
   saveDeskToken("member-code");
   const member = ensureDeskSession({ force: true });
+  await new Promise((resolve) => setTimeout(resolve, 10));
   releaseGuest();
   await Promise.all([guest, member]);
-  assert.deepEqual(tokens, ["", "member-code"]);
+  assert.deepEqual(events, ["start:", "end:", "start:member-code", "end:member-code"]);
   saveDeskToken("");
 });
 
