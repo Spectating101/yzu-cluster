@@ -86,7 +86,7 @@ LOOP LOG
 │ Market structure       │   OECD short-term labour market statistics            AVAILABLE TO COLLECT  │                                     │
 │                        │   Monthly unemployment rates for OECD countries.                            │ COVERAGE                            │
 │ ────────────────────── │                                                                             │ coverage not reported               │
-│ RECENT                 │   BLS LAUS county monthly employment and unemployment AVAILABLE TO COLLECT  │                                     │
+│ RECENT                 │   BLS LAUS county employment and unemployment         AVAILABLE TO COLLECT  │                                     │
 │                        │   Monthly county employment and unemployment from official BLS surveys.     │ LICENCE                             │
 │ USDT transactions      │                                                                             │ licence not reported                │
 │ Event study panel      │   Eurostat unemployment by sex and age, monthly         ACCESS NOT CHECKED  │                                     │
