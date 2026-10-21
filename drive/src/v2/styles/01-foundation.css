@@ -228,6 +228,13 @@ button {
   border-color: #91a6a0;
 }
 
+/* The compact sheet grip owns rail control below the desktop breakpoint. */
+@media (max-width: 760px) {
+  .rd-v2-rail-fold {
+    display: none;
+  }
+}
+
 .rd-v2-shell.rail-folded .rd-v2-rail-fold {
   right: 29px;
 }

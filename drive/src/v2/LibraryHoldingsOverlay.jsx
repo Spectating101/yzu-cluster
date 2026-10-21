@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useCentreOverlay } from "./useCentreOverlay.js";
 import {
   holdingAccessLabel,
   holdingRoleLabel,
@@ -34,6 +35,8 @@ function HoldingCard({ holding }) {
 
 export function LibraryHoldingsOverlay({ open, dataset, onClose }) {
   const closeButtonRef = useRef(null);
+  const scrimRef = useRef(null);
+  useCentreOverlay(scrimRef, open);
   const restoreFocusRef = useRef(null);
   const summary = summarizeLibraryHoldings(dataset);
 
@@ -62,6 +65,7 @@ export function LibraryHoldingsOverlay({ open, dataset, onClose }) {
 
   return (
     <div
+      ref={scrimRef}
       className="rd-v2-library-overlay-scrim"
       role="presentation"
       onMouseDown={(event) => event.target === event.currentTarget && onClose?.()}
@@ -69,7 +73,6 @@ export function LibraryHoldingsOverlay({ open, dataset, onClose }) {
       <section
         className="rd-v2-library-overlay rd-v2-library-holdings-overlay"
         role="dialog"
-        aria-modal="true"
         aria-label="Your Library"
         data-testid="library-holdings-overlay"
       >

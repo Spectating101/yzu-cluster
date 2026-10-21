@@ -21,6 +21,7 @@ import { DeskError } from "@/v2/DeskError";
 import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
 import { libraryLenses, lensNote } from "@/v2/libraryFocus";
 import { useResearchFocus } from "@/v2/useResearchFocus";
+import { useCentreOverlay } from "./useCentreOverlay.js";
 
 function datasetListItem(row) {
   const name = datasetTitle(row);
@@ -261,16 +262,14 @@ function LibraryHeadActions({
 function LibraryAssetInspector({ dataset, onClose, onPreview, onOpenQuery, onAsk, onRefreshData, onFindInDiscover }) {
   const inspectorRef = useRef(null);
   const scrimRef = useRef(null);
+  useCentreOverlay(scrimRef, Boolean(dataset));
 
   useEffect(() => {
     if (!dataset) return undefined;
     const opener = document.activeElement;
-    const background = scrimRef.current?.previousElementSibling || null;
-    if (background) background.inert = true;
     const frame = window.requestAnimationFrame(() => inspectorRef.current?.focus());
     return () => {
       window.cancelAnimationFrame(frame);
-      if (background) background.inert = false;
       if (opener?.isConnected) opener.focus();
     };
   }, [dataset?.dataset_id]);

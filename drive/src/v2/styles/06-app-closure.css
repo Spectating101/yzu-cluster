@@ -258,6 +258,9 @@
 .rd-v2-member-resources dd { margin: 2px 0 0; font-size: var(--rd-text-md); font-weight: 700; }
 .rd-v2-member-resources article > .rd-v2-btn, .rd-v2-member-resources-actions { margin-top: auto; }
 .rd-v2-member-resources-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+@media (max-width: 680px) {
+  .rd-v2-member-resources { grid-template-columns: minmax(0, 1fr); padding-inline: 14px; }
+}
 .rd-v2-guest-feature-grid span { color: var(--rd-link); font: 700 var(--rd-text-2xs)/1 var(--rd-font); }
 .rd-v2-guest-feature-grid strong { display: block; margin: 9px 0 5px; color: var(--rd-text); }
 .rd-v2-guest-feature-grid p { margin: 0; color: var(--rd-muted); font-size: var(--rd-text-2xs); line-height: 1.5; }

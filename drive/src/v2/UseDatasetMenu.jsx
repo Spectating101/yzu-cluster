@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 const FORMATS = [
   { id: "csv", label: "CSV", note: "Any tool" },
@@ -25,11 +25,28 @@ export function downloadStem(dataset) {
 
 export function UseDatasetMenu({ dataset, href }) {
   const ref = useRef(null);
+  const tabRefs = useRef({});
+  const tabId = useId();
   const [tool, setTool] = useState(TOOLS[0].id);
   const [copied, setCopied] = useState(false);
   const active = TOOLS.find((item) => item.id === tool) || TOOLS[0];
   const code = active.code(downloadStem(dataset));
   const fileLabel = FORMATS.find((item) => item.id === active.format)?.label;
+  const chooseTool = (id) => {
+    setTool(id);
+    setCopied(false);
+  };
+
+  const moveTool = (event) => {
+    const index = TOOLS.findIndex((item) => item.id === tool);
+    const next = event.key === "Home" ? 0 : event.key === "End" ? TOOLS.length - 1
+      : event.key === "ArrowRight" ? (index + 1) % TOOLS.length
+        : event.key === "ArrowLeft" ? (index + TOOLS.length - 1) % TOOLS.length : null;
+    if (next === null) return;
+    event.preventDefault();
+    chooseTool(TOOLS[next].id);
+    tabRefs.current[TOOLS[next].id]?.focus();
+  };
 
   useEffect(() => {
     const onPointer = (event) => {
@@ -79,21 +96,25 @@ export function UseDatasetMenu({ dataset, href }) {
         </section>
         <section aria-label="Open it in your tool">
           <p className="rd-v2-use-dataset-label">Open it in</p>
-          <div className="rd-v2-use-dataset-tools" role="tablist" aria-label="Tool">
+          <div className="rd-v2-use-dataset-tools" role="tablist" aria-label="Tool" onKeyDown={moveTool}>
             {TOOLS.map((item) => (
               <button
                 key={item.id}
+                ref={(node) => { tabRefs.current[item.id] = node; }}
+                id={`${tabId}-${item.id}`}
                 type="button"
                 role="tab"
                 aria-selected={item.id === tool}
+                aria-controls={`${tabId}-code`}
+                tabIndex={item.id === tool ? 0 : -1}
                 className={item.id === tool ? "on" : ""}
-                onClick={() => setTool(item.id)}
+                onClick={() => chooseTool(item.id)}
               >
                 {item.label}
               </button>
             ))}
           </div>
-          <pre className="rd-v2-use-dataset-code" data-testid="library-use-dataset-code"><code>{code}</code></pre>
+          <pre id={`${tabId}-code`} role="tabpanel" aria-labelledby={`${tabId}-${tool}`} tabIndex={0} className="rd-v2-use-dataset-code" data-testid="library-use-dataset-code"><code>{code}</code></pre>
           <div className="rd-v2-use-dataset-foot">
             <span>Download the {fileLabel} file, then run this in the folder it saved to.</span>
             <button type="button" className="rd-v2-btn sm" onClick={copy}>{copied ? "Copied" : "Copy"}</button>

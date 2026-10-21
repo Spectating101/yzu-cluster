@@ -103,11 +103,16 @@
   cursor: pointer;
 }
 
-.rd-preview-close:hover,
+.rd-preview-close:hover {
+  background: var(--rd-hover);
+  color: var(--rd-text);
+}
+
 .rd-preview-close:focus-visible {
   background: var(--rd-hover);
   color: var(--rd-text);
-  outline: none;
+  outline: 2px solid var(--rd-link);
+  outline-offset: 2px;
 }
 
 .rd-preview-meta-strip {
@@ -559,11 +564,21 @@
   justify-self: start;
 }
 
-.rd-preview-adjacent:hover,
+.rd-preview-adjacent:hover {
+  background: #fff;
+  color: var(--rd-accent);
+}
+
 .rd-preview-adjacent:focus-visible {
   background: #fff;
   color: var(--rd-accent);
-  outline: none;
+  outline: 2px solid var(--rd-link);
+  outline-offset: 2px;
+}
+
+/* Keep the wide-viewer base before the shared one-column breakpoint. */
+.rd-datatable-scrim {
+  grid-template-columns: minmax(16px, 1fr) minmax(0, 1180px) minmax(16px, 1fr);
 }
 
 @media (max-width: 960px) {
@@ -588,6 +603,8 @@
 
 @media (max-width: 680px) {
   .rd-preview-scrim {
+    /* The mobile navigation remains usable below this centre-only viewer. */
+    bottom: calc(80px + env(safe-area-inset-bottom, 0px));
     padding: 0;
     background: rgba(32, 33, 36, 0.22);
   }
@@ -629,10 +646,6 @@
   }
 }
 
-.rd-datatable-scrim {
-  grid-template-columns: minmax(16px, 1fr) minmax(0, 1180px) minmax(16px, 1fr);
-}
-
 .rd-datatable-shell {
   height: min(88vh, calc(100% - 12px));
   max-height: none;
@@ -670,6 +683,7 @@
 
 .rd-datatable-toolbar {
   display: flex;
+  flex-wrap: wrap;
   flex: none;
   align-items: center;
   gap: 12px;
@@ -678,6 +692,7 @@
 }
 
 .rd-datatable-toolbar input {
+  min-width: 0;
   width: min(320px, 100%);
   padding: 6px 9px;
   border: 1px solid var(--rd-border);

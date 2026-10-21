@@ -3619,6 +3619,13 @@ summary:focus-visible {
   animation: rd-pane-enter var(--rd-decor-duration-small) var(--rd-decor-ease-enter) both;
 }
 
+/* Inspection opens in place: a brief fade, with no table or rail displacement. */
+.rd-preview-scrim,
+.rd-v2-library-inspector-scrim,
+.rd-v2-library-overlay-scrim {
+  animation: rd-pane-enter var(--rd-decor-duration-small) var(--rd-decor-ease-enter);
+}
+
 .rd-v2-toast {
   animation: rd-toast-enter var(--rd-decor-duration-system) var(--rd-decor-ease-enter) both;
 }
@@ -3784,8 +3791,12 @@ summary:focus-visible {
   .rd-v2-ask-rail,
   .rd-v2-toast,
   .rd-v2-tooltip,
+  .rd-v2-use-dataset-panel,
   .rd-v2-library-action-menu,
-  .rd-v2-discover-filter-popover {
+  .rd-v2-discover-filter-popover,
+  .rd-preview-scrim,
+  .rd-v2-library-inspector-scrim,
+  .rd-v2-library-overlay-scrim {
     animation-name: none !important;
     transform: none !important;
   }
@@ -5198,6 +5209,13 @@ body,
   font-size: var(--rd-text-2xs);
   font-style: italic;
   white-space: normal;
+}
+
+.rd-v2-library-preview-loading {
+  min-height: 148px;
+  padding: 16px 12px;
+  border: 1px solid var(--rd-border);
+  border-radius: 7px;
 }
 
 .rd-v2-library-preview-empty {
