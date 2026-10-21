@@ -18,27 +18,15 @@ export function useReach() {
   return state;
 }
 
-export function ReachStats({ reach, libraryCount }) {
+export function reachFacts(reach) {
   const c = reach?.counts || {};
-  const stats = [
-    libraryCount ? [count(libraryCount), "datasets in the Library"] : null,
-    c.sources ? [count(c.sources), "sources we collect from"] : null,
-    c.indexed_records ? [count(c.indexed_records), "research records indexed for Discover"] : null,
-    c.tools ? [count(c.tools), "research tools behind Ask"] : null,
-    c.archive_used_tb ? [`${Number(c.archive_used_tb).toFixed(2)} TB`, "held in the research archive"] : null,
-    c.lab_machines ? [count(c.lab_machines), "lab machines for collection"] : null,
+  return [
+    c.sources ? `${count(c.sources)} sources` : "",
+    c.tools ? `${count(c.tools)} research tools behind Ask` : "",
+    c.indexed_records ? `${count(c.indexed_records)} research records indexed` : "",
+    c.archive_used_tb ? `${Number(c.archive_used_tb).toFixed(2)} TB in the research archive` : "",
+    c.lab_machines ? `${count(c.lab_machines)} lab machines for collection` : "",
   ].filter(Boolean);
-  if (!stats.length) return null;
-  return (
-    <div className="rd-v2-reach-stats" data-testid="resources-reach-stats" role="group" aria-label="What Research Drive holds and runs">
-      {stats.map(([value, label]) => (
-        <div key={label}>
-          <strong>{value}</strong>
-          <span>{label}</span>
-        </div>
-      ))}
-    </div>
-  );
 }
 
 export function ReachSources({ reach, licensedOpen }) {
@@ -48,7 +36,9 @@ export function ReachSources({ reach, licensedOpen }) {
     <section className="rd-v2-reach-sources" data-testid="resources-reach-sources" aria-label="Sources Research Drive reaches">
       <header>
         <h2>Where the data comes from</h2>
-        <p>Every source the desk can collect from or search today, and whether its data is already in the Library.</p>
+        {reachFacts(reach).length ? (
+          <p className="rd-v2-reach-facts" data-testid="resources-reach-stats">{reachFacts(reach).join(" · ")}</p>
+        ) : null}
       </header>
       <div className="rd-v2-reach-families">
         {families.map((family) => (
@@ -81,31 +71,51 @@ export function ReachSources({ reach, licensedOpen }) {
 }
 
 const ABILITIES = [
-  { label: "Preview, query and download as CSV", need: null },
-  { label: "Source, coverage and provenance for every dataset", need: null },
-  { label: "Check what the Library covers in Discover", need: null },
-  { label: "Read finished Synthesis builds", need: null },
-  { label: "Ask, the research assistant", need: "account" },
-  { label: "Plan a build in Synthesis", need: "account" },
-  { label: "Request a new collection", need: "yuanze" },
-  { label: "Run a Synthesis build into the Library", need: "yuanze" },
-  { label: "A research profile that tunes the Library", need: "account" },
-  { label: "Rows from LSEG, CRSP and Compustat", need: "yuanze" },
+  { label: "Preview, query and download as CSV", short: "preview, query and download", need: null },
+  { label: "Source, coverage and provenance for every dataset", short: "source and provenance", need: null },
+  { label: "Check what the Library covers in Discover", short: "Discover coverage checks", need: null },
+  { label: "Read finished Synthesis builds", short: "finished Synthesis builds", need: null },
+  { label: "Ask, the research assistant", short: "Ask", need: "account" },
+  { label: "Plan a build in Synthesis", short: "planning Synthesis builds", need: "account" },
+  { label: "A research profile that tunes the Library", short: "a research profile", need: "account" },
+  { label: "Request a new collection", short: "new collection requests", need: "yuanze" },
+  { label: "Run a Synthesis build into the Library", short: "running Synthesis builds", need: "yuanze" },
+  { label: "Rows from LSEG, CRSP and Compustat", short: "LSEG, CRSP and Compustat rows", need: "yuanze" },
 ];
 
-export function ReachAbilities({ signedIn, licensedOpen }) {
+export function ReachAbilities({ signedIn, licensedOpen, compact = false, onSignIn }) {
   const open = (need) => !need || (need === "account" ? signedIn : licensedOpen);
+  const locked = ABILITIES.filter((item) => !open(item.need));
+  const openNow = ABILITIES.filter((item) => open(item.need));
+  if (compact) {
+    if (!locked.length) {
+      return (
+        <>
+          <strong>Yuan Ze member</strong>
+          <span data-testid="guest-resources-access">Everything here is open to you, including LSEG, CRSP and Compustat rows.</span>
+        </>
+      );
+    }
+    return (
+      <>
+        <strong>Signed in</strong>
+        <span data-testid="guest-resources-access">A Yuan Ze email adds: {locked.map((item) => item.short).join(", ")}.</span>
+        {onSignIn ? <button type="button" className="rd-v2-linkish" onClick={onSignIn}>Sign in with a Yuan Ze email →</button> : null}
+      </>
+    );
+  }
   return (
-    <section className="rd-v2-reach-abilities" data-testid="guest-resources-access" aria-label="What you can do">
-      <h2>What you can do</h2>
+    <section className="rd-v2-reach-abilities" data-testid="guest-resources-access" aria-label="What signing in adds">
+      <h2>What signing in adds</h2>
       <ul>
-        {ABILITIES.map((item) => (
-          <li key={item.label} className={open(item.need) ? "is-open" : "is-locked"}>
+        {locked.map((item) => (
+          <li key={item.label}>
             <span>{item.label}</span>
-            {open(item.need) ? <em>Open to you</em> : <LockTag who={item.need} />}
+            <LockTag who={item.need} />
           </li>
         ))}
       </ul>
+      <p className="rd-v2-reach-open-now"><b>Open to you now</b> {openNow.map((item) => item.short).join(" · ")}</p>
     </section>
   );
 }

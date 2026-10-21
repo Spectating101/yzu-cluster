@@ -1,9 +1,32 @@
 import { useEffect, useState } from "react";
 import { accountUsage } from "./accountApi.js";
 import { requestCounts } from "./requestCounts.js";
-import { ReachAbilities, ReachSources, ReachStats, useReach } from "./ResourcesReach.jsx";
+import { ReachAbilities, ReachSources, useReach } from "./ResourcesReach.jsx";
 
-export function MemberResources({ signedIn, licensedOpen = false, jobs, libraryCount, onGoTab, onOpenHistory, onSignIn }) {
+export function requestSummary(counts) {
+  const parts = [
+    counts.waiting ? `${counts.waiting} waiting` : "",
+    counts.running ? `${counts.running} collecting` : "",
+    counts.ready ? `${counts.ready} ready` : "",
+    counts.failed ? `${counts.failed} failed` : "",
+  ].filter(Boolean);
+  return parts.length ? parts.join(" · ") : "None yet";
+}
+
+function AssistantUse({ usage, usageError }) {
+  if (usageError) return <><strong>Allowance unavailable</strong><span>Browsing and downloads are not affected.</span></>;
+  if (!usage) return <><strong>Reading allowance…</strong><span>Ask and coverage checks use it; browsing never does.</span></>;
+  const daily = usage.limits.daily_requests;
+  return (
+    <>
+      <strong>{usage.hourly_remaining} of {usage.limits.hourly_requests} left this hour</strong>
+      <span>{usage.daily_remaining} of {daily} today · browsing never uses it</span>
+      <meter min={0} max={daily} value={usage.daily_remaining} aria-label="Assistant requests left today" />
+    </>
+  );
+}
+
+export function MemberResources({ signedIn, licensedOpen = false, jobs, onGoTab, onOpenHistory, onSignIn }) {
   const { reach } = useReach();
   const [usage, setUsage] = useState(null);
   const [usageError, setUsageError] = useState("");
@@ -15,65 +38,44 @@ export function MemberResources({ signedIn, licensedOpen = false, jobs, libraryC
   }, [signedIn]);
   const counts = requestCounts(jobs);
 
-  const reachBody = (
-    <div className="rd-v2-reach">
-      <ReachStats reach={reach} libraryCount={libraryCount} />
-      <div className="rd-v2-reach-grid">
-        <ReachSources reach={reach} licensedOpen={licensedOpen} />
-        <ReachAbilities signedIn={signedIn} licensedOpen={licensedOpen} />
-      </div>
-    </div>
-  );
-
   if (!signedIn) {
     return (
       <>
         <section className="rd-v2-reach-hero">
           <div>
             <h2>Everything Research Drive can reach</h2>
-            <p>The data the desk holds, the sources it collects from, and the tools behind it. Most of it is open now; a padlock marks what needs an account or a Yuan Ze email.</p>
+            <p>Browsing, previews and downloads of open data need no account. A padlock marks what needs one, or a Yuan Ze email.</p>
           </div>
           <div className="rd-v2-member-resources-actions">
             {onSignIn ? <button type="button" className="rd-v2-btn primary" onClick={onSignIn}>Sign in</button> : null}
             <button type="button" className="rd-v2-btn" onClick={() => onGoTab?.("library")}>Browse the Library</button>
           </div>
         </section>
-        {reachBody}
+        <ReachAbilities signedIn={false} licensedOpen={false} />
+        <ReachSources reach={reach} licensedOpen={false} />
       </>
     );
   }
 
   return (
     <>
-    <h2 className="rd-v2-reach-section-title">Your access and use</h2>
-    <div className="rd-v2-member-resources" data-testid="member-resources">
-      <article>
-        <span className="rd-v2-eyebrow">Research assistant</span>
-        <h2>{usage ? `${usage.hourly_remaining} of ${usage.limits.hourly_requests} left this hour` : usageError ? "Allowance unavailable" : "Reading allowance…"}</h2>
-        <p>{usage ? `${usage.daily_remaining} of ${usage.limits.daily_requests} left in the last 24 hours. Browsing never uses it.` : usageError ? "The desk could not read your allowance just now. Browsing and downloads are not affected." : "Ask, coverage checks and advice use this allowance."}</p>
-      </article>
-      <article>
-        <span className="rd-v2-eyebrow">Your collection requests</span>
-        <h2>{counts.waiting ? `${counts.waiting} waiting for approval` : counts.running ? `${counts.running} collecting now` : "Nothing in progress"}</h2>
-        <dl>
-          <div><dt>Waiting</dt><dd>{counts.waiting}</dd></div>
-          <div><dt>Collecting</dt><dd>{counts.running}</dd></div>
-          <div><dt>Ready</dt><dd>{counts.ready}</dd></div>
-          <div><dt>Failed</dt><dd>{counts.failed}</dd></div>
-        </dl>
-        <button type="button" className="rd-v2-btn" onClick={onOpenHistory}>Open request history</button>
-      </article>
-      <article>
-        <span className="rd-v2-eyebrow">Library</span>
-        <h2>{libraryCount} dataset{libraryCount === 1 ? "" : "s"} to work with</h2>
-        <p>Collected data returns to the shared Library with its source history. Ask for new data from Discover; a research operator approves each collection.</p>
-        <div className="rd-v2-member-resources-actions">
-          <button type="button" className="rd-v2-btn" onClick={() => onGoTab?.("library")}>Open Library</button>
-          <button type="button" className="rd-v2-btn" onClick={() => onGoTab?.("browse")}>Find data in Discover</button>
+      <section className="rd-v2-usage" data-testid="member-resources" aria-label="Your access and use">
+        <div>
+          <span className="rd-v2-eyebrow">Research assistant</span>
+          <AssistantUse usage={usage} usageError={usageError} />
         </div>
-      </article>
-    </div>
-    {reachBody}
+        <div>
+          <span className="rd-v2-eyebrow">Your collection requests</span>
+          <strong>{requestSummary(counts)}</strong>
+          <span>{counts.waiting || counts.running ? "A research operator approves each request." : "Nothing waiting or collecting."}</span>
+          <button type="button" className="rd-v2-linkish" onClick={onOpenHistory}>Request history →</button>
+        </div>
+        <div>
+          <span className="rd-v2-eyebrow">Access</span>
+          <ReachAbilities signedIn licensedOpen={licensedOpen} compact onSignIn={onSignIn} />
+        </div>
+      </section>
+      <ReachSources reach={reach} licensedOpen={licensedOpen} />
     </>
   );
 }

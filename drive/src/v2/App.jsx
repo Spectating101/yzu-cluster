@@ -2250,7 +2250,6 @@ function DeskWorkspace({ onIdentityChanged }) {
             signedIn={canUseAsk}
             licensedOpen={heldLibraryRows.some((row) => row?.licensed && row?.rows_available !== false)}
             jobs={jobs}
-            libraryCount={libraryEvidenceCount}
             onGoTab={goTab}
             onOpenHistory={() => openDiscoverAwaiting({ focusAwaiting: false })}
             onSignIn={memberSignInAvailable ? beginMemberSignIn : undefined}
