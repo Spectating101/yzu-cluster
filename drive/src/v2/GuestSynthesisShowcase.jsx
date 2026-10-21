@@ -25,7 +25,6 @@ export function GuestSynthesisShowcase({ catalog, onOpen }) {
   return (
     <section className="rd-v2-guest-showcase" aria-label="Finished builds" data-testid="guest-synthesis-showcase">
       <div>
-        <span className="rd-v2-eyebrow">See what a build produces</span>
         <h3>Finished builds you can open now</h3>
         <p>Each one is a dataset built in Synthesis from other Library data. Open it to see what it measures and where its inputs came from.</p>
       </div>
@@ -56,7 +55,6 @@ export function GuestSynthesisMethods({ onSignIn }) {
   return (
     <section className="rd-v2-guest-showcase rd-v2-guest-methods" aria-label="Saved methods" data-testid="guest-synthesis-methods">
       <div>
-        <span className="rd-v2-eyebrow">Saved methods</span>
         <h3>Recipes a build can start from</h3>
         <p>Each one is a recorded method: the inputs it joins and how it measures. Starting a build from one needs an account.</p>
       </div>

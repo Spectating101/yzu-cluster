@@ -47,30 +47,25 @@ function ThreadCard({ thread, onOpen, priority = false }) {
       onClick={() => onOpen?.(thread.id)}
       data-testid="synthesis-home-thread"
     >
+      <span className="s04-home-thread-main">
+        <strong>{titleFor(thread)}</strong>
+        {summary && summary !== titleFor(thread) ? <small>{summary}</small> : null}
+      </span>
       <span className="s04-home-thread-state">
         <b>{synthesisWorkspacePhaseLabel(thread)}</b>
-        <small>{updatedLabel(thread)}</small>
+        <small>{projectKey ? `Project · ${projectKey} · ` : output ? "Library-bound · " : ""}{updatedLabel(thread)}</small>
       </span>
-      <strong>{titleFor(thread)}</strong>
-      {summary && summary !== titleFor(thread) ? <p>{summary}</p> : null}
-      <span className="s04-home-thread-foot">
-        <small>{projectKey ? `Project · ${projectKey}` : output ? "Library-bound output" : "Saved build"}</small>
-        <em>{synthesisWorkspaceActionLabel(thread)} →</em>
-      </span>
+      <em>{synthesisWorkspaceActionLabel(thread)} →</em>
     </button>
   );
 }
 
-function ThreadSection({ eyebrow, title, description, rows, onOpen, priority = false, empty = "" }) {
+function ThreadSection({ title, description, rows, onOpen, priority = false, empty = "" }) {
   return (
     <section className="s04-home-section">
       <header>
-        <div>
-          <small>{eyebrow}</small>
-          <h2>{title}</h2>
-          {description ? <p>{description}</p> : null}
-        </div>
-        <em>{rows.length}</em>
+        <h2>{title} <span className="s04-home-count">{rows.length}</span></h2>
+        {description ? <p>{description}</p> : null}
       </header>
       {rows.length ? (
         <div className="s04-home-thread-grid">
@@ -105,66 +100,31 @@ export function SynthesisHome({
 }) {
   const allThreads = Array.isArray(threads) ? threads : [];
   const methods = Array.isArray(profiles) ? profiles : [];
-  const { needsYou, active, building, results, continueThread } = partitionSynthesisWorkspace(allThreads);
+  const { needsYou, active, building, results } = partitionSynthesisWorkspace(allThreads);
 
-  const scrollToMethods = () => {
-    document.getElementById("synthesis-home-methods")?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
+  const status = [
+    needsYou.length ? [`${needsYou.length} ${needsYou.length === 1 ? "needs" : "need"} your decision`, "needs"] : null,
+    active.length ? [`${active.length} in progress`, ""] : null,
+    building.length ? [`${building.length} running`, ""] : null,
+    results.length ? [`${results.length} finished`, ""] : null,
+  ].filter(Boolean);
 
   return (
     <section className="s04-home" data-testid="synthesis-home-state">
       <header className="s04-home-hero">
         <div>
           <h1>Synthesis</h1>
-          <p>
-            Turn a research question into a dataset you can reuse. Start a new build, continue one, or reuse a saved method.
-          </p>
+          <p>Turn a research question into a dataset you can reuse.</p>
+          {status.length ? (
+            <p className="s04-home-status" aria-label="Synthesis workspace status">
+              {status.map(([label, tone]) => <span key={label} className={tone}>{label}</span>)}
+            </p>
+          ) : null}
         </div>
-        {allThreads.length ? (
-          <dl aria-label="Synthesis workspace status">
-            <div><dt>Active</dt><dd>{active.length}</dd></div>
-            <div className={needsYou.length ? "needs" : ""}><dt>Needs you</dt><dd>{needsYou.length}</dd></div>
-            <div><dt>In flight</dt><dd>{building.length}</dd></div>
-            <div><dt>Results</dt><dd>{results.length}</dd></div>
-          </dl>
-        ) : null}
+        <button type="button" className="rd-v2-btn primary" onClick={onNew}>
+          Start from a research question
+        </button>
       </header>
-
-      <section className="s04-home-entry" aria-label="Start or continue Synthesis work">
-        <button
-          type="button"
-          className="s04-home-entry-card primary"
-          onClick={onNew}
-        >
-          <small>New build</small>
-          <strong>Start from a research question</strong>
-          <span>Describe the dataset you need. You choose the data and approve the method next.</span>
-          <em>Start →</em>
-        </button>
-        <button
-          type="button"
-          className="s04-home-entry-card"
-          onClick={scrollToMethods}
-          disabled={!methods.length}
-        >
-          <small>Saved method</small>
-          <strong>Reuse a saved method</strong>
-          <span>{methods.length ? `${methods.length} saved ${methods.length === 1 ? "method" : "methods"} can start a new build.` : "No saved methods yet."}</span>
-          <em>{methods.length ? "Browse methods ↓" : "None available"}</em>
-        </button>
-        {continueThread ? (
-          <button
-            type="button"
-            className="s04-home-entry-card"
-            onClick={() => onOpenThread?.(continueThread.id)}
-          >
-            <small>Saved work</small>
-            <strong>{needsYou.length ? "Return to what needs you" : "Continue a build"}</strong>
-            <span>{titleFor(continueThread)}</span>
-            <em>{`${synthesisWorkspaceActionLabel(continueThread)} →`}</em>
-          </button>
-        ) : null}
-      </section>
 
       {!reasoningAvailable ? (
         <div className="s04-home-runtime" role="group" aria-label="Assistant status">
@@ -182,7 +142,6 @@ export function SynthesisHome({
 
       {needsYou.length ? (
         <ThreadSection
-          eyebrow="Decision queue"
           title="Needs your decision"
           description="These builds are waiting on a choice, an approval or a sample check from you."
           rows={needsYou}
@@ -193,9 +152,7 @@ export function SynthesisHome({
 
       {allThreads.length ? (
         <ThreadSection
-          eyebrow="Active builds"
           title="Builds in progress"
-          description="Pick up any build where you left off."
           rows={active}
           onOpen={onOpenThread}
           empty={!loading ? "No builds in progress." : ""}
@@ -204,7 +161,6 @@ export function SynthesisHome({
 
       {building.length ? (
         <ThreadSection
-          eyebrow="Running"
           title="Running or being checked"
           description="These builds are producing their data, or it is being checked before it is saved to your Library."
           rows={building}
@@ -214,9 +170,7 @@ export function SynthesisHome({
 
       {results.length ? (
         <ThreadSection
-          eyebrow="Finished"
           title="Finished builds"
-          description="Each keeps its method and history. The datasets are in your Library."
           rows={results}
           onOpen={onOpenThread}
         />
@@ -225,12 +179,7 @@ export function SynthesisHome({
       {archivedCount ? (
         <section className="s04-home-section" data-testid="synthesis-home-archived">
           <header>
-            <div>
-              <small>Archived</small>
-              <h2>Archived builds</h2>
-              <p>Archived builds keep their history and any data saved to Library. Restore one to work on it again.</p>
-            </div>
-            <em>{archivedCount}</em>
+            <h2>Archived builds <span className="s04-home-count">{archivedCount}</span></h2>
           </header>
           {Array.isArray(archivedThreads) ? (
             archivedThreads.length ? (
@@ -246,7 +195,7 @@ export function SynthesisHome({
               </ul>
             ) : <p className="s04-home-empty-row">No archived builds.</p>
           ) : (
-            <button type="button" className="rd-v2-btn" onClick={() => onShowArchived?.()} data-testid="synthesis-show-archived">
+            <button type="button" className="rd-v2-linkish" onClick={() => onShowArchived?.()} data-testid="synthesis-show-archived">
               Show archived builds
             </button>
           )}
@@ -255,11 +204,8 @@ export function SynthesisHome({
 
       <section className="s04-home-section s04-home-methods" id="synthesis-home-methods">
         <header>
-          <div>
-            <h2>Start from a saved method</h2>
-            <p>Using one starts a new build. You review its assumptions before anything runs.</p>
-          </div>
-          <em>{methods.length}</em>
+          <h2>Start from a saved method <span className="s04-home-count">{methods.length}</span></h2>
+          <p>Using one starts a new build. You review its assumptions before anything runs.</p>
         </header>
         {profilesLoading ? <p className="s04-home-empty-row">Loading saved methods…</p> : null}
         {profilesError ? <DeskError raw={profilesError} surface="Synthesis methods saved to Library" /> : null}
@@ -272,8 +218,10 @@ export function SynthesisHome({
                 onClick={() => onStartBlueprint?.(profile)}
                 title={text(profile.title, profile.id)}
               >
-                <strong>{text(profile.title, profile.id)}</strong>
-                <span>{text(profile.description, "Recorded build recipe")}</span>
+                <span className="s04-home-thread-main">
+                  <strong>{text(profile.title, profile.id)}</strong>
+                  <small>{text(profile.description, "Recorded build recipe")}</small>
+                </span>
                 <em>Use as starting point →</em>
               </button>
             ))}

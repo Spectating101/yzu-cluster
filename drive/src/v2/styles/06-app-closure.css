@@ -232,13 +232,13 @@
 .rd-v2-guest-feature-grid article { min-width: 0; padding: var(--rd-space-4) var(--rd-space-5); border-right: 1px solid var(--rd-border); }
 .rd-v2-guest-feature-grid article:first-child { padding-left: 0; }
 .rd-v2-guest-feature-grid article:last-child { border-right: 0; }
-.rd-v2-guest-showcase { max-width: 980px; padding-inline: var(--rd-space-5); }
-.rd-v2-guest-showcase h3 { margin: var(--rd-space-2) 0 var(--rd-space-2); font-size: var(--rd-text-lg); letter-spacing: -0.01em; }
-.rd-v2-guest-showcase p { max-width: 640px; margin: 0; color: var(--rd-muted); font-size: var(--rd-text-sm); line-height: 1.55; }
-.rd-v2-guest-showcase ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--rd-space-3); margin: var(--rd-space-4) 0 0; padding: 0; list-style: none; }
-.rd-v2-guest-showcase button { display: grid; gap: var(--rd-space-1); width: 100%; padding: var(--rd-space-3) var(--rd-space-3); border: 1px solid var(--rd-border); border-radius: 10px; background: var(--rd-surface, #fffdf6); color: inherit; font: inherit; text-align: left; cursor: pointer; }
-.rd-v2-guest-showcase button:hover { border-color: var(--rd-muted); }
-.rd-v2-guest-showcase button strong { font-size: var(--rd-text-sm); overflow-wrap: anywhere; }
+.rd-v2-guest-showcase { max-width: none; padding-inline: 0; }
+.rd-v2-guest-showcase h3 { margin: 0 0 var(--rd-space-1); font-size: var(--rd-text-lg); letter-spacing: -0.01em; }
+.rd-v2-guest-showcase p { max-width: 72ch; margin: 0; color: var(--rd-muted); font-size: var(--rd-text-2xs); line-height: 1.55; }
+.rd-v2-guest-showcase ul { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; margin: var(--rd-space-2) 0 0; border-top: 1px solid var(--rd-border); padding: 0; list-style: none; }
+.rd-v2-guest-showcase button { display: grid; gap: 2px; width: 100%; padding: var(--rd-space-3) var(--rd-space-2) var(--rd-space-3) 0; border: 0; border-bottom: 1px solid var(--rd-border); border-radius: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.rd-v2-guest-showcase button:hover { background: var(--rd-hover); }
+.rd-v2-guest-showcase button strong { font-size: var(--rd-text-xs); overflow-wrap: anywhere; }
 .rd-v2-guest-showcase button span { color: var(--rd-muted); font-size: var(--rd-text-2xs); line-height: 1.45; }
 .rd-v2-focus-try { max-width: 680px; margin-top: var(--rd-space-5); padding-inline: 0; }
 .rd-v2-focus-try-field { display: block; max-width: 420px; margin-top: var(--rd-space-3); }
@@ -946,9 +946,10 @@
   .rd-v2-reach-abilities li:nth-last-child(2):nth-child(odd) { border-bottom: 0; }
 }
 .rd-v2-guest-methods { margin-top: var(--rd-space-5); }
-.rd-v2-guest-methods ul { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
-.rd-v2-guest-methods article { display: grid; grid-template-rows: auto 1fr auto; gap: var(--rd-space-2); height: 100%; padding: var(--rd-space-3) var(--rd-space-3); border: 1px solid var(--rd-border); border-radius: 10px; background: var(--rd-surface, #fffdf6); }
-.rd-v2-guest-methods article strong { color: var(--rd-text); font-size: var(--rd-text-sm); line-height: 1.35; }
+.rd-v2-guest-methods ul { grid-template-columns: minmax(0, 1fr); }
+.rd-v2-guest-methods article { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto; column-gap: var(--rd-space-4); row-gap: 2px; align-items: center; padding: var(--rd-space-3) var(--rd-space-2) var(--rd-space-3) 0; border: 0; border-bottom: 1px solid var(--rd-border); border-radius: 0; background: transparent; }
+.rd-v2-guest-methods article > .rd-v2-guest-method-start { grid-column: 2; grid-row: 1 / span 2; }
+.rd-v2-guest-methods article strong { color: var(--rd-text); font-size: var(--rd-text-xs); line-height: 1.35; }
 .rd-v2-guest-methods article span { color: var(--rd-muted); font-size: var(--rd-text-2xs); line-height: 1.5; }
 .rd-v2-guest-methods .rd-v2-guest-method-start { display: inline-flex; justify-self: start; align-items: center; gap: var(--rd-space-1); width: auto; margin-top: var(--rd-space-1); padding: var(--rd-space-1) var(--rd-space-2); border: 0; border-radius: 999px; background: var(--rd-ext-bg); color: var(--rd-body); font-size: var(--rd-text-2xs); font-weight: 600; cursor: pointer; }
 .rd-v2-guest-methods span.rd-v2-guest-method-start { cursor: default; }
