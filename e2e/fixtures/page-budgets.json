@@ -1,0 +1,9 @@
+{
+  "home":      { "words": 180, "boxes": 7,  "textColours": 6 },
+  "library":   { "words": 230, "boxes": 9,  "textColours": 8 },
+  "discover":  { "words": 90,  "boxes": 5,  "textColours": 5 },
+  "synthesis": { "words": 85,  "boxes": 3,  "textColours": 5 },
+  "resources": { "words": 150, "boxes": 13, "textColours": 5 },
+  "profile":   { "words": 140, "boxes": 5,  "textColours": 6 },
+  "settings":  { "words": 195, "boxes": 1,  "textColours": 6 }
+}
