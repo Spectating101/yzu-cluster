@@ -357,6 +357,7 @@ test("a 401 whose new session belongs to someone else is discarded, not retried"
     return mockResponse({ error: "unauthorized" }, { ok: false, status: 401 });
   };
   await assert.rejects(fetchJson("/datasets/x"), /account changed/);
+  assert.equal(deskSessionBootstrapped(), false);
   assert.equal(calls.filter((url) => url.includes("/datasets/x")).length, 1);
   bindDeskIdentity(null);
 });

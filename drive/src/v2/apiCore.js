@@ -45,6 +45,7 @@ export async function fetchJson(path, init = {}) {
       const session = await ensureDeskSession();
       const minted = String(session?.capabilities?.principal?.id || "");
       if (session?.ok && minted && deskActivePrincipal() && minted !== deskActivePrincipal()) {
+        markDeskSessionBootstrapped(false);
         notifyDeskAuthenticationFailure(401);
         throw new Error("Your account changed. This earlier request was discarded.");
       }
