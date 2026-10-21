@@ -14,6 +14,7 @@ import { buildSchemaRows, displayName, statusPill } from "@/v2/datasetMeta";
 import { previewSampleRows } from "@/v2/deskSeed";
 import { coverageText } from "./coverageText.js";
 import { plainGrain } from "./plainText.js";
+import { useCentreOverlay } from "./useCentreOverlay.js";
 
 const MAX_PREVIEW_ROWS = 50;
 const MAX_EXTERNAL_PREVIEW_ROWS = 5;
@@ -257,6 +258,8 @@ export function PreviewModal({
   const [demoNotice, setDemoNotice] = useState("");
   const [retryToken, setRetryToken] = useState(0);
   const closeButtonRef = useRef(null);
+  const viewerRef = useRef(null);
+  useCentreOverlay(viewerRef, open);
 
   const isExternal = mode === "external";
   const kind = useMemo(() => inferredKind(dataset, isExternal), [dataset, isExternal]);
@@ -392,6 +395,10 @@ export function PreviewModal({
       if (event.key === "Escape") {
         event.preventDefault();
         onClose();
+      } else if (!viewerRef.current?.contains(event.target) || event.target.closest?.("input, textarea, select, [contenteditable], [role='textbox']")) {
+        // This viewer leaves Detail / Ask usable. Its item shortcuts must not
+        // consume arrow keys from the rail or an editable control.
+        return;
       } else if (event.key === "ArrowLeft" && onPrevious) {
         event.preventDefault();
         onPrevious();
@@ -413,7 +420,7 @@ export function PreviewModal({
   };
 
   return (
-    <div className="rd-preview-scrim" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
+    <div ref={viewerRef} className="rd-preview-scrim" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
       {onPrevious ? (
         <button type="button" className="rd-preview-adjacent previous" onClick={onPrevious} aria-label="Preview previous item">
           ‹
@@ -422,7 +429,6 @@ export function PreviewModal({
       <section
         className={`rd-preview-shell kind-${kind}`}
         role="dialog"
-        aria-modal="true"
         aria-label={`${title} ${libraryExpandedSample ? "expanded sample" : "preview"}`}
       >
         <header className="rd-preview-header">

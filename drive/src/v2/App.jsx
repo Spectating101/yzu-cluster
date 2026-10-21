@@ -280,6 +280,14 @@ function DeskWorkspace({ onIdentityChanged }) {
   const [previewTarget, setPreviewTarget] = useState(null);
   const [railTab, setRailTab] = useState("detail");
   const railFoldExplicit = useRef(false);
+  const [smallScreen, setSmallScreen] = useState(() => window.innerWidth <= 760);
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 760px)");
+    const update = () => setSmallScreen(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
   const [railFolded, setRailFolded] = useState(() => {
     try {
       const stored = window.localStorage.getItem("rd.railFolded");
@@ -290,6 +298,9 @@ function DeskWorkspace({ onIdentityChanged }) {
     } catch { /* ignore */ }
     return window.innerWidth > 760 && window.innerWidth < 1280;
   });
+  // The mobile sheet has its own grip; retain the desktop preference without
+  // replacing that sheet with an inaccessible vertical folded rail.
+  const desktopRailFolded = railFolded && !smallScreen;
   const foldRail = useCallback((next) => {
     railFoldExplicit.current = true;
     setRailFolded(next);
@@ -2365,7 +2376,7 @@ function DeskWorkspace({ onIdentityChanged }) {
   }
 
   return (
-    <div className={`yzu-shell with-inspector rd-theme-light rd-v2-shell${hideRail ? " no-rail" : ""}${railFolded ? " rail-folded" : ""}`}>
+    <div className={`yzu-shell with-inspector rd-theme-light rd-v2-shell${hideRail ? " no-rail" : ""}${desktopRailFolded ? " rail-folded" : ""}`}>
       <a className="rd-v2-skip-link" href="#rd-main">Skip to main content</a>
       {accessMode && (deskAccess?.principal?.role === "public_guest" || (canUseAsk && accessMode === "signin")) ? (
         <AccessScreen
@@ -2470,16 +2481,16 @@ function DeskWorkspace({ onIdentityChanged }) {
         type="button"
         className="rd-v2-rail-fold"
         data-testid="rail-fold"
-        aria-expanded={!railFolded}
-        aria-label={railFolded ? "Show side panel" : "Hide side panel"}
-        title={railFolded ? "Show side panel" : "Hide side panel"}
+        aria-expanded={!desktopRailFolded}
+        aria-label={desktopRailFolded ? "Show side panel" : "Hide side panel"}
+        title={desktopRailFolded ? "Show side panel" : "Hide side panel"}
         onClick={() => foldRail(!railFolded)}
       >
-        <span aria-hidden="true">{railFolded ? "‹" : "›"}</span>
+        <span aria-hidden="true">{desktopRailFolded ? "‹" : "›"}</span>
       </button>
       <AskAccessContext.Provider value={canUseAsk}>
         <InspectorRail
-          folded={railFolded}
+          folded={desktopRailFolded}
           onUnfold={() => foldRail(false)}
           mainTab={tab}
           railTab={railTab}
