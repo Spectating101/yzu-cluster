@@ -3,6 +3,8 @@ import { queryDataset } from "@/v2/api";
 import { datasetDownloadHref } from "@/v2/askDownloadLink";
 import { MEMBERS_ONLY_TEXT, licensedRowsLocked } from "@/v2/licensedAccess";
 import { previewCellValue } from "@/v2/previewValue";
+import { spanOf } from "./libraryGlance.js";
+import { useCentreOverlay } from "./useCentreOverlay.js";
 import { DATA_TABLE_ROW_LIMIT, filterRows, numericColumns, pageOf, sortRows, tableColumns } from "./dataTable.js";
 
 export function DataTableView({ dataset, onClose }) {
@@ -13,6 +15,8 @@ export function DataTableView({ dataset, onClose }) {
   const [sort, setSort] = useState({ column: "", direction: "asc" });
   const [page, setPage] = useState(0);
   const closeRef = useRef(null);
+  const scrimRef = useRef(null);
+  useCentreOverlay(scrimRef, Boolean(datasetId));
 
   useEffect(() => {
     if (!datasetId) return undefined;
@@ -37,6 +41,7 @@ export function DataTableView({ dataset, onClose }) {
 
   useEffect(() => {
     if (!datasetId) return undefined;
+    const opener = document.activeElement;
     closeRef.current?.focus();
     const onKey = (event) => {
       if (event.key === "Escape") {
@@ -45,7 +50,12 @@ export function DataTableView({ dataset, onClose }) {
       }
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.requestAnimationFrame(() => {
+        if (opener?.isConnected) opener.focus();
+      });
+    };
   }, [datasetId, onClose]);
 
   const columns = useMemo(() => tableColumns(state.rows), [state.rows]);
@@ -58,8 +68,8 @@ export function DataTableView({ dataset, onClose }) {
 
   if (!datasetId) return null;
   const title = dataset.title || dataset.name || datasetId;
-  const total = Number(dataset.row_count || dataset.rows || 0);
-  const capped = state.rows.length >= DATA_TABLE_ROW_LIMIT && total > state.rows.length;
+  const total = spanOf(dataset).rows;
+  const capped = state.rows.length >= DATA_TABLE_ROW_LIMIT && (total === null || total > state.rows.length);
   const downloadHref = datasetDownloadHref(dataset);
   const toggleSort = (column) => {
     setSort((prior) => (prior.column === column
@@ -69,15 +79,15 @@ export function DataTableView({ dataset, onClose }) {
   };
 
   return (
-    <div className="rd-preview-scrim rd-datatable-scrim" onMouseDown={(event) => event.target === event.currentTarget && onClose?.()}>
-      <section className="rd-preview-shell rd-datatable-shell" role="dialog" aria-modal="true" aria-label={`${title} data`} data-testid="data-table-view">
+    <div ref={scrimRef} className="rd-preview-scrim rd-datatable-scrim" onMouseDown={(event) => event.target === event.currentTarget && onClose?.()}>
+      <section className="rd-preview-shell rd-datatable-shell" role="dialog" aria-label={`${title} data`} data-testid="data-table-view">
         <header className="rd-preview-header">
           <div className="rd-datatable-identity">
             <strong>{title}</strong>
             <span>
               {state.loading
                 ? "Loading rows…"
-                : `${state.rows.length.toLocaleString()} rows loaded${capped ? ` of ${total.toLocaleString()}; download the CSV for all of them` : ""} · ${columns.length} columns`}
+                : `${state.rows.length.toLocaleString()} rows loaded${capped ? `${total === null ? " (query limit)" : ` of ${total.toLocaleString()}`}; download the CSV for the complete file` : ""} · ${columns.length} columns`}
             </span>
           </div>
           <div className="rd-datatable-actions">

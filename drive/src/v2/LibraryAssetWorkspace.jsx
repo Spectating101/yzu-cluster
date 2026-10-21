@@ -27,6 +27,7 @@ import { requestDeskSignIn, useDeskPermission } from "@/v2/deskPermissions";
 import { licensedRowsLocked } from "@/v2/licensedAccess";
 import { LicensedBrief } from "./LicensedBrief.jsx";
 import { datasetCitation } from "./datasetCitation.js";
+import { useCentreOverlay } from "./useCentreOverlay.js";
 
 
 function value(...candidates) {
@@ -123,6 +124,8 @@ function CitationBlock({ label, text: citation, testId }) {
 
 function AssetOverlay({ kind, dataset, fields, presentation, onClose }) {
   const closeButtonRef = useRef(null);
+  const scrimRef = useRef(null);
+  useCentreOverlay(scrimRef, Boolean(kind));
   const restoreFocusRef = useRef(null);
   const onCloseRef = useRef(onClose);
 
@@ -161,8 +164,8 @@ function AssetOverlay({ kind, dataset, fields, presentation, onClose }) {
   const readiness = statusPillKind(dataset);
   const receipt = librarySourceReceipt(dataset);
   return (
-    <div className="rd-v2-library-overlay-scrim" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
-      <section className="rd-v2-library-overlay" role="dialog" aria-modal="true" aria-label={title}>
+    <div ref={scrimRef} className="rd-v2-library-overlay-scrim" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
+      <section className="rd-v2-library-overlay" role="dialog" aria-label={title}>
         <header>
           <div>
             <span className="rd-v2-eyebrow">Library inspection</span>
@@ -438,7 +441,7 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
         </div>
       </div>
 
-      {preview.loading ? <p className="rd-v2-library-muted">Reading a local sample…</p> : null}
+      {preview.loading ? <p className="rd-v2-library-muted" role="status">Reading a local sample…</p> : null}
       {!preview.loading && preview.error ? <p className="rd-v2-library-muted">{preview.error}</p> : null}
       {!preview.loading && !preview.error && canQuery && !preview.rows.length ? (
         <p className="rd-v2-library-muted">The current query path returned no sample rows.</p>
@@ -525,6 +528,10 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
             </tbody>
           </table>
         </div>
+      ) : preview.loading ? (
+        <div className="rd-v2-library-preview-loading" aria-hidden="true">
+          <div className="rd-v2-skeleton"><span /><span /><span className="short" /></div>
+        </div>
       ) : (
         <div className="rd-v2-library-preview-empty">
           <strong>{liveSource ? "No response structure is available yet." : "No table structure is available yet."}</strong>
@@ -536,7 +543,7 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
 
       {observed || footFacts.length ? (
         <div className="rd-v2-library-preview-foot">
-          <span>{observed ? (profileBasis(preview.profile) || "Values read from the stored data") : "Documented structure only"}</span>
+          {!preview.loading ? <span>{observed ? (profileBasis(preview.profile) || "Values read from the stored data") : "Documented structure only"}</span> : null}
           {footFacts.map((fact) => <span key={fact}>{fact}</span>)}
         </div>
       ) : null}
