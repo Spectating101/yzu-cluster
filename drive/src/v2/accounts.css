@@ -2,23 +2,23 @@
 .rd-account-summary p, .rd-account-usage p { margin: 0; line-height: 1.55; }
 .rd-account-summary > span, .rd-account-list span { display: block; color: var(--rd-text-muted, #666); font-size: 12px; line-height: 1.5; }
 .rd-account-summary button, .rd-account-usage button { justify-self: start; }
-.rd-account-usage { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--rd-border, #ddd); }
+.rd-account-usage { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--rd-border, #ddd); }
 .rd-account-usage h3 { margin: 0; font-size: 13px; }
 .rd-account-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; max-width: 780px; margin: 16px 0; }
 .rd-account-form label, .rd-account-invitation label { display: grid; gap: 6px; font-size: 12px; }
 .rd-account-wide { grid-column: 1 / -1; }
 .rd-account-form button { justify-self: start; }
-.rd-account-list { padding: 0; margin: 20px 0; list-style: none; }
-.rd-account-list li { display: grid; gap: 12px; border-top: 1px solid var(--rd-border, #ddd); padding: 14px 0; }
+.rd-account-list { padding: 0; margin: 12px 0; list-style: none; }
+.rd-account-list li { display: grid; gap: 12px; border-top: 1px solid var(--rd-border, #ddd); padding: 12px 0; }
 .rd-account-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .rd-account-actions select { max-width: 150px; }
 .rd-account-invitation, .rd-account-confirm { padding: 16px; border: 1px solid var(--rd-border, #ddd); border-radius: 6px; max-width: 780px; }
 .rd-account-invitation textarea { width: 100%; min-height: 60px; padding: 10px; resize: vertical; font-size: 13px; overflow-wrap: anywhere; box-sizing: border-box; }
 .rd-account-confirm button + button { margin-left: 8px; }
-.rd-account-welcome { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; border: 1px solid var(--rd-border, #ddd); border-radius: 10px; padding: 10px 14px; margin: 16px 20px 0; background: var(--rd-surface, #fffdf6); }
-.rd-v2-home-page .rd-account-welcome { margin: 0 0 14px; }
-.rd-connector-endpoint { display: grid; gap: 6px; margin: 14px 0 8px; }
-.rd-account-welcome-text { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; min-width: 0; }
+.rd-account-welcome { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; border: 1px solid var(--rd-border, #ddd); border-radius: 8px; padding: 6px 12px; margin: 16px 20px 0; background: var(--rd-surface, #fffdf6); }
+.rd-v2-home-page .rd-account-welcome { margin: 0 0 16px; }
+.rd-connector-endpoint { display: grid; gap: 6px; margin: 12px 0 8px; }
+.rd-account-welcome-text { display: flex; flex: 1 1 320px; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; min-width: 0; }
 .rd-account-welcome h2 { margin: 0; font-size: var(--rd-text-md); font-weight: 700; }
 .rd-account-welcome p { margin: 0; max-width: 780px; color: var(--rd-muted); font-size: var(--rd-text-sm); line-height: 1.5; }
 .rd-account-welcome .rd-account-actions { margin: 0; }

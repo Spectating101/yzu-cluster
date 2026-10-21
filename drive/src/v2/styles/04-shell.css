@@ -45,9 +45,9 @@
 .rd-v2-home-topband {
   display: grid;
   grid-template-columns: minmax(0, 1.68fr) minmax(280px, 0.82fr);
-  gap: clamp(18px, 2.1vw, 30px);
+  gap: 24px;
   align-items: stretch;
-  margin-bottom: 30px;
+  margin-bottom: 24px;
 }
 
 /* A public or thin workspace can legitimately have no operational headroom.
@@ -67,30 +67,23 @@
 .rd-v2-home-pickup-card {
   position: relative;
   display: flex;
-  min-height: 238px;
+  min-height: 0;
   flex: 1 1 auto;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
   overflow: hidden;
-  padding: clamp(24px, 3vw, 34px);
+  gap: 12px;
+  padding: 20px 24px;
   border: 1px solid var(--rd-hps-line-strong);
   border-radius: var(--rd-hps-radius-lg);
   background:
     radial-gradient(circle at 100% 0, rgba(63, 111, 92, 0.105), transparent 34%),
     linear-gradient(145deg, rgba(255,255,255,.99), rgba(255, 253, 246, 0.98));
-  box-shadow: 0 18px 44px rgba(24, 32, 51, 0.07);
+  box-shadow: none;
 }
 
-.rd-v2-home-pickup-card::before {
-  content: "";
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 4px;
-  background: var(--rd-hps-sage);
-}
-
-.rd-v2-home-pickup-card.warn::before {
-  background: var(--rd-hps-warn);
+.rd-v2-home-pickup-card.warn {
+  border-color: var(--rd-hps-warn);
 }
 
 .rd-v2-home-welcome-covers { display: none; }
@@ -240,9 +233,9 @@
 .rd-v2-home-pickup-card > h2,
 .rd-v2-home-welcome-main > h2 {
   max-width: 720px;
-  margin: 17px 0 8px;
+  margin: 8px 0 4px;
   color: var(--rd-hps-ink);
-  font-size: clamp(25px, 2.55vw, 34px);
+  font-size: var(--rd-text-3xl);
   font-weight: 700;
   letter-spacing: -0.01em;
   line-height: 1.08;
@@ -250,10 +243,10 @@
 
 .rd-v2-home-pickup-state {
   max-width: 680px;
-  margin: 0 0 auto;
+  margin: 0;
   color: #5b6578;
   font-size: var(--rd-text-sm);
-  line-height: 1.58;
+  line-height: 1.5;
 }
 
 .rd-v2-home-pickup-foot {
@@ -261,8 +254,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-top: 26px;
-  padding-top: 16px;
+  margin-top: 16px;
+  padding-top: 12px;
   border-top: 1px solid rgba(210, 216, 226, 0.76);
 }
 
@@ -596,9 +589,9 @@
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: clamp(24px, 4vw, 56px);
+  gap: 24px;
   align-items: end;
-  padding: 26px 0 28px;
+  padding: 8px 0 16px;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -609,7 +602,7 @@
 }
 
 .rd-v2-profile-kicker {
-  margin-bottom: 14px;
+  margin-bottom: 8px;
   color: var(--rd-hps-sage);
 }
 
@@ -638,14 +631,14 @@
 }
 
 .rd-v2-profile-org {
-  margin: 10px 0 0;
+  margin: 8px 0 0;
   color: #465164;
   font-size: var(--rd-text-xs);
   font-weight: 600;
 }
 
 .rd-v2-profile-hint {
-  margin: 5px 0 0;
+  margin: 4px 0 0;
   color: var(--rd-hps-muted);
   font-size: var(--rd-text-2xs);
 }
@@ -1083,9 +1076,10 @@
 
 .rd-v2-settings-statement > .rd-v2-statement-section {
   display: grid;
-  grid-template-columns: minmax(150px, 210px) minmax(0, 1fr);
-  gap: clamp(24px, 4vw, 54px);
-  padding: 23px 0 25px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  margin: 0;
+  padding: 16px 0 24px;
   border: 0;
   border-top: 1px solid var(--rd-hps-line);
   border-radius: 0;
@@ -1099,9 +1093,15 @@
 
 .rd-v2-settings-statement .rd-v2-statement-head {
   display: block;
-  padding: 2px 0 0;
+  min-height: 0;
+  padding: 0;
   border: 0;
   background: transparent;
+}
+
+.rd-v2-settings-statement h3 {
+  margin: 16px 0 8px;
+  font-size: var(--rd-text-md);
 }
 
 .rd-v2-settings-statement .rd-v2-statement-head h2 {
@@ -1120,9 +1120,9 @@
 .rd-v2-settings-row {
   display: grid;
   grid-template-columns: minmax(180px, .75fr) minmax(220px, 1fr);
-  gap: 10px 18px;
+  gap: 8px 16px;
   align-items: center;
-  padding: 10px 0;
+  padding: 8px 0;
 }
 
 .rd-v2-settings-row.stack {
@@ -1287,7 +1287,7 @@
   }
 
   .rd-v2-home-pickup-card {
-    min-height: 210px;
+    min-height: 0;
   }
 
   .rd-v2-home-trail-row {
@@ -1446,7 +1446,7 @@
   }
 
   .rd-v2-home-pickup-card {
-    min-height: 210px;
+    min-height: 0;
   }
 }
 
