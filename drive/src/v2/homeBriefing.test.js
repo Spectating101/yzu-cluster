@@ -167,3 +167,34 @@ test("continue work skips licensed datasets whose rows are locked for the viewer
   });
   assert.equal(member.continueWork?.id, "lseg_locked");
 });
+
+test("home evidence and ready counts exclude locked rows with or without timestamps", () => {
+  const locked = { dataset_id: "locked", analysis_readiness: "query_ready", licensed: true, rows_available: false };
+  const open = { dataset_id: "open", analysis_readiness: "instant" };
+  for (const updated_at of [undefined, "2026-10-01T00:00:00Z"]) {
+    const datasets = [locked, open].map((row) => ({ ...row, updated_at }));
+    const briefing = buildHomeBriefing({ datasets });
+    assert.deepEqual(briefing.evidence.map((row) => row.id), ["open"]);
+    assert.equal(briefing.evidence.filter((row) => row.previewAllowed).length, 1);
+    assert.equal(briefing.evidence[0].metric, "Ready to query");
+
+    const onlyLocked = buildHomeBriefing({ datasets: [datasets[0]] });
+    assert.deepEqual(onlyLocked.evidence, []);
+    assert.equal(onlyLocked.empty.evidence, true);
+    assert.equal(onlyLocked.evidence.filter((row) => row.previewAllowed).length, 0);
+
+    const member = buildHomeBriefing({ datasets: [{ ...datasets[0], rows_available: true }] });
+    assert.equal(member.evidence[0].id, "locked");
+    assert.equal(member.evidence[0].previewAllowed, true);
+  }
+});
+
+test("locked evidence cannot fill the limit or reappear as a receipt fallback", () => {
+  const locked = { analysis_readiness: "instant", licensed: true, rows_available: false, updated_at: "2026-10-01T00:00:00Z" };
+  const datasets = [0, 1, 2, 3, 4].map((id) => ({ ...locked, dataset_id: `locked-${id}` }));
+  datasets.push({ dataset_id: "open", analysis_readiness: "instant", updated_at: "2026-01-01T00:00:00Z" });
+  assert.deepEqual(buildHomeBriefing({ datasets }).evidence.map((row) => row.id), ["open"]);
+  assert.deepEqual(buildHomeBriefing({
+    datasets: [{ ...locked, dataset_id: "receipt", catalog_reconciliation: { state: "receipt_only" } }],
+  }).evidence, []);
+});

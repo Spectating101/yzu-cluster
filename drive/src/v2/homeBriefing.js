@@ -48,7 +48,7 @@ function sortByUpdated(rows) {
 }
 
 function isAnalysisReadyAsset(row) {
-  return isQueryReadyReadiness(row?.analysis_readiness) && !isReceiptOnlyAsset(row);
+  return isQueryReadyReadiness(row?.analysis_readiness) && !isReceiptOnlyAsset(row) && !licensedRowsLocked(row);
 }
 
 function isOrdinaryHolding(row) {
@@ -104,8 +104,9 @@ export function buildHomeBriefing({
   health = null,
   profile = null,
 } = {}) {
-  const recent = recentDatasets(datasets, 5);
-  const continueDs = pickContinueDataset(datasets, recent);
+  const openable = datasets.filter((row) => !licensedRowsLocked(row));
+  const recent = recentDatasets(openable, 5);
+  const continueDs = pickContinueDataset(openable, recent);
   const pendingJobs = jobs.filter(isPendingJudgment);
   const recoveryJobs = jobs.filter(isFailedOrRecovery);
   const runningJobs = jobs.filter(isRunning);
@@ -191,7 +192,7 @@ export function buildHomeBriefing({
     });
   }
 
-  const ordinaryHoldings = datasets.filter(isOrdinaryHolding);
+  const ordinaryHoldings = openable.filter(isOrdinaryHolding);
   const datedOrdinary = sortByUpdated(
     ordinaryHoldings.filter((row) => assetUpdatedAt(row) > 0),
   );
@@ -213,7 +214,7 @@ export function buildHomeBriefing({
     }
   }
   if (!evidence.length) {
-    const receipts = sortByUpdated(datasets.filter(isReceiptOnlyAsset)).slice(0, 4);
+    const receipts = sortByUpdated(openable.filter(isReceiptOnlyAsset)).slice(0, 4);
     for (const row of receipts) {
       evidence.push(evidenceItem(row, { receipt: true, freshnessUnknown: assetUpdatedAt(row) <= 0 }));
     }

@@ -1,4 +1,5 @@
 import { addedOn } from "@/v2/datasetDates";
+import { plainGrain } from "./plainText.js";
 import { LockMark } from "@/v2/Lock";
 import { useEffect, useMemo, useState } from "react";
 import { LIBRARY_FOLDERS_ROOT } from "@/driveTree";
@@ -31,7 +32,7 @@ function descriptionLabel(row = {}) {
   if (explicit) return explicit;
 
   const kind = presentationKind(row);
-  const grain = String(row.grain || "").trim();
+  const grain = plainGrain(row.grain);
   const coverage = coverageSpan(row.coverage || row.date_range || row.temporal_coverage).trim();
   const pieces = [];
   if (kind === "scholarly_work") pieces.push("Bibliographic research evidence");

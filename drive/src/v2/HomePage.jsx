@@ -8,13 +8,14 @@ import { readResourcesRollupCache, writeResourcesRollupCache } from "@/v2/resour
 import { PageShell } from "@/v2/ui";
 import { DeskError } from "@/v2/DeskError";
 import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
-import { displayName, statusPillKind } from "@/v2/datasetMeta";
+import { displayName } from "@/v2/datasetMeta";
 import { featuredRows, matchedRows, profileFocus } from "@/v2/libraryFocus";
 import { libraryHoldings } from "@/v2/deskCounts";
 import { licensedRowsLocked } from "@/v2/licensedAccess";
 import { topicCounts } from "@/v2/libraryTopics";
 import { barBox, filesLabel, glanceTitle, rowsLabel, spanAxis, spanOf, spanText } from "@/v2/libraryGlance";
 import {
+  buildGuestReadyDatasets,
   buildPickUp,
   buildRecentTrail,
   buildRecommendedEvidence,
@@ -142,9 +143,7 @@ function WelcomeCard({ onGoTab, onSignIn, onCreateAccount, topics = [] }) {
   );
 }
 
-export function codeLikeTitle(value) {
-  return /\b(?=[A-Z0-9]*\d)[A-Z0-9]{6,}\b/.test(String(value || ""));
-}
+export { codeLikeTitle } from "@/v2/homeIteration10";
 
 function firstSentence(value) {
   const textValue = String(value || "").replace(/\s+/g, " ").trim();
@@ -170,14 +169,7 @@ function HomeGlance({ span, axis }) {
 }
 
 function GuestReadyDatasets({ datasets, onGoTab, onSelectDataset }) {
-  const featured = featuredRows(datasets).filter((row) => statusPillKind(row).kind === "query-ready");
-  const ready = (featured.length
-    ? featured
-    : datasets
-      .filter((row) => row?.dataset_id && statusPillKind(row).kind === "query-ready")
-      .sort((a, b) => Number(codeLikeTitle(displayName(a))) - Number(codeLikeTitle(displayName(b)))
-        || String(b.retrieved_at || "").localeCompare(String(a.retrieved_at || "")))
-  ).slice(0, 4);
+  const ready = buildGuestReadyDatasets(datasets);
   if (!ready.length) return null;
   const axis = spanAxis(ready.map(spanOf));
   return (

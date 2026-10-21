@@ -4,6 +4,7 @@
 
 import { classifyDiscoverResult } from "./discoverTaxonomy.js";
 import { coverageSpan } from "./coverageText.js";
+import { plainGrain } from "./plainText.js";
 import { humanizeDiscoverDescription } from "./browseMeta.js";
 import {
   boundProbeResult,
@@ -64,9 +65,9 @@ export function usefulForLine(row) {
 
   if (parts.length) {
     let text = parts[0];
-    const grain = String(row?.grain || "").trim();
+    const grain = plainGrain(row?.grain);
     const geo = String(row?.geographic_coverage || "").trim();
-    if (grain && !text.toLowerCase().includes(grain.toLowerCase())) {
+    if (grain && !text.toLowerCase().includes(String(row.grain).toLowerCase()) && !text.toLowerCase().includes(grain.toLowerCase())) {
       text = `${text.replace(/\.$/, "")} at ${grain} unit of observation`;
     } else if (geo && !text.toLowerCase().includes(geo.toLowerCase().slice(0, 12))) {
       text = `${text.replace(/\.$/, "")} · ${geo}`;
@@ -75,7 +76,7 @@ export function usefulForLine(row) {
     return text;
   }
 
-  const grain = String(row?.grain || "").trim();
+  const grain = plainGrain(row?.grain);
   const coverage = coverageSpan(row?.coverage || row?.date_range).trim();
   const source = String(row?.source || row?.publisher || "").trim();
   if (grain || coverage || source) {

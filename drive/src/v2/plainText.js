@@ -33,11 +33,17 @@ export function plainRoute(value) {
 }
 
 const INTERNAL_GRAINS = new Set(["procured_snapshot", "catalog_harvest", "scrape_snapshot"]);
+const GRAIN_DIMENSIONS = new Set([
+  "country", "county", "state", "region", "city", "year", "quarter", "month", "week", "day", "date", "hour", "minute",
+  "firm", "company", "issuer", "ticker", "symbol", "security", "asset", "instrument", "index", "constituent",
+  "industry", "sector", "measure", "series", "interval", "product", "person", "household",
+]);
 
 export function plainGrain(value) {
   const key = String(value || "").trim();
   if (!key || INTERNAL_GRAINS.has(key)) return "";
-  return key.split("_").filter(Boolean).join(" × ");
+  const parts = key.split(/[_-]/).filter(Boolean);
+  return parts.join(parts.every((part) => GRAIN_DIMENSIONS.has(part)) ? " × " : " ");
 }
 
 const ACCESS = {
@@ -47,5 +53,5 @@ const ACCESS = {
 
 export function plainAccess(value) {
   const key = String(value || "").trim();
-  return ACCESS[key.toLowerCase()] || plainIdentifiers(key);
+  return ACCESS[key.toLowerCase()] || plainRoute(key);
 }

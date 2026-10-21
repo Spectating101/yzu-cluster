@@ -11,6 +11,7 @@ import {
   RailStickyFooter,
 } from "@/v2/RailFrame";
 import { StatusPill } from "@/v2/StatusPill";
+import { plainGrain } from "./plainText.js";
 
 function FieldSkeleton() {
   return (
@@ -90,7 +91,7 @@ function AtAGlance({ dataset, fields }) {
   const size = dataset.size || dataset.size_mb || dataset.size_gb || dataset.bytes;
   const owner = dataset.owner || dataset.publisher || dataset.domain;
   const rows = [
-    ["Unit of observation", dataset.grain || fields.partition],
+    ["Unit of observation", plainGrain(dataset.grain) || fields.partition],
     ["Coverage", fields.coverage || dataset.coverage || dataset.date_range],
     ["Source", fields.source],
     ["Location", estate.location || fields.vault || fields.access, true],
@@ -304,7 +305,7 @@ export function DetailPanel({
 
         <DetailSection label="Coverage">
           <FieldRow label="Period" value={fields.coverage || view.coverage} loading={loading} />
-          <FieldRow label="Unit of observation" value={view.grain} loading={loading} />
+          <FieldRow label="Unit of observation" value={plainGrain(view.grain)} loading={loading} />
           <FieldRow label="Partition" value={fields.partition} loading={loading} />
         </DetailSection>
 

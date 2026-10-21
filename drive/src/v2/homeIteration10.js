@@ -3,7 +3,8 @@
  */
 
 import { storageFree, storageUsed } from "./storageFormat.js";
-import { displayName, isReceiptOnlyAsset, statusPill } from "./datasetMeta.js";
+import { displayName, isReceiptOnlyAsset, statusPill, statusPillKind } from "./datasetMeta.js";
+import { featuredRows } from "./libraryFocus.js";
 import { buildHomeBriefing } from "./homeBriefing.js";
 import { licensedRowsLocked } from "./licensedAccess.js";
 import { buildLab } from "./profileViewModel.js";
@@ -16,6 +17,22 @@ import {
   assistantRuntimeDetail,
   composerRuntimeRead,
 } from "./composerRuntimeStatus.js";
+
+export function codeLikeTitle(value) {
+  return /\b(?=[A-Z0-9]*\d)[A-Z0-9]{6,}\b/.test(String(value || ""));
+}
+
+export function buildGuestReadyDatasets(datasets = []) {
+  const openable = datasets.filter((row) => row?.dataset_id && !licensedRowsLocked(row));
+  const featured = featuredRows(openable).filter((row) => statusPillKind(row).kind === "query-ready");
+  return (featured.length
+    ? featured
+    : openable
+      .filter((row) => statusPillKind(row).kind === "query-ready")
+      .sort((a, b) => Number(codeLikeTitle(displayName(a))) - Number(codeLikeTitle(displayName(b)))
+        || String(b.retrieved_at || "").localeCompare(String(a.retrieved_at || "")))
+  ).slice(0, 4);
+}
 
 function purposeLine(ds) {
   return (
@@ -565,7 +582,7 @@ export function buildRecentTrail({ jobs = [], datasets = [], limit = 3 } = {}) {
 
   if (fromJobs.length) return fromJobs;
 
-  return recentDatasets(datasets, limit).map((ds) => ({
+  return recentDatasets(datasets.filter((ds) => !licensedRowsLocked(ds)), limit).map((ds) => ({
     id: ds.dataset_id,
     kind: "REGISTERED ASSET",
     title: displayName(ds),

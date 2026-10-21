@@ -1,8 +1,8 @@
 import { LockTag } from "@/v2/Lock";
 import { coverageText } from "./coverageText.js";
+import { plainGrain } from "./plainText.js";
 
 const text = (value) => String(value ?? "").trim();
-const grainLabel = (grain) => text(grain).replace(/_/g, " ");
 
 export function licensedFacts(dataset, columns = []) {
   const rows = Number(dataset?.row_count || dataset?.rows);
@@ -10,7 +10,7 @@ export function licensedFacts(dataset, columns = []) {
   return [
     ["Size", Number.isFinite(rows) && rows > 0 ? `${rows.toLocaleString("en-US")} rows` : ""],
     ["Coverage", coverageText(dataset?.coverage)],
-    ["One row per", grainLabel(dataset?.grain)],
+    ["One row per", plainGrain(dataset?.grain)],
     ["Joins on", keys.join(", ")],
     ["Best for", text(dataset?.best_use || dataset?.recommended_use)],
     ["Columns", columns.some((name) => !keys.includes(name)) ? columns.slice(0, 14).join(", ") : ""],

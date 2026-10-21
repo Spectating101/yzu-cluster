@@ -15,12 +15,18 @@ describe("usefulForLine", () => {
       grain: "issuer-quarter",
     });
     assert.match(line, /Listed-company financial statements/i);
-    assert.match(line, /issuer-quarter/);
+    assert.match(line, /issuer × quarter/);
     assert.doesNotMatch(line, /Faculty finance fit|Strong finance/i);
   });
 
   it("falls back when metadata is thin", () => {
     assert.equal(usefulForLine({}), "Research use is not yet described.");
+  });
+
+  it("does not append a unit of observation already described", () => {
+    for (const description of ["Panel at issuer-quarter", "Panel at issuer × quarter"]) {
+      assert.equal(usefulForLine({ description, grain: "issuer-quarter" }), description);
+    }
   });
 });
 
