@@ -92,6 +92,7 @@ import {
 import { candidateKey } from "@/v2/candidateKey";
 import {
   discoverIntentCandidate,
+  needsBoundedRequest,
   proposalFromDiscoverCandidate,
 } from "@/v2/discoverIntent";
 import {
@@ -264,6 +265,7 @@ function DeskWorkspace({ onIdentityChanged }) {
   const [discoverRestingSummary, setDiscoverRestingSummary] = useState(null);
   const [browseProbe, setBrowseProbe] = useState({ candidateKey: "", loading: false, result: null, error: "" });
   const [collectSubmittingKey, setCollectSubmittingKey] = useState("");
+  const [boundedRequest, setBoundedRequest] = useState(null);
   const [lifecycleRefreshFailed, setLifecycleRefreshFailed] = useState(false);
   const lifecycleLastKnownRef = useRef(null);
   const jobsPollRef = useRef(null);
@@ -1362,6 +1364,14 @@ function DeskWorkspace({ onIdentityChanged }) {
         return;
       }
 
+      if (!discoverSearchQuery.trim() && needsBoundedRequest(target)) {
+        setDiscoverIntentRecord(null);
+        setDiscoverModeSafe("explore");
+        goTab("browse");
+        setBoundedRequest({ row: target, at: Date.now() });
+        return;
+      }
+
       const key = candidateKey(target);
       if (collectSubmittingKey && collectSubmittingKey === key) return;
 
@@ -2125,6 +2135,7 @@ function DeskWorkspace({ onIdentityChanged }) {
             setDiscoverAssessment((current) => ({ ...current, active }));
           }}
           onRestingSummary={handleDiscoverRestingSummary}
+          boundedRequest={boundedRequest}
           onSelectRow={(row) => {
             setDiscoverAssessment((current) => ({ ...current, active: false }));
             const nextKey = candidateKey(row);

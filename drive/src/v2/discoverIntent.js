@@ -135,3 +135,8 @@ export function canSubmitDiscoverIntent(intent) {
       && !state.collection?.job_id,
   );
 }
+
+export function needsBoundedRequest(row) {
+  const routes = [row?.collect_via, row?.fetch_modes].flat().map((value) => String(value || ""));
+  return routes.includes("public_api_collect");
+}

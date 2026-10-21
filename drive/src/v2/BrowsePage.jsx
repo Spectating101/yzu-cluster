@@ -323,11 +323,6 @@ export function isDiscoverResearchQuestion(value) {
   return text.split(/\s+/).length >= 8;
 }
 
-function needsBoundedRequest(row) {
-  const routes = [row?.collect_via, row?.fetch_modes].flat().map((value) => String(value || ""));
-  return routes.includes("public_api_collect");
-}
-
 function DiscoverQueryComposer({
   value,
   onValueChange,
@@ -708,6 +703,7 @@ export function BrowsePage({
   onReturnToSynthesis,
   onDismissSynthesisHandoff,
   onRestingSummary,
+  boundedRequest = null,
 }) {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -724,8 +720,8 @@ export function BrowsePage({
   const composerInputRef = useRef(null);
   const startBoundedRequest = (row) => {
     const name = String(row.provider || row.title || "This source").trim();
-    setQueryDraft(`${String(row.title || name).trim()}: `);
-    setBoundedPrompt(`${name} collects one bounded request at a time. Say exactly what you need, such as which places, symbols or series and which dates, then press Explore.`);
+    setQueryDraft("");
+    setBoundedPrompt(`${name} collects one bounded request at a time. Describe exactly what you need from it, such as which places, symbols or series and which dates, then press Explore.`);
     requestAnimationFrame(() => {
       const input = composerInputRef.current;
       if (!input) return;
@@ -733,6 +729,9 @@ export function BrowsePage({
       input.setSelectionRange(input.value.length, input.value.length);
     });
   };
+  useEffect(() => {
+    if (boundedRequest?.row) startBoundedRequest(boundedRequest.row);
+  }, [boundedRequest]);
   const [showAllSources, setShowAllSources] = useState(false);
   const researchFocus = useResearchFocus(askAvailable);
   const [searchRevision, setSearchRevision] = useState(0);
@@ -1602,7 +1601,7 @@ export function BrowsePage({
                     labIds={labIds}
                     selectedId={selectedId}
                     onSelectRow={onSelectRow}
-                    onAdd={onReviewAcquisition ? (row) => (needsBoundedRequest(row) ? startBoundedRequest(row) : onReviewAcquisition(row)) : undefined}
+                    onAdd={onReviewAcquisition}
                     addLock={acquisitionLock}
                   />
                   {idleRecommendations.length > IDLE_SOURCE_PREVIEW ? (

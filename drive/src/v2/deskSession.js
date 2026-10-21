@@ -134,6 +134,15 @@ export function deskHeaders(extra = {}) {
   return headers;
 }
 
+export function deskActivePrincipal() { return activePrincipal; }
+
+const DESK_AUTH_HEADERS = new Set(["x-desk-principal", "x-desk-token", "authorization"]);
+
+export function deskRetryInit(init = {}) {
+  const headers = Object.fromEntries(Object.entries(flattenHeaderBag(init?.headers || {})).filter(([key]) => !DESK_AUTH_HEADERS.has(key)));
+  return deskFetchInit({ ...(init || {}), headers });
+}
+
 /** Default fetch init for desk API calls (cookie session + optional pasted token). */
 export function deskFetchInit(init = {}) {
   const options = { credentials: "include", ...(init || {}) };

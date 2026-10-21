@@ -179,10 +179,10 @@ test.describe("v2 Discover tab", () => {
     const row = page.locator("main li", { hasText: "County unemployment official source" }).first();
     await row.locator(".rd-v2-discover-row-add").click();
     await expect(page.getByTestId("discover-bounded-prompt")).toBeVisible();
-    await expect(page.getByTestId("discover-bounded-prompt")).toContainText(/Say exactly what you need/);
+    await expect(page.getByTestId("discover-bounded-prompt")).toContainText(/Describe exactly what you need from it/);
     const composer = page.getByTestId("discover-query-composer").locator("textarea");
     await expect(composer).toBeFocused();
-    await expect(composer).toHaveValue("County unemployment official source: ");
+    await expect(composer).toHaveValue("");
     expect(intentPosts).toBe(0);
   });
 

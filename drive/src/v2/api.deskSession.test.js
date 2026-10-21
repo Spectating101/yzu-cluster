@@ -10,7 +10,7 @@ import {
   fetchJson,
   signInWithMemberAccessCode,
 } from "./api.js";
-import { deskSessionBootstrapped, loadDeskToken, markDeskSessionBootstrapped } from "./deskSession.js";
+import { bindDeskIdentity, deskRetryInit, deskSessionBootstrapped, loadDeskToken, markDeskSessionBootstrapped, saveDeskToken } from "./deskSession.js";
 
 function installMemorySessionStorage() {
   const store = new Map();
@@ -320,4 +320,48 @@ test("member access code is exchanged for a cookie session and then discarded", 
   assert.equal(loadDeskToken(), "");
   assert.equal(deskSessionBootstrapped(), true);
   assert.deepEqual(fetchCalls.map((call) => call.method), ["POST", "GET"]);
+});
+
+test("a forced mint with a newly saved token does not join an in-flight guest mint", async () => {
+  let releaseGuest;
+  const guestGate = new Promise((resolve) => { releaseGuest = resolve; });
+  const tokens = [];
+  globalThis.fetch = async (url, init = {}) => {
+    if (String(url).includes("/library/desk/session")) {
+      const token = init.headers?.["x-desk-token"] || "";
+      tokens.push(token);
+      if (!token) await guestGate;
+      return mockResponse({ ok: true, authorized: true });
+    }
+    return mockResponse({ ok: true });
+  };
+  const guest = ensureDeskSession();
+  saveDeskToken("member-code");
+  const member = ensureDeskSession({ force: true });
+  releaseGuest();
+  await Promise.all([guest, member]);
+  assert.deepEqual(tokens, ["", "member-code"]);
+  saveDeskToken("");
+});
+
+test("a 401 whose new session belongs to someone else is discarded, not retried", async () => {
+  bindDeskIdentity({ id: "member-alice", role: "member" });
+  const calls = [];
+  globalThis.fetch = async (url) => {
+    calls.push(String(url));
+    if (String(url).includes("/library/desk/session")) {
+      return mockResponse({ ok: true, authorized: true, capabilities: { principal: { id: "member-bob" } } });
+    }
+    return mockResponse({ error: "unauthorized" }, { ok: false, status: 401 });
+  };
+  await assert.rejects(fetchJson("/datasets/x"), /account changed/);
+  assert.equal(calls.filter((url) => url.includes("/datasets/x")).length, 1);
+  bindDeskIdentity(null);
+});
+
+test("retry headers drop stale principal and token headers", () => {
+  const retry = deskRetryInit({ method: "POST", headers: { "X-Desk-Principal": "old", authorization: "Bearer old", "x-desk-token": "old", "x-extra": "1" } });
+  assert.equal(retry.headers["x-extra"], "1");
+  assert.notEqual(retry.headers["x-desk-principal"], "old");
+  assert.notEqual(retry.headers.authorization, "Bearer old");
 });

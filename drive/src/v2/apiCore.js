@@ -5,8 +5,11 @@ import {
   assertDeskIdentity,
   deskIdentityGeneration,
   notifyDeskAuthenticationFailure,
+  deskActivePrincipal,
   deskFetchInit,
   deskHeaders,
+  deskRetryInit,
+  loadDeskToken,
   deskSessionBootstrapped,
   loadChatSessionId,
   loadUserEmail,
@@ -21,6 +24,7 @@ export const API = import.meta.env?.DEV ? "/api" : "";
 
 /** In-flight bootstrap shared by concurrent callers (App + useAskChat warm). */
 let ensureDeskSessionInflight = null;
+let ensureDeskSessionToken = "";
 
 export async function fetchJson(path, init = {}) {
   const identity = deskIdentityGeneration();
@@ -39,9 +43,14 @@ export async function fetchJson(path, init = {}) {
       // Clear the optimistic marker and let concurrent callers share one mint.
       markDeskSessionBootstrapped(false);
       const session = await ensureDeskSession();
+      const minted = String(session?.capabilities?.principal?.id || "");
+      if (session?.ok && minted && deskActivePrincipal() && minted !== deskActivePrincipal()) {
+        notifyDeskAuthenticationFailure(401);
+        throw new Error("Your account changed. This earlier request was discarded.");
+      }
       if (session?.ok) {
         assertDeskIdentity(identity);
-        const retry = deskFetchInit(init || {});
+        const retry = deskRetryInit(init || {});
         delete retry.timeoutMs;
         if (options.signal) retry.signal = options.signal;
         r = await fetch(`${API}${path}`, retry);
@@ -95,11 +104,12 @@ export async function ensureDeskSession({ force = false } = {}) {
   if (!force && deskSessionBootstrapped()) {
     return { ok: true, bootstrapped: true, reused: true };
   }
-  if (ensureDeskSessionInflight) {
+  if (ensureDeskSessionInflight && (!force || ensureDeskSessionToken === loadDeskToken())) {
     return ensureDeskSessionInflight;
   }
 
   recentHistoryReads.clear();
+  ensureDeskSessionToken = loadDeskToken();
   const task = postDeskSessionBootstrap();
   ensureDeskSessionInflight = task;
   try {
