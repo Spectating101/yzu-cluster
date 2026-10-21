@@ -105,7 +105,7 @@ test("lenses list the personal view first, then featured, and nothing when neith
 
 test("the note explains the view and nudges a member who has no focus yet", () => {
   assert.match(lensNote("for_you", { label: "stablecoin" }), /Matched to your research: stablecoin/);
-  assert.match(lensNote("featured", profileFocus(undefined)), /most worth opening/);
+  assert.equal(lensNote("featured", profileFocus(undefined)), "");
   assert.match(lensNote("featured", profileFocus(document())), /Add your research focus in Profile/);
   assert.equal(lensNote("all", {}), "");
 });

@@ -121,13 +121,11 @@ export function libraryLenses(rows, focus) {
 export function lensNote(lens, focus) {
   if (lens === "for_you") {
     return focus?.label
-      ? `Matched to your research: ${focus.label}. Update it in Profile.`
-      : "Matched to your research profile. Update it in Profile.";
+      ? `Matched to your research: ${focus.label}`
+      : "Matched to your research profile";
   }
   if (lens === "featured") {
-    return focus?.signedIn && !focus.terms.length
-      ? "The datasets most worth opening first. Add your research focus in Profile and this view will follow your work."
-      : "The datasets most worth opening first. Search or pick a collection to see everything.";
+    return focus?.signedIn && !focus.terms.length ? "Add your research focus in Profile to personalise this list." : "";
   }
   return "";
 }

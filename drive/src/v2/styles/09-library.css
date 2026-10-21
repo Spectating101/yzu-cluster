@@ -495,9 +495,13 @@
 }
 
 .rd-v2-cap-collections-label {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
   color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .rd-v2-cap-collections-loading {
@@ -564,8 +568,8 @@
 }
 
 .rd-v2-cap-collections-toggle {
-  display: block;
-  margin-top: 4px;
+  display: inline;
+  margin-top: 0;
   padding: 0;
   border: 0;
   background: none;
@@ -623,7 +627,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 8px 16px;
-  padding: 10px 20px;
+  padding: 6px 16px;
   border-bottom: 1px solid var(--rd-border);
 }
 
@@ -677,7 +681,10 @@
 .rd-v2-cap-lens-note {
   min-width: 0;
   margin: 0;
-  flex: 1 1 320px;
+  flex: 1 1 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: var(--rd-muted);
   font-size: var(--rd-text-xs);
   line-height: 1.45;
@@ -1314,7 +1321,7 @@
    them compact so the evidence ledger begins immediately under the page tools. */
 
 .rd-v2-library-page .rd-v2-cap-collections {
-  grid-template-columns: 78px minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: 10px;
   padding: 5px 16px;

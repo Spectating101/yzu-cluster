@@ -69,7 +69,7 @@ test("a guest starts from the featured datasets, not the whole inventory", async
   await expect(listed(page).first()).toContainText("Fama-French daily factors");
   await expect(page.getByTestId("library-evidence-estate")).not.toContainText("CRSP daily stock file");
   await expect(page.getByTestId("library-evidence-estate")).not.toContainText("Etherscan stablecoin catalog");
-  await expect(page.getByTestId("library-lens-note")).toContainText("most worth opening");
+  await expect(page.getByTestId("library-lens-note")).toHaveCount(0);
   await expect(page.locator(".rd-v2-toolbar-count")).toContainText("3 of 9 datasets");
 });
 

@@ -268,11 +268,11 @@ summary:focus-visible {
 }
 
 .rd-v2-page-head {
-  padding: 0 var(--rd-main-pad-x) 15px 2px;
+  padding: 0 var(--rd-main-pad-x) 0 2px;
 }
 
 .rd-v2-page-head h1 {
-  margin: 0 0 5px;
+  margin: 0;
   font-size: var(--rd-text-3xl);
   font-weight: 700;
   line-height: 1.12;

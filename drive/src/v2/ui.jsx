@@ -10,7 +10,7 @@ export function PageShell({ title, lead, headExtra, toolbar, footer, children, n
       {(title || lead || headExtra) ? (
         <header className="rd-v2-page-head">
           {title ? <h1>{title}</h1> : null}
-          {lead ? <p className="rd-v2-lead">{lead}</p> : null}
+          {lead ? <p className="rd-v2-lead rd-v2-visually-hidden">{lead}</p> : null}
           {headExtra}
         </header>
       ) : null}
