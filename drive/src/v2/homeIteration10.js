@@ -5,6 +5,7 @@
 import { storageFree, storageUsed } from "./storageFormat.js";
 import { displayName, isReceiptOnlyAsset, statusPill } from "./datasetMeta.js";
 import { buildHomeBriefing } from "./homeBriefing.js";
+import { licensedRowsLocked } from "./licensedAccess.js";
 import { buildLab } from "./profileViewModel.js";
 import { recentDatasets } from "./recent.js";
 import { isHistoryNoise, isSystemVerificationTraffic } from "./historyNoiseFence.js";
@@ -92,10 +93,11 @@ export function buildPickUp({
   suggested = [],
 } = {}) {
   const briefing = buildHomeBriefing({ datasets, jobs, acquisitions, health, profile });
-  const holdings = (datasets || []).filter((ds) => !isReceiptOnlyAsset(ds));
+  const openable = (datasets || []).filter((ds) => !licensedRowsLocked(ds));
+  const holdings = openable.filter((ds) => !isReceiptOnlyAsset(ds));
   const recent = recentDatasets(holdings, 2);
   const starts = (suggested || []).filter((ds) => ds?.dataset_id && holdings.some((row) => row.dataset_id === ds.dataset_id));
-  const primaryDs = recent[0] || starts[0] || holdings[0] || datasets[0] || null;
+  const primaryDs = recent[0] || starts[0] || holdings[0] || openable[0] || null;
   const secondaryDs =
     recent[1] ||
     (primaryDs && starts.find((ds) => ds.dataset_id !== primaryDs.dataset_id)) ||

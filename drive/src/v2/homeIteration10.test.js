@@ -297,3 +297,34 @@ test("a dataset the researcher opened still comes first and is a continuation", 
     delete globalThis.localStorage;
   }
 });
+
+test("pick up never offers a licensed dataset whose rows are locked for the viewer", () => {
+  const locked = { dataset_id: "crsp_locked", name: "CRSP monthly", licensed: true, rows_available: false };
+  const open = { dataset_id: "open_panel", name: "Open panel", analysis_readiness: "query_ready" };
+  const health = { desk: { jobs: {} } };
+  const { primary, secondary } = buildPickUp({ datasets: [locked, open], jobs: [], health, suggested: [locked] });
+  assert.equal(primary?.dataset?.dataset_id, "open_panel");
+  assert.notEqual(secondary?.dataset?.dataset_id, "crsp_locked");
+
+  const onlyLocked = buildPickUp({ datasets: [locked], jobs: [], health });
+  assert.equal(onlyLocked.primary, null);
+  assert.equal(onlyLocked.secondary, null);
+
+  const member = buildPickUp({ datasets: [{ ...locked, rows_available: true }, open], jobs: [], health });
+  assert.equal(member.primary?.dataset?.dataset_id, "crsp_locked");
+
+  const store = new Map();
+  globalThis.localStorage = { getItem: (key) => store.get(key) ?? null, setItem: (key, value) => store.set(key, value), removeItem: (key) => store.delete(key) };
+  try {
+    touchRecent("open_panel");
+    touchRecent("crsp_locked");
+    const recent = buildPickUp({ datasets: [locked, open], jobs: [], health });
+    assert.equal(recent.primary?.dataset?.dataset_id, "open_panel");
+    assert.equal(recent.primary?.start, false);
+    assert.notEqual(recent.secondary?.dataset?.dataset_id, "crsp_locked");
+    const recentMember = buildPickUp({ datasets: [{ ...locked, rows_available: true }, open], jobs: [], health });
+    assert.equal(recentMember.primary?.dataset?.dataset_id, "crsp_locked");
+  } finally {
+    delete globalThis.localStorage;
+  }
+});

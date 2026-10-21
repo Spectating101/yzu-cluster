@@ -41,7 +41,10 @@ export async function fetchJson(path, init = {}) {
       const session = await ensureDeskSession();
       if (session?.ok) {
         assertDeskIdentity(identity);
-        r = await fetch(`${API}${path}`, options);
+        const retry = deskFetchInit(init || {});
+        delete retry.timeoutMs;
+        if (options.signal) retry.signal = options.signal;
+        r = await fetch(`${API}${path}`, retry);
       } else {
         notifyDeskAuthenticationFailure(r.status);
       }

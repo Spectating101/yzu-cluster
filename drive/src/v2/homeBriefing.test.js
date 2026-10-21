@@ -143,3 +143,27 @@ test("when only receipt_only assets exist, classify them as reconciliation pendi
   );
   assert.ok(!briefing.nextActions.some((action) => /Preview|query/i.test(action.label)));
 });
+
+test("continue work skips licensed datasets whose rows are locked for the viewer", () => {
+  const locked = {
+    dataset_id: "lseg_locked",
+    name: "LSEG prices",
+    analysis_readiness: "instant",
+    licensed: true,
+    rows_available: false,
+  };
+  const open = { dataset_id: "open_panel", name: "Open panel", analysis_readiness: "instant" };
+  const briefing = buildHomeBriefing({ datasets: [locked, open], jobs: [] });
+  assert.equal(briefing.continueWork?.id, "open_panel");
+  assert.ok(!briefing.nextActions.some((action) => action.dataset?.dataset_id === "lseg_locked"));
+
+  const onlyLocked = buildHomeBriefing({ datasets: [locked], jobs: [] });
+  assert.equal(onlyLocked.continueWork, null);
+  assert.equal(onlyLocked.empty.continue, true);
+
+  const member = buildHomeBriefing({
+    datasets: [{ ...locked, rows_available: true }, open],
+    jobs: [],
+  });
+  assert.equal(member.continueWork?.id, "lseg_locked");
+});

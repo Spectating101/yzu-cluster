@@ -1,6 +1,7 @@
 /** Derive Home research-state briefing from observed jobs/assets/acquisitions only. */
 
 import { recentDatasets } from "./recent.js";
+import { licensedRowsLocked } from "./licensedAccess.js";
 import {
   displayName,
   isQueryReadyReadiness,
@@ -59,7 +60,7 @@ function pickContinueDataset(datasets, recent) {
   const seen = new Set();
   for (const row of [...recent, ...datasets]) {
     const id = row?.dataset_id || row;
-    if (!row || seen.has(id)) continue;
+    if (!row || seen.has(id) || licensedRowsLocked(row)) continue;
     seen.add(id);
     ordered.push(row);
   }
