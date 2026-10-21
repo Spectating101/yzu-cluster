@@ -39,12 +39,12 @@
   }
 
   .rd-v2-synthesis-page .s04-opening-map ol {
-    gap: 12px;
+    gap: var(--rd-space-3);
   }
 
   .rd-v2-synthesis-page .s04-method-flow {
-    gap: 14px;
-    padding: 18px;
+    gap: var(--rd-space-3);
+    padding: var(--rd-space-4);
   }
 
   /* Once a method is accepted, two independent truths are useful at once:
@@ -58,8 +58,8 @@
   )) {
     display: grid;
     grid-template-columns: minmax(0, 1.38fr) minmax(360px, .62fr);
-    column-gap: 16px;
-    row-gap: 14px;
+    column-gap: var(--rd-space-4);
+    row-gap: var(--rd-space-3);
     align-content: start;
   }
 
@@ -135,8 +135,8 @@
   )) {
     display: grid;
     grid-template-columns: minmax(0, 1.25fr) minmax(360px, .75fr);
-    column-gap: 16px;
-    row-gap: 14px;
+    column-gap: var(--rd-space-4);
+    row-gap: var(--rd-space-3);
     align-content: start;
   }
 
@@ -184,14 +184,14 @@
   /* The external Detail/Ask rail remains interpretive. Richer Synthesis rail
      sections use its vertical space for recorded context and authority proof. */
   body:has(.rd-v2-synthesis-page) .s04-rail-proof {
-    margin: 10px 12px 0;
-    padding: 11px 12px;
+    margin: var(--rd-space-3) var(--rd-space-3) 0;
+    padding: var(--rd-space-3) var(--rd-space-3);
     border: 1px solid var(--rd-border);
     border-radius: 10px;
     background: color-mix(in srgb, var(--rd-surface) 88%, transparent);
   }
   body:has(.rd-v2-synthesis-page) .s04-rail-proof ul {
-    margin: 9px 0 0;
+    margin: var(--rd-space-2) 0 0;
     padding: 0;
     list-style: none;
   }
@@ -199,8 +199,8 @@
   body:has(.rd-v2-synthesis-page) .s04-rail-proof li {
     display: grid;
     grid-template-columns: 92px minmax(0, 1fr);
-    gap: 9px;
-    padding: 6px 0;
+    gap: var(--rd-space-2);
+    padding: var(--rd-space-2) 0;
     border-top: 1px solid color-mix(in srgb, var(--rd-border) 70%, transparent);
   }
 
@@ -285,7 +285,7 @@
   .rd-v2-synthesis-page .s04-main:has(> .s04-opening-construction) {
     display: grid;
     grid-template-columns: minmax(0, 1.62fr) minmax(340px, .58fr);
-    column-gap: 18px;
+    column-gap: var(--rd-space-4);
     align-content: start;
   }
 
@@ -328,9 +328,9 @@
     grid-template-columns: minmax(0, 1.45fr) 42px minmax(250px, .62fr);
     grid-template-rows: auto auto auto;
     align-items: center;
-    column-gap: 10px;
-    row-gap: 8px;
-    padding: 12px;
+    column-gap: var(--rd-space-3);
+    row-gap: var(--rd-space-2);
+    padding: var(--rd-space-3);
   }
 
   .rd-v2-synthesis-page .s04-opening-map > figcaption {
@@ -388,7 +388,7 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     align-items: stretch;
-    gap: 8px;
+    gap: var(--rd-space-2);
   }
 
   .rd-v2-synthesis-page .s04-main:has(> .s04-opening-construction) > .s04-opening-next > footer > span[aria-hidden="true"] {
@@ -410,8 +410,8 @@
   .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"])) {
     display: grid;
     grid-template-columns: minmax(0, 1.46fr) minmax(340px, .54fr);
-    column-gap: 18px;
-    row-gap: 12px;
+    column-gap: var(--rd-space-4);
+    row-gap: var(--rd-space-3);
     align-content: start;
   }
 
@@ -447,8 +447,8 @@
   .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction)) {
     display: grid !important;
     grid-template-columns: minmax(0, 1.46fr) minmax(340px, .54fr);
-    column-gap: 18px;
-    row-gap: 12px;
+    column-gap: var(--rd-space-4);
+    row-gap: var(--rd-space-3);
     align-content: start;
   }
 
@@ -490,7 +490,7 @@
     [data-testid="synthesis-query-ready-state"]
   )) {
     grid-auto-flow: row dense;
-    column-gap: 18px;
+    column-gap: var(--rd-space-4);
   }
 
   .rd-v2-synthesis-page .s04-main:has(> :is(
@@ -544,7 +544,7 @@
      existing recorded-context/proof sections a little more breathing room; do
      not invent any new facts just to fill the rail. */
   body:has(.rd-v2-synthesis-page) .s04-rail-proof li {
-    padding: 7px 0;
+    padding: var(--rd-space-2) 0;
   }
 }
 
@@ -650,7 +650,7 @@
   .rd-v2-synthesis-page .s04-measurement-status {
     box-sizing: border-box;
     min-width: 0;
-    padding: 11px 12px !important;
+    padding: var(--rd-space-3) var(--rd-space-3) !important;
     border: 1px solid #e8ebf1;
     border-left: 3px solid #b85b57 !important;
     border-radius: 12px;
@@ -669,7 +669,7 @@
   /* Recommendation: preserve the asymmetric hierarchy, but make the shorter
      decision card feel intentionally composed rather than abruptly truncated. */
   .rd-v2-synthesis-page .s04-main:has(> .s04-opening-construction) {
-    row-gap: 12px;
+    row-gap: var(--rd-space-3);
   }
 
   .rd-v2-synthesis-page .s04-main:has(> .s04-opening-construction) > .s04-opening-next {
@@ -691,7 +691,7 @@
      to balance the map without inventing content or stretching to equal height. */
   .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"])) {
     grid-template-columns: minmax(0, 1.5fr) minmax(350px, .5fr);
-    row-gap: 12px;
+    row-gap: var(--rd-space-3);
   }
 
   .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"])) > .s04-measurement-status {
@@ -723,7 +723,7 @@
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    gap: 12px;
+    gap: var(--rd-space-3);
   }
 
   .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]) > * {
@@ -737,8 +737,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
-    padding-block: 9px;
+    gap: var(--rd-space-4);
+    padding-block: var(--rd-space-2);
   }
 
   .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]) > .s04-measurement-status button {
@@ -754,7 +754,7 @@
     [data-testid="synthesis-query-ready-state"]
   )) {
     grid-template-columns: minmax(0, 1.28fr) minmax(390px, .72fr);
-    row-gap: 12px;
+    row-gap: var(--rd-space-3);
   }
 
   .rd-v2-synthesis-page .s04-main:has(> :is(
@@ -797,7 +797,7 @@
   /* New construction: use the centre as a working surface, not a tall form. */
   #root .rd-v2-synthesis-page .s04-new-entry-grid {
     grid-template-columns: minmax(0, 1.12fr) minmax(420px, .88fr);
-    gap: 18px;
+    gap: var(--rd-space-4);
     align-items: stretch;
   }
 
@@ -809,8 +809,8 @@
   #root .rd-v2-synthesis-page .s04-new-entry-purpose {
     display: grid;
     grid-template-columns: minmax(0, 1.22fr) minmax(300px, .78fr);
-    column-gap: 14px;
-    row-gap: 10px;
+    column-gap: var(--rd-space-3);
+    row-gap: var(--rd-space-3);
     align-content: start;
   }
 
@@ -855,8 +855,8 @@
     display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
     grid-auto-flow: row dense;
-    column-gap: 12px !important;
-    row-gap: 12px;
+    column-gap: var(--rd-space-3) !important;
+    row-gap: var(--rd-space-3);
     align-content: start;
   }
 
@@ -944,8 +944,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
-    padding-block: 9px !important;
+    gap: var(--rd-space-4);
+    padding-block: var(--rd-space-2) !important;
     margin: 0;
   }
 
@@ -1029,7 +1029,7 @@
 
   /* Registered/result sidecars: keep durable identifiers readable. */
   #root .rd-v2-synthesis-page .s04-main > [data-testid="synthesis-method-surface"] .s04-title {
-    gap: 10px;
+    gap: var(--rd-space-3);
   }
 
   #root .rd-v2-synthesis-page .s04-main > [data-testid="synthesis-method-surface"] .s04-title > div {
@@ -1116,7 +1116,7 @@
     order: 2;
     grid-template-columns: minmax(0, 1fr) minmax(330px, .44fr);
     grid-template-rows: auto auto auto;
-    column-gap: 22px;
+    column-gap: var(--rd-space-5);
     align-items: center;
   }
 
@@ -1204,8 +1204,8 @@
   ) {
     display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr));
-    column-gap: 12px;
-    row-gap: 12px;
+    column-gap: var(--rd-space-3);
+    row-gap: var(--rd-space-3);
     align-content: start;
   }
 
@@ -1246,7 +1246,7 @@
 
   /* Preview is already information-dense; only the lifecycle row changes. */
   #root .rd-v2-synthesis-page [data-testid="synthesis-execution-state"] .s04-preview-receipt {
-    margin-top: 12px;
+    margin-top: var(--rd-space-3);
   }
 }
 
@@ -1264,7 +1264,7 @@
     grid-column: 1 / 13;
     grid-row: 1;
     min-height: 68px;
-    padding: 8px 2px 8px 0;
+    padding: var(--rd-space-2) 2px var(--rd-space-2) 0;
     align-items: center;
     border-bottom: 1px solid #dbd4c5;
   }
@@ -1293,7 +1293,7 @@
     grid-column: 1;
     grid-row: 1;
     min-height: 0;
-    padding: 9px 22px 0 0 !important;
+    padding: var(--rd-space-2) var(--rd-space-5) 0 0 !important;
     border: 0;
     background: transparent;
     align-items: baseline;
@@ -1312,7 +1312,7 @@
     grid-column: 1;
     grid-row: 2;
     max-width: 72ch;
-    padding: 4px 28px 11px 0;
+    padding: var(--rd-space-1) var(--rd-space-5) var(--rd-space-3) 0;
     color: #465164;
     font-size: var(--rd-text-2xs);
     line-height: 1.45;
@@ -1332,7 +1332,7 @@
   #root .rd-v2-synthesis-page .s04-main:has(> .s04-opening-brief) > .s04-opening-brief > dl > div {
     display: flex;
     min-width: 0;
-    padding: 10px 14px;
+    padding: var(--rd-space-3) var(--rd-space-3);
     flex-direction: column;
     justify-content: center;
   }
@@ -1398,20 +1398,20 @@
   display: flex;
   align-items: center;
   min-width: 0;
-  padding: 7px 12px 7px 0;
+  padding: var(--rd-space-2) var(--rd-space-3) var(--rd-space-2) 0;
   background: transparent;
   color: #5d6574;
 }
 
 .rd-v2-synthesis-page .s04-opening-workflow li + li {
-  padding-left: 14px;
+  padding-left: var(--rd-space-3);
   border-left: 0;
 }
 
 .rd-v2-synthesis-page .s04-opening-workflow li + li::before {
   content: "→";
   position: static;
-  margin-right: 8px;
+  margin-right: var(--rd-space-2);
   color: #a4acb7;
   font-size: var(--rd-text-xs);
 }
@@ -1439,9 +1439,9 @@
   display: grid;
   grid-template-columns: max-content minmax(0, 1fr);
   align-items: baseline;
-  gap: 10px;
+  gap: var(--rd-space-3);
   margin: 0;
-  padding: 8px 0 9px;
+  padding: var(--rd-space-2) 0 var(--rd-space-2);
   border-bottom: 1px solid #e8ebf1;
   color: #5b6578;
   font-size: var(--rd-text-2xs);
@@ -1515,7 +1515,7 @@
 .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
   > .s04-opening-next {
   min-height: 0;
-  padding: 7px 10px;
+  padding: var(--rd-space-2) var(--rd-space-3);
   margin: 0;
   border: 1px solid #e8ebf1;
   border-radius: 8px;
@@ -1571,19 +1571,19 @@
  * same viewport. */
 .rd-v2-synthesis-page .s04-main:has(> .s04-measurement-status):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> .s04-draft))
   > .s04-opening-next {
-  padding: 12px 14px;
+  padding: var(--rd-space-3) var(--rd-space-3);
   box-shadow: none;
 }
 
 .rd-v2-synthesis-page .s04-main:has(> .s04-measurement-status):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> .s04-draft))
   > .s04-opening-next > p {
-  margin-block: 5px 8px;
+  margin-block: var(--rd-space-1) var(--rd-space-2);
 }
 
 .rd-v2-synthesis-page .s04-main:has(> .s04-measurement-status):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> .s04-draft))
   > .s04-opening-next > em {
-  margin-top: 8px;
-  padding-top: 7px;
+  margin-top: var(--rd-space-2);
+  padding-top: var(--rd-space-2);
 }
 
 @media (max-width: 600px) {
@@ -1602,7 +1602,7 @@
   .rd-v2-synthesis-page .s04-opening-workflow-note {
     grid-template-columns: 1fr;
     gap: 3px;
-    padding-block: 7px;
+    padding-block: var(--rd-space-2);
   }
 }
 
@@ -1621,10 +1621,10 @@
 .rd-v2-synthesis-page .s04-steps {
   grid-template-columns: max-content minmax(0, 1fr);
   align-items: baseline;
-  gap: 10px;
+  gap: var(--rd-space-3);
   min-height: 0;
   margin: 0;
-  padding: 8px 0 9px;
+  padding: var(--rd-space-2) 0 var(--rd-space-2);
   border: 0;
   border-bottom: 1px solid #e8ebf1;
   background: transparent;
@@ -1657,7 +1657,7 @@
   display: block !important;
   min-height: 0 !important;
   margin: 0 !important;
-  padding: 7px 10px !important;
+  padding: var(--rd-space-2) var(--rd-space-3) !important;
   border: 1px solid #e8ebf1 !important;
   border-radius: 8px !important;
   background: #ffffff !important;
@@ -1709,8 +1709,8 @@
    * brief remain readable; operational state is allowed to use the canvas. */
   #root .rd-v2-synthesis-page .s04-main {
     grid-template-columns: repeat(12, minmax(0, 1fr));
-    column-gap: 14px;
-    row-gap: 12px;
+    column-gap: var(--rd-space-3);
+    row-gap: var(--rd-space-3);
   }
 
   #root .rd-v2-synthesis-page .s04-main > :is(
@@ -1863,9 +1863,9 @@
 
   .rd-v2-synthesis-page .s04-opening-workflow-note {
     grid-template-columns: max-content minmax(0, 1fr);
-    gap: 12px;
+    gap: var(--rd-space-3);
     margin: 0;
-    padding: 9px 12px;
+    padding: var(--rd-space-2) var(--rd-space-3);
     border: 1px solid #dfe6e2;
     border-radius: 8px;
     background: #ffffff;
@@ -1884,7 +1884,7 @@
 
   .rd-v2-synthesis-page .s04-opening-brief > header {
     min-height: 0 !important;
-    padding-block: 7px !important;
+    padding-block: var(--rd-space-2) !important;
   }
 
   .rd-v2-synthesis-page .s04-opening-brief > p {
@@ -1895,12 +1895,12 @@
      a persistent Ask rail and a dedicated operation control. */
 
   .rd-v2-synthesis-page [data-testid="synthesis-evidence-state"] > .s04-pairs {
-    margin-top: 10px;
+    margin-top: var(--rd-space-3);
   }
 
   .rd-v2-synthesis-page [data-testid="synthesis-evidence-state"] > .s04-pairs article {
     min-height: 0;
-    padding: 9px 11px;
+    padding: var(--rd-space-2) var(--rd-space-3);
     background: transparent !important;
     box-shadow: none;
   }
@@ -1924,7 +1924,7 @@
   .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
     > [data-testid="synthesis-evidence-state"] > .s04-title {
     margin: 0;
-    padding: 16px 18px 10px;
+    padding: var(--rd-space-4) var(--rd-space-4) var(--rd-space-3);
     border-bottom: 0;
   }
 
@@ -1954,8 +1954,8 @@
   }
 
   .rd-v2-synthesis-page .s04-evidence-proposal {
-    margin: 0 16px 16px !important;
-    padding: 16px !important;
+    margin: 0 var(--rd-space-4) var(--rd-space-4) !important;
+    padding: var(--rd-space-4) !important;
     border: 1px solid #dfe6e2 !important;
     border-radius: 10px !important;
     background: #ffffff !important;
@@ -1968,8 +1968,8 @@
   .rd-v2-synthesis-page .s04-evidence-proposal > ul {
     display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px !important;
-    margin-top: 12px !important;
+    gap: var(--rd-space-2) !important;
+    margin-top: var(--rd-space-3) !important;
   }
 
   .rd-v2-synthesis-page .s04-evidence-proposal > ul > li {
@@ -1985,8 +1985,8 @@
   }
 
   .rd-v2-synthesis-page .s04-evidence-proposal > footer {
-    margin-top: 14px;
-    padding-top: 12px;
+    margin-top: var(--rd-space-3);
+    padding-top: var(--rd-space-3);
     border-top: 1px solid #dfe6e2;
   }
 
@@ -1997,7 +1997,7 @@
     display: block;
     min-height: 0;
     margin: 0;
-    padding: 7px 10px;
+    padding: var(--rd-space-2) var(--rd-space-3);
     border: 1px solid #dfe6e2;
     border-radius: 8px;
     background: transparent;
@@ -2035,7 +2035,7 @@
   .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"])
     > .s04-opening-next {
     min-height: 0;
-    padding: 12px 14px !important;
+    padding: var(--rd-space-3) var(--rd-space-3) !important;
     border: 1px solid #dfe6e2;
     border-radius: 9px !important;
     background: #f5faf7 !important;
@@ -2090,7 +2090,7 @@
   .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"])
     > .s04-measurement-status {
     min-height: 0;
-    padding-block: 8px;
+    padding-block: var(--rd-space-2);
   }
 
   /* Preview / Approval / Build / Result: remove repeated context and ancient
@@ -2163,7 +2163,7 @@
 
   .rd-v2-synthesis-page .s04-opening-workflow > li {
     min-height: 0;
-    padding: 6px 8px !important;
+    padding: var(--rd-space-2) var(--rd-space-2) !important;
     border: 0;
     border-right: 1px solid #eef1ee;
     background: transparent;
@@ -2194,10 +2194,10 @@
   .rd-v2-synthesis-page [data-testid="synthesis-evidence-state"] > .s04-actions {
     display: flex !important;
     justify-content: flex-end;
-    gap: 8px;
+    gap: var(--rd-space-2);
     min-height: 0;
-    margin-top: 8px;
-    padding: 7px 0 0;
+    margin-top: var(--rd-space-2);
+    padding: var(--rd-space-2) 0 0;
     border-top: 1px solid #eef1ee !important;
     background: transparent;
   }
@@ -2205,7 +2205,7 @@
   .rd-v2-synthesis-page [data-testid="synthesis-evidence-state"] > .s04-actions button {
     width: auto;
     min-height: 30px;
-    padding: 5px 10px;
+    padding: var(--rd-space-1) var(--rd-space-3);
     border-color: #d8dee2;
     background: transparent;
     box-shadow: none;
@@ -2236,7 +2236,7 @@
 
   #root .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
     > .s04-opening-next {
-    padding-block: 9px;
+    padding-block: var(--rd-space-2);
   }
 
   #root .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
@@ -2261,7 +2261,7 @@
     min-height: 0;
     height: auto;
     align-self: start;
-    padding-block: 10px;
+    padding-block: var(--rd-space-3);
   }
 
   #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
@@ -2294,8 +2294,8 @@
     min-width: 0;
     display: grid;
     grid-template-columns: minmax(0, 1.15fr) minmax(300px, .85fr);
-    column-gap: 18px;
-    row-gap: 12px;
+    column-gap: var(--rd-space-4);
+    row-gap: var(--rd-space-3);
     align-items: start;
   }
 
@@ -2421,8 +2421,8 @@
     display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr));
     grid-auto-flow: row dense;
-    column-gap: 12px;
-    row-gap: 12px;
+    column-gap: var(--rd-space-3);
+    row-gap: var(--rd-space-3);
     align-content: start;
   }
 
@@ -2445,7 +2445,7 @@
     flex-direction: column;
     justify-content: center;
     align-self: stretch;
-    padding: 16px;
+    padding: var(--rd-space-4);
     border-color: #dfe6e2;
     background: #ffffff;
   }
@@ -2453,7 +2453,7 @@
   #root .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
     > .s04-opening-next > footer {
     display: grid;
-    gap: 12px;
+    gap: var(--rd-space-3);
     align-content: center;
   }
 
@@ -2482,8 +2482,8 @@
     display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr));
     grid-auto-flow: row dense;
-    column-gap: 12px;
-    row-gap: 12px;
+    column-gap: var(--rd-space-3);
+    row-gap: var(--rd-space-3);
     align-content: start;
   }
 
@@ -2507,7 +2507,7 @@
     flex-direction: column;
     justify-content: space-between;
     align-self: stretch;
-    padding: 18px;
+    padding: var(--rd-space-4);
     margin: 0;
   }
 
@@ -2520,7 +2520,7 @@
     display: flex;
     flex-direction: column;
     align-self: stretch;
-    padding: 18px;
+    padding: var(--rd-space-4);
     margin: 0;
     background: #ffffff !important;
   }
@@ -2534,7 +2534,7 @@
 
   #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
     > .s04-opening-next > p {
-    margin-top: 12px;
+    margin-top: var(--rd-space-3);
     color: #41505d;
     font-size: var(--rd-text-2xs);
     line-height: 1.55;
@@ -2563,8 +2563,8 @@
     display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr));
     grid-auto-flow: row dense;
-    column-gap: 12px;
-    row-gap: 12px;
+    column-gap: var(--rd-space-3);
+    row-gap: var(--rd-space-3);
     align-content: start;
   }
 
@@ -2579,7 +2579,7 @@
     min-height: 0;
     align-self: stretch;
     margin: 0;
-    padding: 8px 12px 8px 0;
+    padding: var(--rd-space-2) var(--rd-space-3) var(--rd-space-2) 0;
     border-bottom: 1px solid #dbd4c5;
   }
 
@@ -2620,7 +2620,7 @@
   )) > .s04-opening-brief > header {
     grid-column: 1;
     grid-row: 1;
-    padding: 7px 14px 0 0 !important;
+    padding: var(--rd-space-2) var(--rd-space-3) 0 0 !important;
     border: 0;
     background: transparent;
   }
@@ -2632,7 +2632,7 @@
   )) > .s04-opening-brief > p {
     grid-column: 1;
     grid-row: 2;
-    padding: 3px 18px 9px 0;
+    padding: 3px var(--rd-space-4) var(--rd-space-2) 0;
     font-size: var(--rd-text-2xs);
     line-height: 1.4;
   }
@@ -2659,7 +2659,7 @@
   )) > .s04-opening-brief > dl > div {
     display: flex;
     min-width: 0;
-    padding: 8px 10px;
+    padding: var(--rd-space-2) var(--rd-space-3);
     flex-direction: column;
     justify-content: center;
   }
@@ -2692,12 +2692,12 @@
     min-height: 0;
     display: grid;
     grid-template-columns: minmax(0, 1.35fr) minmax(250px, .82fr) minmax(250px, .78fr);
-    column-gap: 16px;
-    row-gap: 12px;
+    column-gap: var(--rd-space-4);
+    row-gap: var(--rd-space-3);
     align-items: start;
     align-self: start;
     margin: 0;
-    padding: 18px;
+    padding: var(--rd-space-4);
   }
 
   #root .rd-v2-synthesis-page :is(
@@ -2748,7 +2748,7 @@
     justify-content: space-between;
     align-self: stretch;
     margin: 0;
-    padding: 14px;
+    padding: var(--rd-space-3);
     border: 1px solid #e2ddd2;
     border-radius: 9px;
     background: #ffffff;
@@ -2772,7 +2772,7 @@
     grid-column: 3 !important;
     grid-row: 2;
     margin: 0;
-    padding: 14px;
+    padding: var(--rd-space-3);
     border: 1px solid #e8d9c8;
     border-radius: 9px;
     background: #fffdf6;
@@ -2815,7 +2815,7 @@
     min-width: 0;
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
-    gap: 14px;
+    gap: var(--rd-space-3);
     align-items: center;
     margin: 0;
   }
@@ -2828,7 +2828,7 @@
 
   #root .rd-v2-synthesis-page [data-testid="synthesis-upset-visual"] {
     grid-template-columns: minmax(145px, .56fr) minmax(0, 1.44fr) !important;
-    gap: 10px !important;
+    gap: var(--rd-space-3) !important;
     width: 100% !important;
     min-width: 0 !important;
     max-width: 100% !important;
@@ -2836,7 +2836,7 @@
 
   #root .rd-v2-synthesis-page [data-testid="synthesis-upset-visual"] .s04-upset-row {
     grid-template-columns: minmax(102px, auto) minmax(54px, 1fr) 54px 58px !important;
-    gap: 5px !important;
+    gap: var(--rd-space-1) !important;
     min-width: 0 !important;
     max-width: 100% !important;
   }
@@ -2848,8 +2848,8 @@
 
   #root .rd-v2-synthesis-page [data-testid="synthesis-upset-visual"] .s04-upset-legend > span {
     grid-template-columns: 22px minmax(0, 1fr) auto !important;
-    gap: 6px !important;
-    padding: 6px 7px !important;
+    gap: var(--rd-space-2) !important;
+    padding: var(--rd-space-2) var(--rd-space-2) !important;
   }
 
   #root .rd-v2-synthesis-page [data-testid="synthesis-upset-visual"] .s04-upset-legend em {
@@ -2908,7 +2908,7 @@
 
   #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-measurement-status)):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
     > .s04-opening-next > p {
-    margin: 10px 0 14px;
+    margin: var(--rd-space-3) 0 var(--rd-space-3);
     color: #41505d;
     font-size: var(--rd-text-2xs);
     line-height: 1.5;
@@ -2959,7 +2959,7 @@
   #root .rd-v2-synthesis-page [data-testid="synthesis-upset-visual"]:has(.s04-upset-legend > span:nth-child(8)) {
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) !important;
-    gap: 10px !important;
+    gap: var(--rd-space-3) !important;
     width: 100% !important;
     min-width: 0 !important;
     max-width: 100% !important;
@@ -2969,7 +2969,7 @@
     grid-column: 1 !important;
     display: grid !important;
     grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-    gap: 6px !important;
+    gap: var(--rd-space-2) !important;
     min-width: 0 !important;
     max-width: 100% !important;
   }
@@ -2983,7 +2983,7 @@
 
   #root .rd-v2-synthesis-page [data-testid="synthesis-upset-visual"]:has(.s04-upset-legend > span:nth-child(8)) .s04-upset-row {
     grid-template-columns: minmax(120px, 1.2fr) minmax(90px, 1.8fr) 62px 70px !important;
-    gap: 6px !important;
+    gap: var(--rd-space-2) !important;
     min-width: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
@@ -3020,12 +3020,12 @@
 
   #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
     > .s04-measurement-status button {
-    margin-top: 14px;
+    margin-top: var(--rd-space-3);
   }
 
   #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
     > .s04-opening-next > footer {
-    margin-top: 18px;
+    margin-top: var(--rd-space-4);
   }
 }
 
@@ -3063,7 +3063,7 @@
     grid-column: 9 / 13;
     justify-content: space-between;
     align-self: stretch;
-    padding: 20px;
+    padding: var(--rd-space-4);
   }
 
   /* ---------------------------------------------------------------------
@@ -3093,7 +3093,7 @@
     min-height: 0;
     height: auto;
     align-self: stretch;
-    padding: 20px !important;
+    padding: var(--rd-space-4) !important;
   }
 
   #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"]))
@@ -3103,7 +3103,7 @@
     min-height: 238px;
     height: auto;
     align-self: stretch;
-    padding: 20px !important;
+    padding: var(--rd-space-4) !important;
   }
 
   /* ---------------------------------------------------------------------
@@ -3212,9 +3212,9 @@
     flex-direction: row;
     align-items: center;
     justify-content: flex-start;
-    gap: 14px;
+    gap: var(--rd-space-3);
     margin: 0;
-    padding: 9px 13px;
+    padding: var(--rd-space-2) var(--rd-space-3);
     border-radius: 8px;
   }
 
@@ -3248,9 +3248,9 @@
     display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr));
     grid-template-rows: auto minmax(210px, auto) auto;
-    column-gap: 14px;
-    row-gap: 10px;
-    padding: 16px;
+    column-gap: var(--rd-space-3);
+    row-gap: var(--rd-space-3);
+    padding: var(--rd-space-4);
     overflow: hidden;
   }
 
@@ -3288,7 +3288,7 @@
     grid-row: 2;
     display: grid;
     grid-template-columns: 1fr;
-    gap: 8px;
+    gap: var(--rd-space-2);
     min-width: 0;
     margin: 0;
     align-content: start;
@@ -3300,7 +3300,7 @@
     [data-testid="synthesis-join-decision"]
   )) > [data-testid="synthesis-evidence-state"] > .s04-pairs article {
     min-height: 0;
-    padding: 10px 12px;
+    padding: var(--rd-space-3) var(--rd-space-3);
   }
 
   #root .rd-v2-synthesis-page .s04-main:has(> :is(
@@ -3314,7 +3314,7 @@
     justify-content: flex-end;
     align-self: end;
     margin: 0;
-    padding-top: 8px;
+    padding-top: var(--rd-space-2);
   }
 
   /* Method diagnostics, when present, follow the evidence workbench rather than
@@ -3350,7 +3350,7 @@
     min-height: 0;
     height: auto;
     align-self: start;
-    padding: 15px 17px !important;
+    padding: var(--rd-space-4) var(--rd-space-4) !important;
   }
 
   #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):has(> [data-testid="synthesis-method-surface"]):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"])) > .s04-opening-next {
@@ -3359,7 +3359,7 @@
     min-height: 0;
     height: auto;
     align-self: start;
-    padding: 16px 18px !important;
+    padding: var(--rd-space-4) var(--rd-space-4) !important;
   }
 
   #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):has(> .s04-measurement-status):has(> [data-testid="synthesis-method-surface"]):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])):not(:has(> [data-testid="synthesis-failed-state"])):not(:has(> [data-testid="synthesis-registered-state"])):not(:has(> [data-testid="synthesis-query-ready-state"])):not(:has(> [data-testid="synthesis-scope-block"])):not(:has(> [data-testid="synthesis-unit-conflict"])):not(:has(> [data-testid="synthesis-join-decision"])) > [data-testid="synthesis-method-surface"] {
@@ -3367,19 +3367,19 @@
     grid-row: 6;
     min-width: 0;
     margin: 0;
-    padding: 13px 15px;
+    padding: var(--rd-space-3) var(--rd-space-4);
   }
 
   #root .rd-v2-synthesis-page [data-testid="synthesis-method-surface"] .s04-measured-datasets {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 10px;
-    margin-top: 9px;
+    gap: var(--rd-space-3);
+    margin-top: var(--rd-space-2);
   }
 
   #root .rd-v2-synthesis-page [data-testid="synthesis-method-surface"] .s04-measured-dataset {
     min-width: 0;
-    padding: 10px 11px;
+    padding: var(--rd-space-3) var(--rd-space-3);
   }
 
   /* BLOCKING DECISIONS */
@@ -3387,7 +3387,7 @@
     grid-column: 1 / 13 !important;
     grid-row: 4 !important;
     min-height: 0 !important;
-    padding: 8px 12px !important;
+    padding: var(--rd-space-2) var(--rd-space-3) !important;
   }
 
   #root .rd-v2-synthesis-page .s04-main:has(> :is([data-testid="synthesis-scope-block"],[data-testid="synthesis-unit-conflict"],[data-testid="synthesis-join-decision"])):has(> [data-testid="synthesis-method-surface"]) > [data-testid="synthesis-evidence-state"] {
@@ -3395,7 +3395,7 @@
     grid-row: 5 !important;
     min-height: 286px !important;
     height: 286px !important;
-    padding: 14px !important;
+    padding: var(--rd-space-3) !important;
     overflow: hidden !important;
     align-self: stretch !important;
   }
@@ -3411,7 +3411,7 @@
     min-width: 0 !important;
     height: 286px !important;
     margin: 0 !important;
-    padding: 13px !important;
+    padding: var(--rd-space-3) !important;
     overflow: auto !important;
     align-self: stretch !important;
   }
@@ -3425,11 +3425,11 @@
     grid-column: 1 / 13 !important;
     grid-row: 5 !important;
     margin: 0 !important;
-    padding: 12px 14px !important;
+    padding: var(--rd-space-3) var(--rd-space-3) !important;
   }
 
   #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):has(> [data-testid="synthesis-method-surface"]) > [data-testid="synthesis-method-surface"] .s04-title {
-    margin-bottom: 7px !important;
+    margin-bottom: var(--rd-space-2) !important;
   }
 
   /* DEFINED / no evidence */
@@ -3445,7 +3445,7 @@
 
   #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-evidence-state"]):not(:has(> .s04-measurement-status)):not(:has(> [data-testid="synthesis-method-surface"])):not(:has(> .s04-opening-construction)):not(:has(> [data-testid="synthesis-proposal-state"])):not(:has(> [data-testid="synthesis-execution-state"])) > .s04-opening-next {
     min-height: 430px;
-    padding: 20px !important;
+    padding: var(--rd-space-4) !important;
   }
 
   /* OPENING INSPECTOR: make the right rail an actual analytical ledger rather
@@ -3453,13 +3453,13 @@
      current thread state or deterministic measurement output. */
   #root .rd-v2-synthesis-page [data-testid="synthesis-opening-rail"] .rd-v2-rail-scroll {
     display: grid !important;
-    gap: 9px !important;
+    gap: var(--rd-space-2) !important;
     align-content: start !important;
-    padding-bottom: 12px !important;
+    padding-bottom: var(--rd-space-3) !important;
   }
 
   #root .rd-v2-synthesis-page :is(.s04-rail-gates,.s04-rail-evidence-ledger,.s04-rail-measurement) {
-    padding: 10px 11px !important;
+    padding: var(--rd-space-3) var(--rd-space-3) !important;
     border: 1px solid #e2ddd2 !important;
     border-radius: 8px !important;
     background: rgba(255, 253, 246, 0.74) !important;
@@ -3469,8 +3469,8 @@
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    gap: 8px !important;
-    margin-bottom: 7px !important;
+    gap: var(--rd-space-2) !important;
+    margin-bottom: var(--rd-space-2) !important;
   }
 
   #root .rd-v2-synthesis-page :is(.s04-rail-gates,.s04-rail-evidence-ledger,.s04-rail-measurement) > header span {
@@ -3498,7 +3498,7 @@
   #root .rd-v2-synthesis-page .s04-rail-gates li {
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) auto !important;
-    gap: 8px !important;
+    gap: var(--rd-space-2) !important;
     align-items: center !important;
     min-height: 24px !important;
     border-top: 1px solid #eeeae0 !important;
@@ -3514,7 +3514,7 @@
   #root .rd-v2-synthesis-page .s04-rail-evidence-ledger li {
     display: grid !important;
     gap: 2px !important;
-    padding: 6px 0 !important;
+    padding: var(--rd-space-2) 0 !important;
     border-top: 1px solid #eeeae0 !important;
   }
   #root .rd-v2-synthesis-page .s04-rail-evidence-ledger li:first-child { border-top: 0 !important; }
@@ -3534,12 +3534,12 @@
   #root .rd-v2-synthesis-page .s04-rail-measurement dl {
     display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 6px !important;
+    gap: var(--rd-space-2) !important;
     margin: 0 !important;
   }
   #root .rd-v2-synthesis-page .s04-rail-measurement dl > div {
     min-width: 0 !important;
-    padding: 6px 7px !important;
+    padding: var(--rd-space-2) var(--rd-space-2) !important;
     border: 1px solid #e2ddd2 !important;
     border-radius: 6px !important;
     background: rgba(255,255,255,.5) !important;
@@ -3573,9 +3573,9 @@
    * ---------------------------------------------------------------- */
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .rd-v2-rail-scroll {
     display: grid;
-    gap: 10px;
+    gap: var(--rd-space-3);
     align-content: start;
-    padding: 10px 12px 14px;
+    padding: var(--rd-space-3) var(--rd-space-3) var(--rd-space-3);
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] :is(
@@ -3586,7 +3586,7 @@
     display: block;
     min-width: 0;
     margin: 0;
-    padding: 11px 12px;
+    padding: var(--rd-space-3) var(--rd-space-3);
     border: 1px solid #e2ddd2;
     border-radius: 9px;
     background: rgba(255, 253, 246, 0.82);
@@ -3601,9 +3601,9 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
-    margin: 0 0 8px;
-    padding: 0 0 7px;
+    gap: var(--rd-space-3);
+    margin: 0 0 var(--rd-space-2);
+    padding: 0 0 var(--rd-space-2);
     border-bottom: 1px solid #e2ddd2;
   }
 
@@ -3643,11 +3643,11 @@
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-gates li {
     display: grid;
     grid-template-columns: minmax(90px, .78fr) minmax(0, 1.22fr);
-    gap: 12px;
+    gap: var(--rd-space-3);
     align-items: center;
     min-height: 27px;
     margin: 0;
-    padding: 5px 0;
+    padding: var(--rd-space-1) 0;
     border-top: 1px solid #eeeae0;
     list-style: none;
   }
@@ -3689,7 +3689,7 @@
     display: grid;
     gap: 3px;
     margin: 0;
-    padding: 7px 0;
+    padding: var(--rd-space-2) 0;
     border-top: 1px solid #eeeae0;
     list-style: none;
   }
@@ -3724,13 +3724,13 @@
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-measurement dl {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 7px;
+    gap: var(--rd-space-2);
     margin: 0;
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-measurement dl > div {
     min-width: 0;
-    padding: 7px 8px;
+    padding: var(--rd-space-2) var(--rd-space-2);
     border: 1px solid #e2ddd2;
     border-radius: 7px;
     background: rgba(255, 255, 255, .5);
@@ -3779,7 +3779,7 @@
     min-height: 0;
     height: auto;
     margin: 0;
-    padding: 9px 12px !important;
+    padding: var(--rd-space-2) var(--rd-space-3) !important;
     align-self: start;
   }
 
@@ -3793,13 +3793,13 @@
     display: grid;
     grid-template-columns: minmax(0, 2fr) minmax(290px, .8fr);
     grid-template-rows: auto minmax(250px, 1fr) auto;
-    column-gap: 12px;
-    row-gap: 10px;
+    column-gap: var(--rd-space-3);
+    row-gap: var(--rd-space-3);
     min-width: 0;
     min-height: 352px;
     height: auto;
     margin: 0;
-    padding: 14px;
+    padding: var(--rd-space-3);
     overflow: hidden !important;
     align-self: stretch;
   }
@@ -3836,7 +3836,7 @@
     grid-row: 2;
     display: grid;
     grid-template-columns: 1fr;
-    gap: 10px;
+    gap: var(--rd-space-3);
     min-width: 0;
     margin: 0;
     align-content: stretch;
@@ -3849,7 +3849,7 @@
   )):not(:has(> [data-testid="synthesis-method-surface"])) > [data-testid="synthesis-evidence-state"] > .s04-pairs > article {
     min-height: 0;
     margin: 0;
-    padding: 12px;
+    padding: var(--rd-space-3);
   }
 
   #root .rd-v2-synthesis-page .s04-main:has(> :is(
@@ -3860,7 +3860,7 @@
     grid-column: 1 / -1;
     grid-row: 3;
     margin: 0;
-    padding-top: 10px;
+    padding-top: var(--rd-space-3);
   }
 
   /* When measured columns do exist, keep the evidence/diagnostics split but
@@ -3892,17 +3892,17 @@
 .s04-head > em {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: var(--rd-space-2);
   white-space: nowrap;
 }
 
 .rd-v2-synthesis-page-authority {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: var(--rd-space-1);
   min-width: 0;
   margin-left: 1px;
-  padding-left: 8px;
+  padding-left: var(--rd-space-2);
   border-left: 1px solid #dbd4c5;
   color: #4e5c55;
   font-style: normal;
@@ -3970,7 +3970,7 @@
   }
 
   .rd-v2-synthesis-page-authority {
-    padding-left: 6px;
+    padding-left: var(--rd-space-2);
   }
 
   .rd-v2-synthesis-page-authority select {
@@ -4004,9 +4004,9 @@
      body state rather than as a descendant of .rd-v2-synthesis-page. */
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .rd-v2-rail-scroll {
     display: grid;
-    gap: 10px;
+    gap: var(--rd-space-3);
     align-content: start;
-    padding: 10px 12px 14px;
+    padding: var(--rd-space-3) var(--rd-space-3) var(--rd-space-3);
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] :is(
@@ -4017,7 +4017,7 @@
     display: block;
     min-width: 0;
     margin: 0;
-    padding: 11px 12px;
+    padding: var(--rd-space-3) var(--rd-space-3);
     border: 1px solid #e2ddd2;
     border-radius: 9px;
     background: rgba(255, 253, 246, 0.82);
@@ -4032,9 +4032,9 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
-    margin: 0 0 8px;
-    padding: 0 0 7px;
+    gap: var(--rd-space-3);
+    margin: 0 0 var(--rd-space-2);
+    padding: 0 0 var(--rd-space-2);
     border-bottom: 1px solid #e2ddd2;
   }
 
@@ -4073,11 +4073,11 @@
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-gates li {
     display: grid;
     grid-template-columns: minmax(82px, .78fr) minmax(0, 1.22fr);
-    gap: 10px !important;
+    gap: var(--rd-space-3) !important;
     align-items: center;
     min-height: 27px;
     margin: 0;
-    padding: 5px 0;
+    padding: var(--rd-space-1) 0;
     border-top: 1px solid #eeeae0;
     list-style: none;
   }
@@ -4121,7 +4121,7 @@
     display: grid;
     gap: 3px;
     margin: 0;
-    padding: 7px 0;
+    padding: var(--rd-space-2) 0;
     border-top: 1px solid #eeeae0;
     list-style: none;
   }
@@ -4153,13 +4153,13 @@
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-measurement dl {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 7px;
+    gap: var(--rd-space-2);
     margin: 0;
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-measurement dl > div {
     min-width: 0;
-    padding: 7px 8px;
+    padding: var(--rd-space-2) var(--rd-space-2);
     border: 1px solid #e2ddd2;
     border-radius: 7px;
     background: rgba(255, 255, 255, .5);
@@ -4197,7 +4197,7 @@
      of using the base nowrap button rule to intrude into the Ask lane. */
   #root .rd-v2-synthesis-page [data-testid="synthesis-unit-conflict"] > .s04-options li {
     grid-template-columns: minmax(0, 1fr);
-    gap: 5px;
+    gap: var(--rd-space-1);
     align-items: start;
   }
 
@@ -4221,8 +4221,8 @@
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    gap: 8px;
-    padding: 12px;
+    gap: var(--rd-space-2);
+    padding: var(--rd-space-3);
     border: 1px solid #e2ddd2;
     border-radius: 9px;
     background: #ffffff;
@@ -4277,8 +4277,8 @@
   body:has(.rd-v2-synthesis-page) .s04-rail-proof {
     display: block;
     min-width: 0;
-    margin: 10px 12px 0;
-    padding: 11px 12px;
+    margin: var(--rd-space-3) var(--rd-space-3) 0;
+    padding: var(--rd-space-3) var(--rd-space-3);
     border: 1px solid #e2ddd2;
     border-radius: 9px;
     background: rgba(255, 253, 246, 0.82);
@@ -4289,9 +4289,9 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
-    margin: 0 0 8px;
-    padding: 0 0 7px;
+    gap: var(--rd-space-3);
+    margin: 0 0 var(--rd-space-2);
+    padding: 0 0 var(--rd-space-2);
     border-bottom: 1px solid #e2ddd2;
   }
 
@@ -4314,10 +4314,10 @@
   body:has(.rd-v2-synthesis-page) .s04-rail-proof li {
     display: grid;
     grid-template-columns: 78px minmax(0, 1fr);
-    gap: 9px;
+    gap: var(--rd-space-2);
     align-items: start;
     margin: 0;
-    padding: 7px 0;
+    padding: var(--rd-space-2) 0;
     border-top: 1px solid #eeeae0;
     list-style: none;
   }
@@ -4436,7 +4436,7 @@
   .rd-v2-synthesis-page[data-synthesis-workspace-phase="execute"] [data-testid="synthesis-failed-state"],
   .rd-v2-synthesis-page[data-synthesis-workspace-phase="execute"] [data-testid="synthesis-registered-state"],
   .rd-v2-synthesis-page[data-synthesis-workspace-phase="execute"] [data-testid="synthesis-query-ready-state"] {
-    margin-top: 10px;
+    margin-top: var(--rd-space-3);
   }
 }
 
@@ -4453,7 +4453,7 @@
  * operations and durable receipts. It never claims to expose model reasoning.
  */
 .rd-v2-synthesis-agent-console {
-  margin: 0 10px 10px;
+  margin: 0 var(--rd-space-3) var(--rd-space-3);
   border: 1px solid #dfe6e2;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.96);
@@ -4465,8 +4465,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  padding: 10px 11px 8px;
+  gap: var(--rd-space-3);
+  padding: var(--rd-space-3) var(--rd-space-3) var(--rd-space-2);
   border-bottom: 1px solid #eef1ee;
 }
 
@@ -4474,7 +4474,7 @@
   min-width: 0;
   display: flex;
   align-items: baseline;
-  gap: 7px;
+  gap: var(--rd-space-2);
 }
 
 .rd-v2-synthesis-agent-head small,
@@ -4497,7 +4497,7 @@
 
 .rd-v2-synthesis-agent-mode {
   flex: 0 0 auto;
-  padding: 3px 7px;
+  padding: 3px var(--rd-space-2);
   border: 1px solid #d6ddd9;
   border-radius: 999px;
   color: #52695f;
@@ -4510,16 +4510,16 @@
 .rd-v2-synthesis-agent-current {
   display: grid;
   grid-template-columns: 16px minmax(0, 1fr);
-  gap: 7px;
+  gap: var(--rd-space-2);
   align-items: start;
-  padding: 9px 11px;
+  padding: var(--rd-space-2) var(--rd-space-3);
   background: #fffdf6;
   border-bottom: 1px solid #eef1ee;
   color: #4e5c55;
 }
 
 .rd-v2-synthesis-agent-current > span {
-  padding-top: 10px;
+  padding-top: var(--rd-space-3);
   font-size: var(--rd-text-2xs);
   line-height: 1;
 }
@@ -4548,7 +4548,7 @@
 }
 
 .rd-v2-synthesis-agent-run {
-  padding: 8px 9px 7px;
+  padding: var(--rd-space-2) var(--rd-space-2) var(--rd-space-2);
   border-bottom: 1px solid #eef1ee;
   background: #ffffff;
 }
@@ -4557,12 +4557,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  padding: 0 2px 5px;
+  gap: var(--rd-space-2);
+  padding: 0 2px var(--rd-space-1);
 }
 
 .rd-v2-synthesis-agent-run-head span {
-  padding: 2px 5px;
+  padding: 2px var(--rd-space-1);
   border: 1px solid #dfe6e2;
   border-radius: 999px;
   color: #607166;
@@ -4606,9 +4606,9 @@
   width: 100%;
   display: grid;
   grid-template-columns: 17px minmax(0, 1fr);
-  gap: 6px;
+  gap: var(--rd-space-2);
   align-items: start;
-  padding: 6px 5px;
+  padding: var(--rd-space-2) var(--rd-space-1);
   border: 0;
   border-radius: 7px;
   background: transparent;
@@ -4660,12 +4660,12 @@
 }
 
 .rd-v2-synthesis-agent-trace {
-  margin-top: 5px;
+  margin-top: var(--rd-space-1);
   border-top: 1px dashed #dfe6e2;
 }
 
 .rd-v2-synthesis-agent-trace > summary {
-  padding: 7px 4px 2px;
+  padding: var(--rd-space-2) var(--rd-space-1) 2px;
   color: #55635d;
   font-size: var(--rd-text-2xs);
   font-weight: 700;
@@ -4674,8 +4674,8 @@
 
 .rd-v2-synthesis-agent-trace > div {
   max-height: 310px;
-  margin-top: 5px;
-  padding: 5px;
+  margin-top: var(--rd-space-1);
+  padding: var(--rd-space-1);
   overflow: auto;
   border: 1px solid #dfe6e2;
   border-radius: 8px;
@@ -4683,8 +4683,8 @@
 }
 
 .rd-v2-synthesis-agent-trace section + section {
-  margin-top: 8px;
-  padding-top: 8px;
+  margin-top: var(--rd-space-2);
+  padding-top: var(--rd-space-2);
   border-top: 1px solid #dfe6e2;
 }
 
@@ -4692,8 +4692,8 @@
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 8px;
-  padding: 0 4px 3px;
+  gap: var(--rd-space-2);
+  padding: 0 var(--rd-space-1) 3px;
 }
 
 .rd-v2-synthesis-agent-trace section > header b {
@@ -4708,12 +4708,12 @@
 }
 
 .rd-v2-synthesis-agent-activity {
-  padding: 8px 9px 7px;
+  padding: var(--rd-space-2) var(--rd-space-2) var(--rd-space-2);
 }
 
 .rd-v2-synthesis-agent-activity > small {
   display: block;
-  padding: 0 2px 5px;
+  padding: 0 2px var(--rd-space-1);
 }
 
 .rd-v2-synthesis-agent-mark {
@@ -4774,8 +4774,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  padding: 9px 11px;
+  gap: var(--rd-space-2);
+  padding: var(--rd-space-2) var(--rd-space-3);
   cursor: pointer;
   list-style: none;
 }
@@ -4820,12 +4820,12 @@
 
 .rd-v2-synthesis-forensics-body {
   display: grid;
-  gap: 8px;
-  padding: 0 9px 9px;
+  gap: var(--rd-space-2);
+  padding: 0 var(--rd-space-2) var(--rd-space-2);
 }
 
 .rd-v2-synthesis-forensics-body > section {
-  padding: 8px;
+  padding: var(--rd-space-2);
   border: 1px solid #dfe6e2;
   border-radius: 9px;
   background: #fff;
@@ -4835,8 +4835,8 @@
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 7px;
+  gap: var(--rd-space-2);
+  margin-bottom: var(--rd-space-2);
 }
 
 .rd-v2-synthesis-forensics-body > section > header strong {
@@ -4850,16 +4850,16 @@
 .rd-v2-synthesis-forensic-diff,
 .rd-v2-synthesis-runtime-proof {
   display: grid;
-  gap: 4px;
+  gap: var(--rd-space-1);
   margin: 0;
 }
 
 .rd-v2-synthesis-forensic-diff > div {
   display: grid;
   grid-template-columns: 82px minmax(0, 1fr);
-  gap: 7px;
+  gap: var(--rd-space-2);
   align-items: start;
-  padding: 5px 0;
+  padding: var(--rd-space-1) 0;
   border-top: 1px solid #eef1ee;
 }
 
@@ -4917,8 +4917,8 @@
 .rd-v2-synthesis-recipe li {
   display: grid;
   grid-template-columns: 58px minmax(0, 1fr);
-  gap: 7px;
-  padding: 5px 0;
+  gap: var(--rd-space-2);
+  padding: var(--rd-space-1) 0;
   border-top: 1px solid #eef1ee;
 }
 
@@ -4941,12 +4941,12 @@
 }
 
 .rd-v2-synthesis-raw-spec {
-  margin-top: 6px;
+  margin-top: var(--rd-space-2);
   border-top: 1px dashed #dfe6e2;
 }
 
 .rd-v2-synthesis-raw-spec > summary {
-  padding-top: 6px;
+  padding-top: var(--rd-space-2);
   color: #55635d;
   font-size: var(--rd-text-2xs);
   font-weight: 700;
@@ -4955,8 +4955,8 @@
 
 .rd-v2-synthesis-raw-spec pre {
   max-height: 240px;
-  margin: 6px 0 0;
-  padding: 7px;
+  margin: var(--rd-space-2) 0 0;
+  padding: var(--rd-space-2);
   overflow: auto;
   border-radius: 7px;
   background: #eef1ee;
@@ -4976,7 +4976,7 @@
 
 .rd-v2-synthesis-row-effects th,
 .rd-v2-synthesis-row-effects td {
-  padding: 4px 3px;
+  padding: var(--rd-space-1) 3px;
   border-top: 1px solid #eef1ee;
   color: #48534d;
   text-align: right;
@@ -4995,8 +4995,8 @@
 }
 
 .rd-v2-synthesis-forensic-notes {
-  margin: 7px 0 0;
-  padding-left: 17px;
+  margin: var(--rd-space-2) 0 0;
+  padding-left: var(--rd-space-4);
   color: #72551f;
   font-size: var(--rd-text-2xs);
   line-height: 1.4;
@@ -5004,7 +5004,7 @@
 
 .rd-v2-synthesis-runtime-proof {
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6px 10px;
+  gap: var(--rd-space-2) var(--rd-space-3);
 }
 
 .rd-v2-synthesis-runtime-proof > div {
@@ -5021,8 +5021,8 @@
 }
 
 .rd-v2-synthesis-forensic-error {
-  margin: 7px 0 0;
-  padding: 6px 7px;
+  margin: var(--rd-space-2) 0 0;
+  padding: var(--rd-space-2) var(--rd-space-2);
   border-radius: 7px;
   background: #fbf1e5;
   color: #814d11;
@@ -5032,8 +5032,8 @@
 
 .rd-v2-synthesis-agent-prompts {
   display: grid;
-  gap: 5px;
-  padding: 9px 9px 2px;
+  gap: var(--rd-space-1);
+  padding: var(--rd-space-2) var(--rd-space-2) 2px;
   border-top: 1px solid #eef1ee;
 }
 
@@ -5044,7 +5044,7 @@
 }
 
 .rd-v2-synthesis-agent-prompts button {
-  padding: 6px 9px;
+  padding: var(--rd-space-2) var(--rd-space-2);
   border: 1px solid #dfe6e2;
   border-radius: 7px;
   background: #fff;
@@ -5063,15 +5063,15 @@
 
 .rd-v2-synthesis-agent-shortcuts {
   display: flex;
-  gap: 5px;
-  padding: 7px 9px 9px;
+  gap: var(--rd-space-1);
+  padding: var(--rd-space-2) var(--rd-space-2) var(--rd-space-2);
   border-top: 1px solid #eef1ee;
 }
 
 .rd-v2-synthesis-agent-shortcuts button {
   min-width: 0;
   flex: 1 1 0;
-  padding: 5px 6px;
+  padding: var(--rd-space-1) var(--rd-space-2);
   border: 1px solid #dfe6e2;
   border-radius: 7px;
   background: #fff;
@@ -5106,7 +5106,7 @@
 
 @media (max-width: 880px) {
   .rd-v2-synthesis-agent-console {
-    margin-inline: 8px;
+    margin-inline: var(--rd-space-2);
   }
 
   .rd-v2-synthesis-agent-run {
@@ -5135,10 +5135,10 @@
 .rd-v2-synthesis-ask-object-context {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 8px;
+  gap: var(--rd-space-2);
   align-items: center;
-  margin: -3px 10px 9px;
-  padding: 7px 8px 7px 10px;
+  margin: -3px var(--rd-space-3) var(--rd-space-2);
+  padding: var(--rd-space-2) var(--rd-space-2) var(--rd-space-2) var(--rd-space-3);
   border: 1px solid #dfe6e2;
   border-radius: 9px;
   background: #ffffff;
@@ -5180,7 +5180,7 @@
 }
 
 .rd-v2-synthesis-ask-object-context button {
-  padding: 4px 6px;
+  padding: var(--rd-space-1) var(--rd-space-2);
   border: 0;
   border-radius: 6px;
   background: transparent;
@@ -5222,7 +5222,7 @@
 
 .s04-home-archived-list {
   display: grid;
-  gap: 8px;
+  gap: var(--rd-space-2);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -5232,8 +5232,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 10px 14px;
+  gap: var(--rd-space-3);
+  padding: var(--rd-space-3) var(--rd-space-3);
   border: 1px solid var(--s04-line, #ddd5c6);
   border-radius: 10px;
 }

@@ -4,7 +4,7 @@
   z-index: 90;
   display: grid;
   place-items: center;
-  padding: 24px;
+  padding: var(--rd-space-5);
   background: color-mix(in srgb, #142033 32%, transparent);
   backdrop-filter: blur(8px);
 }
@@ -17,7 +17,7 @@
   border-radius: 18px;
   background: var(--rd-surface, #fff);
   box-shadow: 0 24px 70px rgba(25, 38, 58, .22);
-  padding: 24px;
+  padding: var(--rd-space-5);
 }
 
 .rd-v2-library-package-head,
@@ -27,20 +27,20 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: var(--rd-space-4);
 }
 
 .rd-v2-library-package-head { align-items: flex-start; }
-.rd-v2-library-package-head h2 { margin: 4px 0 7px; font-size: 22px; }
+.rd-v2-library-package-head h2 { margin: var(--rd-space-1) 0 var(--rd-space-2); font-size: 22px; }
 .rd-v2-library-package-head p,
 .rd-v2-library-package-actions span,
 .rd-v2-library-package-ready p { margin: 0; color: var(--rd-muted, #647087); }
 
 .rd-v2-library-package-need {
   display: grid;
-  gap: 4px;
-  margin: 20px 0 14px;
-  padding: 13px 15px;
+  gap: var(--rd-space-1);
+  margin: var(--rd-space-4) 0 var(--rd-space-3);
+  padding: var(--rd-space-3) var(--rd-space-4);
   border-radius: 12px;
   background: color-mix(in srgb, var(--rd-accent, #315efb) 6%, white);
   border: 1px solid color-mix(in srgb, var(--rd-accent, #315efb) 16%, #d8dee8);
@@ -49,7 +49,7 @@
 
 .rd-v2-library-package-list {
   display: grid;
-  gap: 7px;
+  gap: var(--rd-space-2);
   max-height: 330px;
   overflow: auto;
   padding: 2px;
@@ -58,9 +58,9 @@
 .rd-v2-library-package-row {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: 12px;
+  gap: var(--rd-space-3);
   align-items: center;
-  padding: 11px 12px;
+  padding: var(--rd-space-3) var(--rd-space-3);
   border: 1px solid var(--rd-border, #d8dee8);
   border-radius: 11px;
   cursor: pointer;
@@ -77,8 +77,8 @@
 .rd-v2-library-package-row small { color: var(--rd-muted, #647087); text-align: right; }
 
 .rd-v2-library-package-actions {
-  margin-top: 18px;
-  padding-top: 16px;
+  margin-top: var(--rd-space-4);
+  padding-top: var(--rd-space-4);
   border-top: 1px solid var(--rd-border, #d8dee8);
   align-items: flex-end;
 }
@@ -86,8 +86,8 @@
 .rd-v2-library-package-actions span { font-size: 12px; }
 
 .rd-v2-library-package-error {
-  margin-top: 14px;
-  padding: 11px 13px;
+  margin-top: var(--rd-space-3);
+  padding: var(--rd-space-3) var(--rd-space-3);
   border-radius: 10px;
   background: #fff4f2;
   border: 1px solid #f0c7bf;
@@ -95,21 +95,21 @@
 }
 
 .rd-v2-library-package-ready {
-  margin-top: 18px;
-  padding: 16px;
+  margin-top: var(--rd-space-4);
+  padding: var(--rd-space-4);
   border-radius: 13px;
   border: 1px solid #bfdcc9;
   background: #f6fbf7;
 }
-.rd-v2-library-package-ready-head > div { display: grid; gap: 4px; }
+.rd-v2-library-package-ready-head > div { display: grid; gap: var(--rd-space-1); }
 .rd-v2-library-package-ready-head strong { font-size: 15px; }
-.rd-v2-library-package-breakdown { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-.rd-v2-library-package-breakdown span { padding: 5px 8px; border-radius: 999px; background: rgba(255,255,255,.76); border: 1px solid #d7e7dc; font-size: 11px; }
-.rd-v2-library-package-boundary { margin-top: 12px !important; font-size: 12px; }
+.rd-v2-library-package-breakdown { display: flex; flex-wrap: wrap; gap: var(--rd-space-2); margin-top: var(--rd-space-3); }
+.rd-v2-library-package-breakdown span { padding: var(--rd-space-1) var(--rd-space-2); border-radius: 999px; background: rgba(255,255,255,.76); border: 1px solid #d7e7dc; font-size: 11px; }
+.rd-v2-library-package-boundary { margin-top: var(--rd-space-3) !important; font-size: 12px; }
 
 @media (max-width: 700px) {
   .rd-v2-library-package-scrim { padding: 0; place-items: end center; }
-  .rd-v2-library-package-panel { width: 100%; max-height: 88vh; border-radius: 18px 18px 0 0; padding: 18px; }
+  .rd-v2-library-package-panel { width: 100%; max-height: 88vh; border-radius: 18px 18px 0 0; padding: var(--rd-space-4); }
   .rd-v2-library-package-head,
   .rd-v2-library-package-ready-head,
   .rd-v2-library-package-actions { align-items: stretch; flex-direction: column; }

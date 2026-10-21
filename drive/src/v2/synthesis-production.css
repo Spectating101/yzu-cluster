@@ -15,7 +15,7 @@
   content: "Synthesis";
   order: -2;
   flex: 0 0 auto;
-  margin: 0 0 4px;
+  margin: 0 0 var(--rd-space-1);
   color: var(--rd-text, #182033);
   font-size: 22px;
   font-weight: 650;
@@ -27,7 +27,7 @@
   content: "Build evidence from Library inputs with explicit method, approval, and execution authority.";
   order: -1;
   flex: 0 0 auto;
-  margin: 0 0 12px;
+  margin: 0 0 var(--rd-space-3);
   color: var(--rd-muted, #6e7685);
   font-size: 12.5px;
   line-height: 1.45;
@@ -39,7 +39,7 @@
 .rd-v2-synthesis-page .rd-v2-body-scroll {
   flex: 1 1 auto;
   min-height: 0;
-  padding: 0 0 30px;
+  padding: 0 0 var(--rd-space-6);
   overflow-y: auto;
   background: transparent;
   border: 0;
@@ -51,7 +51,7 @@
 /* The six visible phases are orientation, not six checkout destinations.
  * Internal proposal/readiness/approval states stay distinct in the lifecycle. */
 .rd-v2-synthesis-page .sj-journey {
-  padding: 0 20px;
+  padding: 0 var(--rd-space-4);
   overflow-x: auto;
   border: 0;
   border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 78%, transparent);
@@ -81,13 +81,13 @@
 .rd-v2-synthesis-page .sj-journey button {
   width: auto;
   min-height: 44px;
-  padding: 8px 21px 8px 0;
+  padding: var(--rd-space-2) var(--rd-space-5) var(--rd-space-2) 0;
   border: 0;
   background: transparent;
 }
 
 .rd-v2-synthesis-page .sj-journey li + li button {
-  padding-left: 18px;
+  padding-left: var(--rd-space-4);
 }
 
 .rd-v2-synthesis-page .sj-journey li.selected button {
@@ -122,9 +122,9 @@
 /* Stage content is now the interior of the one workbench rather than another
  * card. Constrain prose/forms so the empty state does not read as a mock page. */
 .rd-v2-synthesis-page .sj-stage-page {
-  gap: 16px;
+  gap: var(--rd-space-4);
   width: 100%;
-  padding: 20px 22px 24px;
+  padding: var(--rd-space-4) var(--rd-space-5) var(--rd-space-5);
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -132,12 +132,12 @@
 }
 
 .rd-v2-synthesis-page .sj-stage-header {
-  padding: 0 0 14px;
+  padding: 0 0 var(--rd-space-3);
 }
 
 .rd-v2-synthesis-page .sj-stage-header h2 {
   max-width: 760px;
-  margin: 0 0 5px;
+  margin: 0 0 var(--rd-space-1);
   font-size: clamp(19px, 1.7vw, 24px);
   line-height: 1.16;
   letter-spacing: -0.02em;
@@ -161,7 +161,7 @@
 /* Keep review/build records dense and documentary once the construction has
  * advanced. Cards are reserved for actual decisions, not every piece of copy. */
 .rd-v2-synthesis-page .sj-decision-block {
-  padding: 13px 0 15px;
+  padding: var(--rd-space-3) 0 var(--rd-space-4);
 }
 
 .rd-v2-synthesis-page .sj-choice-grid button,
@@ -184,12 +184,12 @@
   }
 
   .rd-v2-synthesis-page .sj-stage-page {
-    padding: 17px 16px 22px;
+    padding: var(--rd-space-4) var(--rd-space-4) var(--rd-space-5);
   }
 
   .rd-v2-synthesis-page .sj-journey {
-    padding-left: 16px;
-    padding-right: 16px;
+    padding-left: var(--rd-space-4);
+    padding-right: var(--rd-space-4);
   }
 }
 
