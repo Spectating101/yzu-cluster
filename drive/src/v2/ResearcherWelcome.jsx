@@ -22,7 +22,7 @@ export function ResearcherWelcome({ deskAccess, onGoTab }) {
   return <section className="rd-account-welcome" aria-labelledby="rd-welcome-title">
     <div className="rd-account-welcome-text">
       <h2 id="rd-welcome-title">Welcome, {actor.display_name || "researcher"}</h2>
-      <p>Add your topic and methods in Profile so suggestions fit your work. You can start without it.</p>
+      <p>Add your topic and methods in Profile so suggestions fit your work.</p>
     </div>
     <div className="rd-account-actions">
       <button type="button" className="rd-v2-btn sm primary" onClick={() => onGoTab("profile")}>Set up research context</button>

@@ -20,7 +20,7 @@
 .rd-connector-endpoint { display: grid; gap: 6px; margin: 12px 0 8px; }
 .rd-account-welcome-text { display: flex; flex: 1 1 320px; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; min-width: 0; }
 .rd-account-welcome h2 { margin: 0; font-size: var(--rd-text-md); font-weight: 700; }
-.rd-account-welcome p { margin: 0; max-width: 780px; color: var(--rd-muted); font-size: var(--rd-text-sm); line-height: 1.5; }
+.rd-account-welcome p { margin: 0; max-width: none; color: var(--rd-muted); font-size: var(--rd-text-sm); line-height: 1.5; }
 .rd-account-welcome .rd-account-actions { margin: 0; }
 .rd-email-signin { display: grid; gap: 10px; max-width: 480px; margin: 18px 0; }
 .rd-email-signin label { font-size: 12px; font-weight: 600; }
