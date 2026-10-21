@@ -743,7 +743,7 @@ body:has(.rd-v2-synthesis-page [data-testid="synthesis-execution-state"] .s04-ex
   justify-content: space-between;
   gap: var(--rd-space-3);
   color: var(--rd-muted);
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;

@@ -31,7 +31,7 @@
   --rd-border2: #d2ccc0;
   --rd-text: #182033;
   --rd-body: #3e4759;
-  --rd-muted: #5d6574;
+  --rd-muted: #4f5767;
   --rd-accent: #101820; /* primary actions = decision ink */
   --rd-link: #3f6f5c; /* sage — Sol’s non-indigo signal */
   --rd-accent-soft: rgba(16, 24, 32, 0.08);
@@ -52,9 +52,10 @@
   --rd-ext-fg: #5d6574;
   --rd-radius: 12px;
   --rd-font: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --rd-text-2xs: 12px;
-  --rd-text-xs: 12px;
-  --rd-text-sm: 13px;
+  --rd-text-label: 12px;
+  --rd-text-2xs: 13px;
+  --rd-text-xs: 14px;
+  --rd-text-sm: 14px;
   --rd-text-md: 14px;
   --rd-text-lg: 16px;
   --rd-text-xl: 18px;
@@ -79,8 +80,9 @@
 
 @media (min-width: 2200px) {
   :root {
+    --rd-text-label: 13px;
     --rd-text-2xs: 14px;
-    --rd-text-xs: 14px;
+    --rd-text-xs: 15px;
     --rd-text-sm: 15px;
     --rd-text-md: 16px;
     --rd-text-lg: 18px;
@@ -481,7 +483,7 @@ summary:focus-visible {
 .rd-v2-res-capability > header p {
   margin: 0;
   color: #2a3a52;
-  font-size: var(--rd-text-xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -512,7 +514,7 @@ summary:focus-visible {
 
 .rd-v2-res-capability-lines span {
   color: #5b6578;
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -560,7 +562,7 @@ summary:focus-visible {
 
 .rd-v2-res-inventory-section-title span {
   color: #344054;
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1045,7 +1047,7 @@ summary:focus-visible {
 
 .rd-v2-resource-posture > span {
   color: #3f6f5c;
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1288,7 +1290,7 @@ summary:focus-visible {
 .s04-threads{min-width:0}
 .s04-threads{display:flex;min-height:0;overflow-y:auto;flex-direction:column;padding: var(--rd-space-4) var(--rd-space-3) var(--rd-space-4);border-right:1px solid #dfe3ec}
 .s04-threads>header,.s04-title,.s04-actions,.s04-head,.s04-brief{display:flex;align-items:center;justify-content:space-between;gap: var(--rd-space-3)}
-.s04-threads>header{padding: 0 var(--rd-space-2) var(--rd-space-3)}.s04-threads>header>div{display:flex;flex-direction:column;gap: 2px}.s04-threads>header span,.s04-threads footer>small{color:#5d6574;font-size:var(--rd-text-2xs);font-weight:700;letter-spacing:0.06em;text-transform:uppercase}.s04-threads>header small{color:#5d6574;font-size:var(--rd-text-2xs)}.s04-thread-new{padding: var(--rd-space-2) var(--rd-space-2);border:1px solid #c5d2cb;border-radius:8px;background:#fff;color:#3f6f5c;font-size:var(--rd-text-2xs);font-weight:700;cursor:pointer}.s04-thread-new:hover{border-color:#4e7c67;background:#eef1ee}
+.s04-threads>header{padding: 0 var(--rd-space-2) var(--rd-space-3)}.s04-threads>header>div{display:flex;flex-direction:column;gap: 2px}.s04-threads>header span,.s04-threads footer>small{color:#5d6574;font-size: var(--rd-text-label);font-weight:700;letter-spacing:0.06em;text-transform:uppercase}.s04-threads>header small{color:#5d6574;font-size:var(--rd-text-2xs)}.s04-thread-new{padding: var(--rd-space-2) var(--rd-space-2);border:1px solid #c5d2cb;border-radius:8px;background:#fff;color:#3f6f5c;font-size:var(--rd-text-2xs);font-weight:700;cursor:pointer}.s04-thread-new:hover{border-color:#4e7c67;background:#eef1ee}
 .s04-threads>button{width:100%;display:grid;grid-template-columns:30px minmax(0,1fr);gap: var(--rd-space-2);align-items:center;margin-bottom: var(--rd-space-1);padding: var(--rd-space-2);border:1px solid transparent;border-radius:12px;background:transparent;color:inherit;text-align:left;cursor:pointer}.s04-threads>button:hover{background:#fff;border-color:#e8ebf1}.s04-threads>button.active{background:#fff;border-color:#c5d2cb;box-shadow:0 8px 22px rgba(48,58,105,.08)}
 .s04-threads>button>b{width:30px;height:30px;display:grid;place-items:center;border-radius:9px;background:#e8ebf1;color:#5d6574;font-size:var(--rd-text-2xs)}.s04-threads>button.active>b{color:#fff;background:#101820;box-shadow:0 6px 14px rgba(68,82,216,.22)}.s04-threads>button>span{min-width:0;display:flex;flex-direction:column;gap: 2px}.s04-threads>button strong{overflow:hidden;color:#1f2a3d;font-size:var(--rd-text-2xs);text-overflow:ellipsis;white-space:nowrap}.s04-threads>button small{color:#5d6574;font-size:var(--rd-text-2xs)}
 .s04-threads>button.new{display:block;margin-top: var(--rd-space-1);padding: var(--rd-space-3) var(--rd-space-2);border:1px dashed #b7c4d6;color:#5b6578;font-size:var(--rd-text-2xs);font-weight:700}.s04-threads>button.new:hover{border-color:#4e7c67;color:#3f6f5c}.s04-threads footer{margin-top: auto;display:flex;flex-direction:column;gap: var(--rd-space-2);padding: var(--rd-space-3) var(--rd-space-2) 2px;border-top:1px solid #e8ebf1}.s04-threads footer button{border:0;background:transparent;color:#5d6574;font-size:var(--rd-text-2xs);text-align:left;cursor:pointer}.s04-threads footer button:hover{color:#3f6f5c}
@@ -1312,7 +1314,7 @@ summary:focus-visible {
 /* VC-6: registered-method titles wrap instead of truncating to an ellipsis.
    The description keeps its single-line clamp so the cards stay compact. */
 
-.s04-empty-canvas{max-width:820px}.s04-empty-canvas>p{max-width:660px;font-size:var(--rd-text-xs);line-height:1.55}.s04-empty-decisions{display:grid;grid-template-columns:1fr 1fr;gap: var(--rd-space-3);margin: var(--rd-space-4) 0}.s04-empty-decisions article{display:grid;gap: var(--rd-space-1);padding: var(--rd-space-3);border:1px solid #e8ebf1;border-radius:12px;background:#ffffff}.s04-empty-decisions small{color:#5b6578;font-size:var(--rd-text-2xs);font-weight:700;letter-spacing:0.06em;text-transform:uppercase}.s04-empty-decisions strong{color:#283044;font-size:var(--rd-text-2xs)}.s04-empty-decisions span{color:#5d6574;font-size:var(--rd-text-2xs);line-height:1.45}.s04-blueprint-heading{margin: 0 0 var(--rd-space-2);color:#5b6578;font-size:var(--rd-text-2xs);font-weight:700;letter-spacing:0.06em;text-transform:uppercase}
+.s04-empty-canvas{max-width:820px}.s04-empty-canvas>p{max-width:660px;font-size:var(--rd-text-xs);line-height:1.55}.s04-empty-decisions{display:grid;grid-template-columns:1fr 1fr;gap: var(--rd-space-3);margin: var(--rd-space-4) 0}.s04-empty-decisions article{display:grid;gap: var(--rd-space-1);padding: var(--rd-space-3);border:1px solid #e8ebf1;border-radius:12px;background:#ffffff}.s04-empty-decisions small{color:#5b6578;font-size: var(--rd-text-label);font-weight:700;letter-spacing:0.06em;text-transform:uppercase}.s04-empty-decisions strong{color:#283044;font-size:var(--rd-text-2xs)}.s04-empty-decisions span{color:#5d6574;font-size:var(--rd-text-2xs);line-height:1.45}.s04-blueprint-heading{margin: 0 0 var(--rd-space-2);color:#5b6578;font-size: var(--rd-text-label);font-weight:700;letter-spacing:0.06em;text-transform:uppercase}
 .s04-coverage{display:inline-block;width:96px;height:6px;border-radius:3px;background:#e8ebf1;overflow:hidden;vertical-align:middle;margin: 0 var(--rd-space-2)}
 .s04-coverage>b{display:block;height:100%;border-radius:3px;background:#4e7c67}
 .s04-resolved-list li>em{display:block;color:#5d6574;font-size:var(--rd-text-2xs);font-style:normal;margin-top: 2px}
@@ -1327,7 +1329,7 @@ summary:focus-visible {
 .s04-bands>b[data-band=clean]{background:#dfe3ec;color:#5d6574}
 .s04-decision-list{list-style:none;margin: var(--rd-space-3) 0 0;padding: 0;display:flex;flex-direction:column;gap: var(--rd-space-2)}
 .s04-decision-list>li{display:grid;grid-template-columns:112px minmax(0,1fr) auto;gap: var(--rd-space-3);align-items:start;padding: var(--rd-space-2);border:1px solid #e8ebf1;border-radius:10px;background:#fff}
-.s04-decision-list>li>b{color:#5d6574;font-size:var(--rd-text-2xs);font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding-top: 2px}
+.s04-decision-list>li>b{color:#5d6574;font-size: var(--rd-text-label);font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding-top: 2px}
 .s04-decision-list>li[data-authority=observed]>b{color:#3f6f5c}
 .s04-decision-list>li[data-authority=desk]>b{color:#8a6fb0}
 .s04-decision-list>li[data-resolved=no]>b{color:#b4643c}
@@ -1345,7 +1347,7 @@ summary:focus-visible {
 .s04-options li{display:grid;grid-template-columns:minmax(132px,auto) minmax(0,1fr);gap: var(--rd-space-1) var(--rd-space-3);align-items:baseline}
 .s04-options li>span{color:#5b6578;font-size:var(--rd-text-2xs);line-height:1.5}
 .s04-options li>em{grid-column:1/-1;color:#5d6574;font-size:var(--rd-text-2xs);font-style:normal}
-.s04-options li>b{color:#5d6574;font-size:var(--rd-text-2xs);font-weight:700;letter-spacing:0.06em;text-transform:uppercase}
+.s04-options li>b{color:#5d6574;font-size: var(--rd-text-label);font-weight:700;letter-spacing:0.06em;text-transform:uppercase}
 .s04-options li .rd-v2-btn{justify-self:start;white-space:nowrap}
 /* A panel that stops you should not look like one that informs you. */
 .s04-blocking{border-color:#d9b9a6;box-shadow:0 10px 26px rgba(180,100,60,.10)}
@@ -1360,7 +1362,7 @@ summary:focus-visible {
 .s04-strip{display:flex;flex-wrap:wrap;gap: var(--rd-space-2);margin: 0 0 var(--rd-space-3)}
 .s04-strip-item{display:flex;align-items:baseline;gap: var(--rd-space-2);padding: var(--rd-space-2) var(--rd-space-3);border:1px solid #e8ebf1;border-radius:999px;background:#ffffff;color:inherit;cursor:pointer}
 .s04-strip-item:hover{border-color:#c5d2cb;background:#fff}
-.s04-strip-item>b{color:#5d6574;font-size:var(--rd-text-2xs);font-weight:700;letter-spacing:0.06em;text-transform:uppercase}
+.s04-strip-item>b{color:#5d6574;font-size: var(--rd-text-label);font-weight:700;letter-spacing:0.06em;text-transform:uppercase}
 .s04-strip-item>span{color:#5b6578;font-size:var(--rd-text-2xs)}
 
 /* Discover resting state — shelf rows reuse Library's catalog row styling, so
@@ -1793,7 +1795,7 @@ summary:focus-visible {
   --rd-release-line: #e2ddd2;
   --rd-release-soft: #eef1ee;
   --rd-release-ink: #182033;
-  --rd-release-subtle: #5d6574;
+  --rd-release-subtle: #4f5767;
   --rd-release-blue: #3f6f5c; /* sage signal — not indigo */
   --rd-release-green: #3f6f5c;
   --rd-release-amber: #9a650e;
@@ -2396,7 +2398,7 @@ summary:focus-visible {
 }
 .rd-v2-sidebar-kicker {
   margin: 0 0 var(--rd-space-2);
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: rgba(255, 253, 246, 0.6);
@@ -2630,7 +2632,7 @@ summary:focus-visible {
 .rd-v2-history-state em {
   font-style: normal;
   font-weight: 700;
-  font-size: var(--rd-text-xs);
+  font-size: var(--rd-text-label);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: #5b6578;
@@ -2638,7 +2640,7 @@ summary:focus-visible {
 .rd-v2-res-capacity-pairs { display: grid; gap: var(--rd-space-3); }
 .rd-v2-res-capacity-pair-head {
   margin-bottom: var(--rd-space-2);
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -2718,7 +2720,7 @@ summary:focus-visible {
 }
 .rd-v2-res-source-ledger-head {
   padding: 0 var(--rd-space-1) var(--rd-space-1);
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -3861,7 +3863,7 @@ summary:focus-visible {
   display: block;
   margin-bottom: 3px;
   color: #5d6574;
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -4043,7 +4045,7 @@ summary:focus-visible {
 .rd-v2-guided-state-eyebrow {
   margin: 0 0 var(--rd-space-1);
   color: #5d6574;
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -5304,7 +5306,7 @@ body,
 .rd-v2-library-overlay-facts dt {
   color: var(--rd-muted);
   font-family: var(--rd-font);
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;

@@ -1455,7 +1455,7 @@
 .rd-v2-synthesis-page .s04-opening-workflow-note > b::after {
   content: "Current operation";
   color: #315f4d;
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -4929,7 +4929,7 @@
 .rd-v2-synthesis-recipe b {
   color: #5b6578;
   font-family: var(--rd-font);
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   text-transform: uppercase;
 }
 
@@ -4990,7 +4990,7 @@
 .rd-v2-synthesis-row-effects thead th {
   border-top: 0;
   color: #5b6578;
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   text-transform: uppercase;
 }
 
@@ -5157,7 +5157,7 @@
 .rd-v2-synthesis-ask-object-context small {
   color: #5b6578;
   font-family: var(--rd-font);
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;

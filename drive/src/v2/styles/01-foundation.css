@@ -885,7 +885,7 @@ button {
   display: block;
   margin-bottom: 3px;
   font-family: var(--rd-font);
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1355,7 +1355,7 @@ button {
   align-items: center;
   justify-content: space-between;
   padding: var(--rd-space-2) var(--rd-space-4);
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1427,7 +1427,7 @@ button {
   place-items: center;
   color: var(--rd-accent);
   font-family: var(--rd-font);
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1492,7 +1492,7 @@ button {
 .rd-v2-evidence-head span,
 .rd-v2-evidence-head strong {
   font-family: var(--rd-font);
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -2040,7 +2040,7 @@ button {
 .rd-v2-res-status-cell span,
 .rd-v2-res-status-cell em {
   display: block;
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-style: normal;
   font-weight: 600;
   text-transform: uppercase;
@@ -2347,7 +2347,7 @@ button {
   display: block;
   margin-bottom: var(--rd-space-2);
   color: #0e7490;
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -2435,7 +2435,7 @@ button {
 
 .rd-v2-ledger-section {
   padding: var(--rd-space-3) var(--rd-space-4) var(--rd-space-1);
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -2539,7 +2539,7 @@ button {
 .rd-v2-res-log-title h2 {
   margin: 0;
   color: var(--rd-text);
-  font-size: var(--rd-text-xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -2558,7 +2558,7 @@ button {
 .rd-v2-res-log-day {
   padding: 0 2px var(--rd-space-2);
   color: var(--rd-muted);
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -2697,7 +2697,7 @@ button {
   min-width: 44px;
   padding: 2px var(--rd-space-2);
   border-radius: 10px;
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   text-transform: uppercase;
 }
@@ -2740,7 +2740,7 @@ button {
 .rd-v2-stat-label {
   display: block;
   margin-top: 2px;
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 600;
   color: var(--rd-muted);
   text-transform: uppercase;
@@ -2756,7 +2756,7 @@ button {
   background: #ffffff;
 }
 .rd-v2-catalog-hd-cell {
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -2864,7 +2864,7 @@ button {
 .rd-v2-eval-kicker {
   margin: 0 0 var(--rd-space-2);
   color: #8090a8;
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -2918,7 +2918,7 @@ button {
 .rd-v2-eval-section-label {
   margin: 0 0 var(--rd-space-2);
   color: #5b6578;
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -2952,7 +2952,7 @@ button {
 .rd-v2-strategy-label {
   margin: 0 0 var(--rd-space-1);
   color: var(--rd-muted, #8090a8);
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -3037,7 +3037,7 @@ button {
 
 .rd-v2-strategy-access {
   text-transform: uppercase;
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 600;
   letter-spacing: 0.06em;
 }
@@ -3523,7 +3523,7 @@ button {
 .rd-v2-discover-strategy-answer > span,
 .rd-v2-discover-strategy-next span {
   color: var(--rd-muted);
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -3574,7 +3574,7 @@ button {
 .rd-v2-discover-strategy-process span,
 .rd-v2-discover-strategy-output > span {
   color: var(--rd-muted);
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -3605,7 +3605,7 @@ button {
 }
 .rd-v2-discover-strategy-output dl { display: grid; gap: var(--rd-space-1); margin: var(--rd-space-2) 0; }
 .rd-v2-discover-strategy-output dl > div { display: grid; grid-template-columns: 54px 1fr; gap: var(--rd-space-2); }
-.rd-v2-discover-strategy-output dt { color: var(--rd-muted); font-size: var(--rd-text-2xs); font-weight: 700; text-transform: uppercase; }
+.rd-v2-discover-strategy-output dt { color: var(--rd-muted); font-size: var(--rd-text-label); font-weight: 700; text-transform: uppercase; }
 .rd-v2-discover-strategy-output dd { margin: 0; font-size: var(--rd-text-2xs); line-height: 1.35; }
 .rd-v2-discover-strategy-truth {
   display: flex;
@@ -4238,7 +4238,7 @@ button {
   border: 1px solid #2a3a52;
   border-radius: 4px;
   color: #6d7f96;
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -4347,7 +4347,7 @@ button {
   content: "Library comparison";
   margin-right: var(--rd-space-2);
   color: currentColor;
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   opacity: 0.72;
@@ -4427,7 +4427,7 @@ button {
 
 .rd-v2-eval-sufficiency-dimension {
   color: #8090a8;
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -4441,7 +4441,7 @@ button {
 
 .rd-v2-eval-sufficiency-side small {
   color: #8090a8;
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 600;
   text-transform: uppercase;
 }
@@ -4470,7 +4470,7 @@ button {
 
 .rd-v2-eval-sufficiency-reference span {
   color: #8090a8;
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -4798,7 +4798,7 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 }
 
 .rd-v2-settings-card h3 {
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -5114,7 +5114,7 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 .rd-v2-rail-intake label {
   color: var(--rd-muted);
   font-family: var(--rd-font);
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -5477,7 +5477,7 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 .rd-v2-history-territories { display: grid; }
 .rd-v2-history-territory { min-width: 0; }
 .rd-v2-history-territory-head { display: flex; align-items: center; justify-content: space-between; gap: var(--rd-space-3); margin: 0 0 var(--rd-space-2); }
-.rd-v2-history-territory-head h3 { margin: 0; color: var(--rd-text); font-size: var(--rd-text-xs); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.rd-v2-history-territory-head h3 { margin: 0; color: var(--rd-text); font-size: var(--rd-text-label); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
 .rd-v2-history-territory-head span { color: var(--rd-muted); font-size: var(--rd-text-2xs); font-variant-numeric: tabular-nums; }
 .rd-v2-history-list { border-top: 1px solid var(--rd-border); }
 .rd-v2-history-row { display: grid; grid-template-columns: 10px minmax(0, 1fr) minmax(128px, auto); align-items: center; gap: var(--rd-space-3); width: 100%; min-height: 68px; padding: var(--rd-space-3) 0; border: 0; border-bottom: 1px solid var(--rd-border); color: var(--rd-body); cursor: pointer; font: inherit; text-align: left; }
@@ -5513,7 +5513,7 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 .rd-v2-history-system-fold > summary strong {
   display: block;
   color: #5b6578;
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -5811,7 +5811,7 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
     display: inline;
     margin-right: var(--rd-space-1);
     color: #5b6578;
-    font-size: var(--rd-text-2xs);
+    font-size: var(--rd-text-label);
     font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -5861,7 +5861,7 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
   .rd-v2-discover-offering-facts b {
     display: block;
     color: #5b6578;
-    font-size: var(--rd-text-2xs);
+    font-size: var(--rd-text-label);
     font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;

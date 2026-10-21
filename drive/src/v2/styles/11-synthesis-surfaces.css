@@ -689,7 +689,7 @@
   border-radius: 999px;
   color: #397059;
   background: #f5faf7;
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-style: normal;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -753,7 +753,7 @@
 
 .s04-opening-map li > small {
   color: #4f6f84;
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -831,7 +831,7 @@
 
 .s04-opening-map > p > b {
   color: #3f6f5c;
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -1015,7 +1015,7 @@
 
   .s04-mobile-brief-disclosure > summary small {
     color: #5b6578;
-    font-size: var(--rd-text-2xs);
+    font-size: var(--rd-text-label);
     font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -1047,7 +1047,7 @@
   .s04-mobile-brief-disclosure > summary > b {
     flex: 0 0 auto;
     color: #315f4d;
-    font-size: var(--rd-text-2xs);
+    font-size: var(--rd-text-label);
     letter-spacing: 0.06em;
     text-transform: uppercase;
   }
@@ -1077,7 +1077,7 @@
   .s04-mobile-brief-full dd { margin: 0; }
   .s04-mobile-brief-full dt {
     color: #5b6578;
-    font-size: var(--rd-text-2xs);
+    font-size: var(--rd-text-label);
     font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -1180,7 +1180,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   color: rgba(255, 253, 246, 0.6);
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1429,7 +1429,7 @@
   border-radius: 999px;
   color: #5b6578;
   background: rgba(255, 253, 246, 0.76);
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-style: normal;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -1639,13 +1639,13 @@
 }
 
 .rd-v2-synthesis-page .s04-opening-brief > p {
-  padding: var(--rd-space-3) var(--rd-space-3) var(--rd-space-3);
+  padding: var(--rd-space-2) var(--rd-space-3);
   color: #314453;
   line-height: 1.5;
 }
 
 .rd-v2-synthesis-page .s04-opening-brief > dl > div {
-  padding: var(--rd-space-2) var(--rd-space-3) var(--rd-space-3);
+  padding: var(--rd-space-2) var(--rd-space-3);
 }
 
 .rd-v2-synthesis-page .s04-opening-workflow-wrap {
@@ -2050,7 +2050,7 @@
 
   .s04-thread-picker > span {
     color: #5d6574;
-    font-size: var(--rd-text-2xs);
+    font-size: var(--rd-text-label);
     font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -2147,7 +2147,7 @@
 .s04-reproduce > header small,
 .s04-reproduce dt {
   color: #5d6574;
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -2267,7 +2267,7 @@
 .s04-preview-sample > small {
   display: block;
   color: #5b6578;
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -2602,7 +2602,7 @@
 
 .s04-viz-overlap .region-note {
   fill: #7a858d;
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-anchor: middle;
@@ -2991,7 +2991,7 @@
 
 .s04-multi-venn-body .region-note {
   fill: #607166;
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-anchor: middle;

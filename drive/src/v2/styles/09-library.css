@@ -32,7 +32,7 @@
 .rd-v2-library-pagination > span {
   color: var(--rd-muted);
   font-family: var(--rd-font);
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -167,7 +167,7 @@
 .rd-v2-library-holding-location > span {
   color: var(--rd-muted);
   font-family: var(--rd-font);
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -213,7 +213,7 @@
   display: block;
   color: var(--rd-muted);
   font-family: var(--rd-font);
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -716,7 +716,7 @@
   border-bottom: 1px solid var(--rd-border);
   color: var(--rd-muted);
   background: rgba(255, 253, 246, 0.94);
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1192,7 +1192,7 @@
 
 .rd-v2-library-filter-control > span {
   font-family: var(--rd-font);
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1563,7 +1563,7 @@
 .rd-v2-use-dataset-label {
   margin: 0 0 var(--rd-space-2);
   color: var(--rd-muted);
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;

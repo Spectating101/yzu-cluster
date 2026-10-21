@@ -502,7 +502,7 @@
 .rd-v2-home-recommended-row > em {
   color: #5b6578;
   font-family: var(--rd-font);
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-style: normal;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -519,7 +519,7 @@
 .rd-v2-home-trail-row {
   display: grid;
   width: 100%;
-  grid-template-columns: 78px minmax(180px, .8fr) minmax(220px, 1.2fr) auto;
+  grid-template-columns: 96px minmax(180px, .8fr) minmax(220px, 1.2fr) auto;
   gap: var(--rd-space-3);
   align-items: baseline;
   padding: var(--rd-space-3) var(--rd-space-2) var(--rd-space-3) 0;
@@ -539,7 +539,7 @@
 .rd-v2-home-trail-kind {
   color: #5b6578;
   font-family: var(--rd-font);
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -611,7 +611,7 @@
   border-radius: 999px;
   color: #5b6578;
   font-family: var(--rd-font);
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -876,7 +876,7 @@
 .rd-v2-learned-memory-list em {
   color: var(--rd-hps-muted);
   font-family: var(--rd-font);
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-style: normal;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -939,7 +939,7 @@
 .rd-v2-profile-memory-anchor > span {
   color: #5b6578;
   font-family: var(--rd-font);
-  font-size: var(--rd-text-2xs);
+  font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
