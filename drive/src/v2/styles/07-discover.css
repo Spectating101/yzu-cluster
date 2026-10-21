@@ -16,7 +16,7 @@
 
 .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer {
   display: grid;
-  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 84%, #94a3b8 16%);
+  border: 0;
 }
 
 .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer textarea {
@@ -61,24 +61,25 @@
   grid-column: 1 / -1;
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 2px;
+  gap: 4px 24px;
+  margin-top: 0;
 }
 
 .rd-v2-discover-page .rd-v2-discover-composer-examples button {
-  display: grid;
-  gap: 3px;
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 6px;
   min-width: 0;
-  padding: 9px 12px;
-  border: 1px solid var(--rd-border, #dbd4c5);
-  border-radius: 7px;
-  background: color-mix(in srgb, var(--rd-surface, #fffdf6) 88%, transparent);
+  padding: 0;
+  border: 0;
+  background: transparent;
   text-align: left;
+  cursor: pointer;
 }
 
-.rd-v2-discover-page .rd-v2-discover-composer-examples button:hover {
-  border-color: var(--rd-active-border, #c5d2cb);
-  background: var(--rd-hover, #eeeae0);
+.rd-v2-discover-page .rd-v2-discover-composer-examples button:hover em {
+  text-decoration: underline;
 }
 
 .rd-v2-discover-page .rd-v2-discover-composer-examples span {
@@ -710,7 +711,7 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose b {
   width: 100%;
   max-width: none;
   margin: 0;
-  padding: 18px 20px 34px;
+  padding: 0 0 32px;
   gap: 14px;
 }
 
@@ -719,8 +720,8 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose b {
   max-width: none;
   grid-template-columns: minmax(0, 1fr) 108px;
   gap: 8px 10px;
-  padding: 15px 16px 14px;
-  border-radius: 9px;
+  padding: 0;
+  border-radius: 0;
   box-shadow: none;
 }
 
@@ -1045,13 +1046,12 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose b {
 }
 
 .rd-v2-discover-page .rd-v2-body-scroll {
-  padding-top: 8px;
+  padding-top: 12px;
 }
 
 /* Search should feel like the command surface of the application. */
 .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer {
-  border-color: color-mix(in srgb, var(--rd-border, #dbd4c5) 64%, #8297a8 36%);
-  background: #ffffff;
+  background: transparent;
 }
 
 .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer textarea {

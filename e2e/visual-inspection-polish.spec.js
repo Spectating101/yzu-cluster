@@ -139,16 +139,16 @@ test("member Resources keeps request counts and actions readable on a phone", as
   }));
   await page.goto("/?tab=resources", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
-  const cards = page.getByTestId("member-resources").locator("article");
+  const cards = page.getByTestId("member-resources").locator(":scope > div");
   await expect(cards).toHaveCount(3);
   const first = await cards.nth(0).boundingBox();
   const second = await cards.nth(1).boundingBox();
   expect(first.width).toBeGreaterThan(300);
   expect(second.y).toBeGreaterThanOrEqual(first.y + first.height);
-  const counts = cards.nth(1).locator("dt");
-  for (const label of await counts.all()) {
-    expect(await label.evaluate((node) => node.scrollWidth <= node.clientWidth)).toBe(true);
+  for (const line of await cards.nth(1).locator("strong, span").all()) {
+    expect(await line.evaluate((node) => node.scrollWidth <= node.clientWidth)).toBe(true);
   }
-  await cards.nth(1).getByRole("button", { name: "Open request history" }).scrollIntoViewIfNeeded();
-  await expect(cards.nth(1).getByRole("button", { name: "Open request history" })).toBeInViewport();
+  const history = cards.nth(1).getByRole("button", { name: /Request history/ });
+  await history.scrollIntoViewIfNeeded();
+  await expect(history).toBeInViewport();
 });

@@ -292,12 +292,12 @@ summary:focus-visible {
 }
 
 .rd-v2-body-scroll {
-  padding-top: 18px;
+  padding-top: 12px;
   margin-right: var(--rd-main-pad-x);
   margin-bottom: 18px;
-  border: 1px solid rgba(223, 227, 236, 0.92);
-  border-radius: 18px;
-  box-shadow: var(--rd-shadow-sm);
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
   overflow: auto;
 }
 
@@ -358,7 +358,7 @@ summary:focus-visible {
 /* ── Home ───────────────────────────────────────────────────── */
 .rd-v2-home-page .rd-v2-body-scroll {
   gap: 0;
-  padding: 0 22px 28px;
+  padding: 0 0 28px;
   margin-right: var(--rd-main-pad-x);
   margin-bottom: 0;
   border: 0;
@@ -627,7 +627,7 @@ summary:focus-visible {
 
 /* ── Profile — institutional research memory ─────────────────── */
 .rd-v2-profile-page .rd-v2-body-scroll {
-  padding: 22px;
+  padding: 12px 0 24px;
   overflow-y: auto;
 }
 
@@ -809,8 +809,6 @@ summary:focus-visible {
   .rd-v2-library-page .rd-v2-body-scroll {
     margin-right: 14px;
     margin-bottom: 10px;
-    border-radius: 16px;
-    box-shadow: var(--rd-shadow-sm);
     overscroll-behavior: contain;
   }
 
@@ -1850,8 +1848,7 @@ summary:focus-visible {
 
 .rd-v2-body-scroll,
 .rd-v2-library-page .rd-v2-body-scroll {
-  border-color: var(--rd-release-line);
-  background: var(--rd-release-panel);
+  background: transparent;
 }
 
 /* Home — resume object, three entrances, one decision queue, recent evidence. */
@@ -2073,9 +2070,7 @@ summary:focus-visible {
 .rd-v2-home-page.rd-v2-home-i10 {
   display: flex;
   flex-direction: column;
-  gap: 22px;
-  /* Content-rich resume points can be taller than the first viewport. Let
-     the page scroll rather than shrinking the top band beneath its children. */
+  gap: 0;
 }
 
 .rd-v2-home-topband {
@@ -4978,7 +4973,6 @@ body,
 .rd-v2-library-workspace .rd-v2-body-scroll {
   overflow-y: auto;
   padding: 0;
-  border-radius: 18px 18px 0 0;
 }
 
 .rd-v2-library-asset-canvas {

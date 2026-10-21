@@ -28,10 +28,7 @@
    -------------------------------------------------------------------------- */
 
 .rd-v2-home-page.rd-v2-home-i10 .rd-v2-body-scroll {
-  padding-top: 16px;
-  background:
-    linear-gradient(180deg, rgba(255, 253, 246, 0.62) 0, rgba(255, 255, 255, 0) 180px),
-    var(--rd-release-panel, #fffdf6);
+  padding-top: 12px;
 }
 
 .rd-v2-home-page .rd-v2-page-head {
@@ -582,7 +579,7 @@
    -------------------------------------------------------------------------- */
 
 .rd-v2-profile-page .rd-v2-page-head {
-  padding-bottom: 18px;
+  padding-bottom: 0;
 }
 
 .rd-v2-profile-identity {
@@ -763,7 +760,7 @@
 }
 
 .rd-v2-profile-section {
-  margin-top: 26px;
+  margin-top: 24px;
   border: 0;
   border-top: 1px solid var(--rd-hps-line);
   border-radius: 0;
@@ -777,7 +774,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 20px;
-  padding: 17px 0 15px;
+  padding: 12px 0 8px;
   border: 0;
 }
 
@@ -1071,7 +1068,7 @@
 .rd-v2-settings-statement {
   width: min(100%, 1040px);
   margin: 0 auto;
-  padding-bottom: 24px;
+  padding-bottom: 0;
 }
 
 .rd-v2-settings-statement > .rd-v2-statement-section {
@@ -1079,7 +1076,7 @@
   grid-template-columns: minmax(0, 1fr);
   gap: 8px;
   margin: 0;
-  padding: 16px 20px 24px;
+  padding: 16px 0 24px;
   border: 0;
   border-top: 1px solid var(--rd-hps-line);
   border-radius: 0;
@@ -1088,6 +1085,7 @@
 }
 
 .rd-v2-settings-statement > .rd-v2-statement-section:first-of-type {
+  padding-top: 0;
   border-top: 0;
 }
 
