@@ -77,7 +77,7 @@ function RouteCard({ route, sourceTitle, selected, recommended = false, disabled
 function serverRefusal(failure) {
   const status = Number(failure?.status);
   const message = String(failure?.message || "").trim();
-  if (!(status >= 400 && status < 500) || !message || /^\d{3}\b/.test(message)) return "";
+  if (![400, 422].includes(status) || !message || /^\d{3}\s+(?:\/|https?:\/\/)\S*$/.test(message)) return "";
   return /[.!?]$/.test(message) ? message : `${message}.`;
 }
 
@@ -155,7 +155,7 @@ export function DiscoverIntentWorkspace({
     }
   };
 
-  const reconcileSubmissionStatus = async (refusal = "") => {
+  const reconcileSubmissionStatus = async () => {
     if (!intent?.id) throw new Error("No Discover request is available to check.");
     const durableIntent = await getDiscoverIntent(intent.id);
     const durableState = intentState(durableIntent);
@@ -194,9 +194,7 @@ export function DiscoverIntentWorkspace({
     setSubmissionUncertain(false);
     if (canSubmitDiscoverIntent(durableIntent)) {
       setError("");
-      setSubmissionNotice(refusal
-        ? `Not requested: ${refusal} Go back to results and search with those specifics, then add it again.`
-        : "The saved status confirms no approval request was created. You can retry.");
+      setSubmissionNotice("The saved status confirms no approval request was created. You can retry.");
       return "not_committed";
     }
 
@@ -241,16 +239,27 @@ export function DiscoverIntentWorkspace({
       onChange?.(nextRecord);
       onSubmitted?.(out?.job || null, nextRecord);
     } catch (failure) {
+      const status = Number(failure?.status);
+      if ([400, 422].includes(status)) {
+        setSubmissionUncertain(false);
+        setSubmissionNotice(`Not requested: ${serverRefusal(failure) || "The server declined this request."} Go back to results and search with those specifics, then add it again.`);
+        return;
+      }
+      const clientError = status >= 400 && status < 500;
       // A failed transport does not prove the submit failed. The server may
       // already have committed a pending-approval job, so reconcile the durable
       // intent before allowing any further consequential action.
       setBusy("reconcile");
       try {
-        await reconcileSubmissionStatus(serverRefusal(failure));
+        const outcome = await reconcileSubmissionStatus();
+        if (clientError && outcome !== "committed") {
+          setSubmissionNotice("");
+          setError(failure?.message || "Could not submit this request.");
+        }
       } catch {
         setSubmissionUncertain(true);
         setSubmissionNotice("");
-        setError("");
+        setError(clientError ? failure?.message || "Could not submit this request." : "");
       }
     } finally {
       operationLockRef.current = false;

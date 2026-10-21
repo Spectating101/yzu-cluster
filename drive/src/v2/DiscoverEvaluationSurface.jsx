@@ -6,7 +6,7 @@
 
 import { useMemo } from "react";
 import { buildObjectEstateCrumb } from "@/v2/deskIntegration";
-import { plainIdentifiers } from "@/v2/plainText";
+import { plainGrain, plainIdentifiers } from "@/v2/plainText";
 import { applyLifecycleToEvaluation, LIFECYCLE } from "@/v2/discoverLifecycle";
 import { buildDiscoverEvaluation } from "@/v2/discoverEvaluation";
 import { buildDiscoverStrategyCard } from "@/v2/discoverStrategyCard";
@@ -532,14 +532,14 @@ export function DiscoverEvaluationSurface({
                     </span>
                     <span className="rd-v2-eval-sufficiency-side">
                       <small>In Library</small>
-                      <strong>{plainIdentifiers(difference.local) || "Not described"}</strong>
+                      <strong>{(difference.dimension === "grain" ? plainGrain(difference.local) : plainIdentifiers(difference.local)) || "Not described"}</strong>
                     </span>
                     <span className="rd-v2-eval-sufficiency-arrow" aria-hidden="true">
                       →
                     </span>
                     <span className="rd-v2-eval-sufficiency-side">
                       <small>Candidate</small>
-                      <strong>{plainIdentifiers(difference.candidate) || "Not described"}</strong>
+                      <strong>{(difference.dimension === "grain" ? plainGrain(difference.candidate) : plainIdentifiers(difference.candidate)) || "Not described"}</strong>
                     </span>
                   </div>
                 ))}

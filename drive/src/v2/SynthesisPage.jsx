@@ -1,6 +1,6 @@
 import { AnalysisResults } from "./AnalysisResults.jsx";
 import { synthesisObjectiveDisplay, uiVocabularyLabel } from "./uiVocabularyLabels.js";
-import { plainIdentifiers } from "./plainText.js";
+import { plainGrain } from "./plainText.js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { PageShell } from "@/v2/ui";
@@ -328,7 +328,7 @@ function ThreadPicker({ threads, selectedId, onSelect }) {
 function ResearchBrief({ thread, onEditIntent }) {
   const brief = researchBrief(thread);
   if (!brief.body && !brief.targetGrain && !brief.targetPeriod && !brief.intendedUse) return null;
-  const mobileContext = [brief.targetGrain, brief.targetPeriod, brief.intendedUse].filter(Boolean);
+  const mobileContext = [plainGrain(brief.targetGrain), brief.targetPeriod, brief.intendedUse].filter(Boolean);
   return (
     <section className="s04-opening-brief" aria-label="Research brief">
       <header>
@@ -354,7 +354,7 @@ function ResearchBrief({ thread, onEditIntent }) {
           <dl>
             <div>
               <dt>Unit of observation</dt>
-              <dd className={brief.targetGrain ? "" : "unstated"}>{text(brief.targetGrain, "Not stated")}</dd>
+              <dd className={plainGrain(brief.targetGrain) ? "" : "unstated"}>{text(plainGrain(brief.targetGrain), "Not stated")}</dd>
             </div>
             <div>
               <dt>Target period</dt>
@@ -371,7 +371,7 @@ function ResearchBrief({ thread, onEditIntent }) {
       <dl>
         <div>
           <dt>Unit of observation</dt>
-          <dd className={brief.targetGrain ? "" : "unstated"}>{text(brief.targetGrain, "Not stated")}</dd>
+          <dd className={plainGrain(brief.targetGrain) ? "" : "unstated"}>{text(plainGrain(brief.targetGrain), "Not stated")}</dd>
         </div>
         <div>
           <dt>Target period</dt>
@@ -433,7 +433,7 @@ function OpeningRoleMap({ recommendation }) {
           <li key={node.id || node.source}>
             <small>{text(node.role, "Role not stated")}</small>
             <strong>{node.source}</strong>
-            <span>{text(node.grain, "Unit of observation not stated")}</span>
+            <span>{text(plainGrain(node.grain), "Unit of observation not stated")}</span>
           </li>
         ))}
       </ol>
@@ -447,7 +447,7 @@ function OpeningRoleMap({ recommendation }) {
         <strong>{output}</strong>
         {recommendation.expectedOutput.grain || recommendation.expectedOutput.period ? (
           <span>
-            {[recommendation.expectedOutput.grain, recommendation.expectedOutput.period].filter(Boolean).join(" · ")}
+            {[plainGrain(recommendation.expectedOutput.grain), recommendation.expectedOutput.period].filter(Boolean).join(" · ")}
           </span>
         ) : null}
       </div>
@@ -659,7 +659,7 @@ function ThreadHeader({ thread, onEditIntent, onArchive, archiving = false }) {
         </span>
         <span className="s04-brief-grain">
           <small>Unit of observation</small>
-          {text(state.required_grain || state.spec?.grain, "Not specified")}
+          {text(plainGrain(state.required_grain || state.spec?.grain), "Not specified")}
         </span>
       </div>
       )}
@@ -747,7 +747,7 @@ function EvidenceMap({
               >
                 <small>{/^registered$/i.test(text(node.role || node.eyebrow || node.status, "")) ? "In Library" : uiVocabularyLabel(text(node.role || node.eyebrow || node.status, "Evidence"))}</small>
                 <strong>{text(node.label || node.dataset_id, "Unnamed evidence")}</strong>
-                <span>{[plainIdentifiers(node.grain), node.coverage].filter(Boolean).join(" · ") || "Metadata not reported"}</span>
+                <span>{[plainGrain(node.grain), node.coverage].filter(Boolean).join(" · ") || "Metadata not reported"}</span>
               </button>
             ))
           ) : (
@@ -798,7 +798,7 @@ function EvidenceMap({
                       <span>
                         <strong>{text(node.label || node.dataset_id, "Unnamed evidence")}</strong>
                         <small>
-                          {[node.grain, node.coverage, node.query_ready ? "Data ready to query" : "Bytes not verified"]
+                          {[plainGrain(node.grain), node.coverage, node.query_ready ? "Data ready to query" : "Bytes not verified"]
                             .filter(Boolean)
                             .join(" · ")}
                         </small>

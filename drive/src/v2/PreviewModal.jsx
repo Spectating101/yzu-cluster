@@ -13,6 +13,7 @@ import { humanizeDiscoverDescription } from "@/v2/browseMeta";
 import { buildSchemaRows, displayName, statusPill } from "@/v2/datasetMeta";
 import { previewSampleRows } from "@/v2/deskSeed";
 import { coverageText } from "./coverageText.js";
+import { plainGrain } from "./plainText.js";
 
 const MAX_PREVIEW_ROWS = 50;
 const MAX_EXTERNAL_PREVIEW_ROWS = 5;
@@ -121,7 +122,7 @@ function SourceRecord({ dataset, preview }) {
   const rows = [
     ["Publisher", preview?.provider || dataset?.source || dataset?.publisher || dataset?.domain || "Not specified"],
     ["Coverage", coverageText(dataset?.coverage || dataset?.date_range || dataset?.temporal_coverage) || "Not specified"],
-    ["Unit of observation", dataset?.grain || dataset?.format || "Not specified"],
+    ["Unit of observation", plainGrain(dataset?.grain) || dataset?.format || "Not specified"],
     ["Access", humanizeDiscoverDescription(dataset?.access_mode || dataset?.collect_via || "Source-specific")],
     ["License", dataset?.license || "See source terms"],
   ];
@@ -205,10 +206,11 @@ function ExternalFields({ preview }) {
 }
 
 function UnavailablePreview({ dataset, error, onRetry }) {
+  const grain = plainGrain(dataset?.grain);
   const remaining = compactParts([
     dataset?.source || dataset?.publisher ? `Source · ${dataset?.source || dataset?.publisher}` : "",
     dataset?.coverage || dataset?.date_range ? `Coverage · ${coverageText(dataset?.coverage || dataset?.date_range)}` : "",
-    dataset?.grain ? `Unit of observation · ${dataset.grain}` : "",
+    grain ? `Unit of observation · ${grain}` : "",
     dataset?.local_root || dataset?.local_path ? "Archive record · available" : "",
   ]);
 
@@ -276,7 +278,7 @@ export function PreviewModal({
     : statusPill(dataset);
   const metaParts = compactParts([
     externalPreview?.provider || dataset?.source || dataset?.publisher || dataset?.backend,
-    dataset?.grain || dataset?.format,
+    plainGrain(dataset?.grain) || dataset?.format,
     coverageText(dataset?.coverage || dataset?.date_range || dataset?.temporal_coverage),
     readiness,
   ]);

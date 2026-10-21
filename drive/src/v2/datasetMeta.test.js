@@ -8,8 +8,23 @@ import { displayName,
   isQueryReadyReadiness,
   libraryAssetKind,
   libraryAssetPresentation,
+  rowSubtitle,
   statusPillKind,
 } from "./datasetMeta.js";
+
+test("dataset summaries and detail fields share plain units of observation", () => {
+  const dataset = { dataset_id: "panel", grain: "firm-year", coverage: "2020–2024" };
+  assert.equal(rowSubtitle(dataset), "panel · firm × year · 2020–2024");
+  assert.equal(detailFields(dataset).partition, "firm × year · 2020–2024");
+  assert.equal(detailFields(dataset).use, "Panel at firm × year unit of observation");
+  assert.equal(rowSubtitle({ dataset_id: "panel", grain: "time_series" }), "panel · time series");
+  assert.equal(detailFields({ grain: "scholarly_work" }).partition, "scholarly work");
+  for (const grain of ["procured_snapshot", "catalog_harvest", "scrape_snapshot"]) {
+    assert.equal(rowSubtitle({ dataset_id: "panel", grain }), "panel");
+    assert.equal(detailFields({ grain }).partition, null);
+    assert.equal(detailFields({ grain }).use, null);
+  }
+});
 
 test("unknown readiness is never promoted to query ready", () => {
   assert.deepEqual(statusPillKind({ dataset_id: "unknown" }), {

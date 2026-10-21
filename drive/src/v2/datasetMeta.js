@@ -1,5 +1,6 @@
 /** Map registry rows → frozen UI labels (Detail + StatusPill). */
 import { coverageText } from "./coverageText.js";
+import { plainGrain } from "./plainText.js";
 import { MEMBERS_ONLY_TEXT, licensedRowsLocked } from "./licensedAccess.js";
 
 /** Exact readiness tokens that mean smoke-proven / instant local query — never fuzzy `/query|ready/`. */
@@ -349,7 +350,7 @@ export function displayName(dataset) {
 }
 
 export function rowSubtitle(dataset) {
-  const parts = [dataset?.subtitle || dataset?.dataset_id || dataset?.doi || dataset?.url, dataset?.grain].filter(Boolean);
+  const parts = [dataset?.subtitle || dataset?.dataset_id || dataset?.doi || dataset?.url, plainGrain(dataset?.grain)].filter(Boolean);
   const cov = dataset?.coverage || dataset?.date_range;
   if (cov) parts.push(coverageText(cov));
   return parts.join(" · ");
@@ -357,7 +358,8 @@ export function rowSubtitle(dataset) {
 
 export function detailFields(dataset) {
   const d = dataset || {};
-  const partitionParts = [d.grain, coverageText(d.coverage || d.date_range || d.temporal_coverage)].filter(Boolean);
+  const grain = plainGrain(d.grain);
+  const partitionParts = [grain, coverageText(d.coverage || d.date_range || d.temporal_coverage)].filter(Boolean);
   const joinKeys = d.join_keys || [];
   return {
     description: d.description || d.recommended_use || "",
@@ -373,7 +375,7 @@ export function detailFields(dataset) {
     partition: partitionParts.length ? partitionParts.join(" · ") : null,
     joinKeys: joinKeys.length ? joinKeys : null,
     vault: d.local_root || d.local_path || d.vault_path || null,
-    use: d.recommended_use || (d.grain ? `Panel at ${d.grain} unit of observation` : null),
+    use: d.recommended_use || (grain ? `Panel at ${grain} unit of observation` : null),
   };
 }
 

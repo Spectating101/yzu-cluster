@@ -1,4 +1,5 @@
 import { coverageSpan } from "./coverageText.js";
+import { plainGrain } from "./plainText.js";
 /**
  * Discover local sufficiency / equivalence authority.
  *
@@ -206,7 +207,7 @@ function grainGapSummary(localGrain, candGrain) {
     dimension: "grain",
     local: localGrain,
     candidate: candGrain,
-    summary: `Library unit of observation: ${localGrain} · Candidate unit of observation: ${candGrain}`,
+    summary: `Library unit of observation: ${plainGrain(localGrain) || "Not specified"} · Candidate unit of observation: ${plainGrain(candGrain) || "Not specified"}`,
   };
 }
 

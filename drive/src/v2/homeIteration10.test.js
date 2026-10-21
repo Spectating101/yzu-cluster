@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  buildGuestReadyDatasets,
   buildPickUp,
   buildRecommendedEvidence,
   buildResourceHeadroom,
@@ -8,6 +9,39 @@ import {
   projectRollupFromHealth,
 } from "./homeIteration10.js";
 import { touchRecent } from "./recent.js";
+
+test("guest ready datasets exclude locked rows from featured and fallback selections", () => {
+  const locked = { dataset_id: "locked", name: "Licensed panel", analysis_readiness: "instant", licensed: true, rows_available: false };
+  const open = { dataset_id: "open", name: "Open panel", analysis_readiness: "query_ready" };
+  const metadata = { dataset_id: "metadata", analysis_readiness: "registered" };
+  for (const featured of [false, true]) {
+    const datasets = featured
+      ? [{ ...locked, featured_rank: 1 }, { ...open, featured_rank: 2 }, metadata]
+      : [locked, open, metadata];
+    assert.deepEqual(buildGuestReadyDatasets(datasets).map((row) => row.dataset_id), ["open"]);
+  }
+  assert.deepEqual(buildGuestReadyDatasets([locked]), []);
+  assert.deepEqual(buildGuestReadyDatasets([{ ...locked, rows_available: true }]).map((row) => row.dataset_id), ["locked"]);
+});
+
+test("recent trail filters locked datasets before applying its limit", () => {
+  const locked = { dataset_id: "locked", name: "Licensed panel", analysis_readiness: "instant", licensed: true, rows_available: false };
+  const open = { dataset_id: "open", name: "Open panel", analysis_readiness: "query_ready" };
+  const store = new Map();
+  globalThis.localStorage = { getItem: (key) => store.get(key) ?? null, setItem: (key, value) => store.set(key, value), removeItem: (key) => store.delete(key) };
+  try {
+    touchRecent("open");
+    touchRecent("locked");
+    const trail = buildRecentTrail({ datasets: [locked, open], limit: 1 });
+    assert.deepEqual(trail.map((row) => row.id), ["open"]);
+    assert.equal(trail[0].dest, "library");
+    assert.deepEqual(buildRecentTrail({ datasets: [locked] }), []);
+    const member = buildRecentTrail({ datasets: [{ ...locked, rows_available: true }, open], limit: 1 });
+    assert.deepEqual(member.map((row) => row.id), ["locked"]);
+  } finally {
+    delete globalThis.localStorage;
+  }
+});
 
 test("pick up prefers recent library asset as primary", () => {
   const { primary, secondary } = buildPickUp({
