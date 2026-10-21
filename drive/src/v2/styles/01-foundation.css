@@ -194,6 +194,7 @@ button {
   height: 100vh;
   max-height: 100vh;
   font-family: var(--rd-font);
+  text-wrap: pretty;
   font-size: var(--rd-text-md);
 }
 

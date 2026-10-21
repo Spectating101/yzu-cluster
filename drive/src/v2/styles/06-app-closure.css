@@ -26,7 +26,7 @@
 
 .rd-v2-connected-intro p {
   margin: 0;
-  max-width: 690px;
+  max-width: 60ch;
   color: var(--rd-muted, #66706c);
   line-height: 1.55;
 }

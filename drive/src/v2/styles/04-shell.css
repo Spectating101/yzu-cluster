@@ -1153,7 +1153,7 @@
 }
 
 .rd-v2-settings-hint {
-  max-width: 680px;
+  max-width: 60ch;
   margin: 1px 0 var(--rd-space-2);
   color: var(--rd-hps-muted);
   font-size: var(--rd-text-2xs);
