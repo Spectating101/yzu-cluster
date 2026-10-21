@@ -1,0 +1,216 @@
+RESEARCH DRIVE — PROPOSED DISCOVER AND SYNTHESIS COMPOSITIONS
+Proposed 2026-10-22. This is a PROPOSAL, not frozen authority. Nothing here has been
+approved or built. Geometry: 24 nav | 77 centre | 37 Detail/Ask rail (same as FROZEN_RENDERS.txt).
+
+WHAT CHANGES
+  W1  Discover idle: one question, one box, one line of suggestions. No library block,
+      no source list. (Supersedes the idle part of FROZEN_DISCOVER_EXPLORE_G, which was
+      drawn with a question already asked. G's results composition is kept in spirit.)
+  W2  Discover results: counts appear once as filter chips; one row open; the detail
+      rail shows source, coverage, licence and unknowns, each "not reported" if absent.
+  W3-W6  Synthesis: a diagram of datasets, steps and output (dbt-lineage layout), with the
+      agent in the rail. Accepting the method and approving the run stay separate gates.
+
+RULES CARRIED OVER from FROZEN_DISCOVER_EXPLORE_G: a badge states a holding and a route
+states a measurement; coverage is never printed unless a field reports it; one row open;
+actions scale with state; no number the backend does not emit.
+
+BACKING (verify before building)
+  EXISTS   join key columns, match rate and cardinality (joinCandidates.js, backend join
+           candidates); dataset grain and column names; saved-method count (synthesis
+           profiles); execution states Requested / Ran / Archived / Registered and row
+           count; bounded output preview rows.
+  UNVERIFIED  licence field on dataset records; a numeric column summary or chart for the
+           output (a time sparkline was REMOVED from the first draft for this reason); the
+           left-key count in "94% of the 6,240 left keys match" (denominator source).
+  INTERACTION NOT YET DRAWN  keyboard traversal between diagram nodes, edit controls for a
+           step, and what "Edit step" does to an accepted method (it must invalidate it).
+
+LOOP LOG
+  Round 1  drafted five frames.
+  Round 2  fixed edge alignment; removed text repeated between centre and rail; split
+           "Approve & run" because accepting a method and approving a run are separate gates.
+  Round 3  independent review (Codex) added: a step-selected state, "Accept method",
+           one conversation entry in the new build, "Search" instead of "Explore",
+           licence/source rows marked not reported, no unverified chart.
+           Rejected from that review: replacing "READY TO QUERY" (it is the project's
+           holding word) and removing the saved-method count (the backend returns it).
+
+====================================================================================================
+
+=== W1 Discover idle ===
+
+┌────────────────────────┬─────────────────────────────────────────────────────────────────────────────┬─────────────────────────────────────┐
+│ RESEARCH DRIVE         │ DISCOVER                                            EXPLORE ●    HISTORY 1  │ DETAIL ●                ASK         │
+│                        │                                                                             │ ─────────────────────────────────── │
+│    Home                │ What data do you need?                                                      │                                     │
+│    Library             │                                                                             │                                     │
+│  ● Discover            │ ┌────────────────────────────────────────────────────────────────────────┐  │                                     │
+│    Synthesis           │ │ Search datasets, or describe the research you are doing…    [ Search ] │  │                                     │
+│    Resources           │ └────────────────────────────────────────────────────────────────────────┘  │                                     │
+│    Profile             │                                                                             │                                     │
+│    Settings            │ Try   unemployment by country  ·  stablecoin de-pegs  ·  Taiwan listed firms│                                     │
+│                        │                                                                             │                                     │
+│ ACTIVE RESEARCH        │                                                                             │                                     │
+│                        │                                                                             │                                     │
+│ Stablecoin Research    │                                                                             │                                     │
+│ Event studies          │                                                                             │                                     │
+│ Market structure       │                                                                             │                                     │
+│                        │                                                                             │                                     │
+│ ────────────────────── │                                                                             │                                     │
+│ RECENT                 │                                                                             │                                     │
+│                        │                                                                             │                                     │
+│ USDT transactions      │                                                                             │                                     │
+│ Event study panel      │                                                                             │                                     │
+├────────────────────────┼─────────────────────────────────────────────────────────────────────────────┼─────────────────────────────────────┤
+│ Stablecoin Research    │ Idle: one question, nothing else                                            │ Selected evidence                   │
+└────────────────────────┴─────────────────────────────────────────────────────────────────────────────┴─────────────────────────────────────┘
+
+=== W2 Discover results ===
+
+┌────────────────────────┬─────────────────────────────────────────────────────────────────────────────┬─────────────────────────────────────┐
+│ RESEARCH DRIVE         │ DISCOVER                                            EXPLORE ●    HISTORY 1  │ DETAIL ●                ASK         │
+│                        │                                                                             │ ─────────────────────────────────── │
+│    Home                │ ┌────────────────────────────────────────────────────────────────────────┐  │ CROSS-COUNTRY MONTHLY               │
+│    Library             │ │ monthly unemployment rate by country, 2000 onward           [ Search ] │  │ UNEMPLOYMENT PANEL                  │
+│  ● Discover            │ └────────────────────────────────────────────────────────────────────────┘  │ READY TO QUERY                      │
+│    Synthesis           │                                                                             │ ─────────────────────────────────── │
+│    Resources           │ [All 13]   In your Library 7   Can be collected 6       Sort ▾   Filters ▾  │ IN PLAIN TERMS                      │
+│    Profile             │ Start Synthesis with the 7 Library results →                                │                                     │
+│    Settings            │ ──────────────────────────────────────────────────────────────────────────  │ One row per country and month:      │
+│                        │ ▌ Cross-country monthly unemployment panel                  READY TO QUERY  │ harmonised unemployment rate        │
+│ ACTIVE RESEARCH        │   One row per country and month: harmonised unemployment rate from          │ from national statistics offices.   │
+│                        │   national statistics offices, as held in your Library.                     │                                     │
+│ Stablecoin Research    │   Library · country_month · coverage not reported                           │ SOURCE                              │
+│ Event studies          │                                                                             │ Library · country_month             │
+│ Market structure       │   OECD short-term labour market statistics            AVAILABLE TO COLLECT  │                                     │
+│                        │   Monthly unemployment rates for OECD countries.                            │ COVERAGE                            │
+│ ────────────────────── │                                                                             │ coverage not reported               │
+│ RECENT                 │   BLS LAUS county monthly employment and unemployment AVAILABLE TO COLLECT  │                                     │
+│                        │   Monthly county employment and unemployment from official BLS surveys.     │ LICENCE                             │
+│ USDT transactions      │                                                                             │ licence not reported                │
+│ Event study panel      │   Eurostat unemployment by sex and age, monthly         ACCESS NOT CHECKED  │                                     │
+│                        │   Monthly unemployment for EU member states.                                │ UNKNOWNS                            │
+│                        │                                                                             │ ? row count    ? latest month       │
+│                        │                                                                             │                                     │
+│                        │                                                                             │ ─────────────────────────────────── │
+│                        │                                                                             │ [ Open in Library ]                 │
+│                        │                                                                             │ Compare coverage · Ask              │
+├────────────────────────┼─────────────────────────────────────────────────────────────────────────────┼─────────────────────────────────────┤
+│ Stablecoin Research    │ Results: counts once, one row open                                          │ Selected evidence                   │
+└────────────────────────┴─────────────────────────────────────────────────────────────────────────────┴─────────────────────────────────────┘
+
+=== W3 Synthesis new build ===
+
+┌────────────────────────┬─────────────────────────────────────────────────────────────────────────────┬─────────────────────────────────────┐
+│ RESEARCH DRIVE         │ SYNTHESIS · New build                                          Not started  │ DETAIL         ASK ●                │
+│                        │                                                                             │ ─────────────────────────────────── │
+│    Home                │ What dataset do you need?                                                   │ The conversation starts when        │
+│    Library             │ ┌────────────────────────────────────────────────────────────────────────┐  │ you press Propose, and continues    │
+│    Discover            │ │ e.g. weekly news-shock measures for Asian markets                      │  │ here.                               │
+│  ● Synthesis           │ │                                                                        │  │                                     │
+│    Resources           │ └────────────────────────────────────────────────────────────────────────┘  │                                     │
+│    Profile             │                                                                             │                                     │
+│    Settings            │ What is it for?                                                             │                                     │
+│                        │ ┌────────────────────────────────────────────────────────────────────────┐  │                                     │
+│ BUILDS           + New │ │ e.g. test whether shocks lead returns                                  │  │                                     │
+│                        │ │                                                                        │  │                                     │
+│ ● New build            │ └────────────────────────────────────────────────────────────────────────┘  │                                     │
+│     draft              │                                                                             │                                     │
+│ ✓ Stablecoin de-pegs   │ Optional: Library dataset ▾   saved method ▾ 3          [ Propose method ]  │                                     │
+│     built              │                                                                             │                                     │
+├────────────────────────┼─────────────────────────────────────────────────────────────────────────────┼─────────────────────────────────────┤
+│ New build              │ New: two questions, one conversation                                        │ Ask proposes. It cannot run.        │
+└────────────────────────┴─────────────────────────────────────────────────────────────────────────────┴─────────────────────────────────────┘
+
+=== W4 Synthesis proposal ===
+
+┌────────────────────────┬─────────────────────────────────────────────────────────────────────────────┬─────────────────────────────────────┐
+│ RESEARCH DRIVE         │ SYNTHESIS · Asia news shocks                            Proposed · not run  │ DETAIL         ASK ●                │
+│                        │                                                                             │ ─────────────────────────────────── │
+│    Home                │ ✓ Define   ✓ Ground   ● Review   ○ Build   ○ Reuse                          │ You                                 │
+│    Library             │                                                                             │ I need weekly news-shock measures   │
+│    Discover            │ Purpose   Test whether weekly news shocks lead Asian market returns.        │ for Asian markets, to test whether  │
+│  ● Synthesis           │                                                                             │ shocks lead returns.                │
+│    Resources           │ ┌─────────────────────────┐   ┌──────────────────┐                          │                                     │
+│    Profile             │ │ Daily news shocks       │   │ ① Aggregate      │                          │ Agent                               │
+│    Settings            │ │ GDELT · country × day   │──▶│ day → week       │                          │ I can build it from two datasets    │
+│                        │ │ country day tone events │   └──────────────────┘  ┌────────────────────┐  │ you already hold. Daily rows are    │
+│ BUILDS           + New │ └─────────────────────────┘             ▼           │ Asia news shocks   │  │ averaged to weeks, then joined on   │
+│                        │                               ┌──────────────────┐  │ country × week     │  │ country and week (94% of keys       │
+│ ● Asia news shocks     │                               │ ② Join           │  │                    │  │ match). Not run yet.                │
+│     needs you          │                               │ on country, week │─▶│ country  week      │  │                                     │
+│ ✓ Stablecoin de-pegs   │ ┌─────────────────────────┐   │ 94% keys match   │  │ shock_index (new)  │  │ ┌─────────────────────────────────┐ │
+│     built              │ │ Asia weekly markets     │──▶│ 1:1              │  │ ret_next_week      │  │ │ Ask…                  Send      │ │
+│ ✓ County unemployment  │ │ held · country × week   │   └──────────────────┘  │                    │  │ └─────────────────────────────────┘ │
+│     built              │ │ country week ret vol    │                         └────────────────────┘  │                                     │
+│                        │ └─────────────────────────┘                                                 │                                     │
+│                        │                                                                             │                                     │
+│                        │ ? the market panel's date range is not reported                             │                                     │
+│                        │                                                                             │                                     │
+│                        │ [ Accept method ]   [ Ask to change ]                     Method as code ▸  │                                     │
+├────────────────────────┼─────────────────────────────────────────────────────────────────────────────┼─────────────────────────────────────┤
+│ Asia news shocks       │ Review: a diagram, one decision                                             │ Ask proposes. It cannot run.        │
+└────────────────────────┴─────────────────────────────────────────────────────────────────────────────┴─────────────────────────────────────┘
+
+=== W5 Synthesis proposal, step selected ===
+
+┌────────────────────────┬─────────────────────────────────────────────────────────────────────────────┬─────────────────────────────────────┐
+│ RESEARCH DRIVE         │ SYNTHESIS · Asia news shocks                            Proposed · not run  │ DETAIL ●                ASK         │
+│                        │                                                                             │ ─────────────────────────────────── │
+│    Home                │ ✓ Define   ✓ Ground   ● Review   ○ Build   ○ Reuse                          │ ② JOIN                              │
+│    Library             │                                                                             │ PROPOSED · EDITABLE                 │
+│    Discover            │ Purpose   Test whether weekly news shocks lead Asian market returns.        │ ─────────────────────────────────── │
+│  ● Synthesis           │                                                                             │ INPUTS                              │
+│    Resources           │ ┌─────────────────────────┐   ┌──────────────────┐                          │ ① Aggregate (country × week)        │
+│    Profile             │ │ Daily news shocks       │   │ ① Aggregate      │                          │ Asia weekly markets                 │
+│    Settings            │ │ GDELT · country × day   │──▶│ day → week       │                          │                                     │
+│                        │ │ country day tone events │   └──────────────────┘  ┌────────────────────┐  │ ON                                  │
+│ BUILDS           + New │ └─────────────────────────┘             ▼           │ Asia news shocks   │  │ country · week                      │
+│                        │                               ╔══════════════════╗  │ country × week     │  │                                     │
+│ ● Asia news shocks     │                               ║ ② Join           ║  │                    │  │ MEASURED                            │
+│     needs you          │                               ║ on country, week ║─▶│ country  week      │  │ 94% of the 6,240 left keys match    │
+│ ✓ Stablecoin de-pegs   │ ┌─────────────────────────┐   ║ 94% keys match   ║  │ shock_index (new)  │  │ 1:1 · no duplicate keys             │
+│     built              │ │ Asia weekly markets     │──▶║ 1:1              ║  │ ret_next_week      │  │                                     │
+│ ✓ County unemployment  │ │ held · country × week   │   ╚══════════════════╝  │                    │  │ UNMATCHED                           │
+│     built              │ │ country week ret vol    │                         └────────────────────┘  │ left rows without a match are       │
+│                        │ └─────────────────────────┘                                                 │ dropped (change in Ask)             │
+│                        │                                                                             │                                     │
+│                        │ ? the market panel's date range is not reported                             │ [ Edit step ]   Ask about this step │
+│                        │                                                                             │                                     │
+│                        │ [ Accept method ]   [ Ask to change ]                     Method as code ▸  │                                     │
+├────────────────────────┼─────────────────────────────────────────────────────────────────────────────┼─────────────────────────────────────┤
+│ Asia news shocks       │ Select a step: its detail, not a paragraph                                  │ Selected step                       │
+└────────────────────────┴─────────────────────────────────────────────────────────────────────────────┴─────────────────────────────────────┘
+
+=== W6 Synthesis built ===
+
+┌────────────────────────┬─────────────────────────────────────────────────────────────────────────────┬─────────────────────────────────────┐
+│ RESEARCH DRIVE         │ SYNTHESIS · Asia news shocks                         [ Open in Library → ]  │ DETAIL ●                ASK         │
+│                        │                                                                             │ ─────────────────────────────────── │
+│    Home                │ ✓ Define   ✓ Ground   ✓ Review   ✓ Build   ● Reuse                          │ ASIA NEWS SHOCKS                    │
+│    Library             │                                                                             │ BUILT · IN YOUR LIBRARY             │
+│    Discover            │ ┌─────────────────────────┐   ┌──────────────────┐                          │ ─────────────────────────────────── │
+│  ● Synthesis           │ │ Daily news shocks       │   │ ① Aggregate      │                          │ COLUMNS                             │
+│    Resources           │ │ GDELT · country × day   │──▶│ day → week       │                          │ country      text                   │
+│    Profile             │ │ country day tone events │   └──────────────────┘  ┌────────────────────┐  │ week         ISO week               │
+│    Settings            │ └─────────────────────────┘             ▼           │ Asia news shocks   │  │ shock_index  number · new           │
+│                        │                               ┌──────────────────┐  │ country × week     │  │ ret_next_week number                │
+│ BUILDS           + New │                               │ ② Join           │  │ 5,200 rows         │  │                                     │
+│                        │                               │ on country, week │─▶│ country  week      │  │ UNKNOWNS                            │
+│ ✓ Asia news shocks     │ ┌─────────────────────────┐   │ 94% keys match   │  │ shock_index (new)  │  │ ? tone coverage before 2015         │
+│     built              │ │ Asia weekly markets     │──▶│ 1:1              │  │ ret_next_week      │  │                                     │
+│ ✓ Stablecoin de-pegs   │ │ held · country × week   │   └──────────────────┘  │                    │  │ [ Use in a new build ]              │
+│     built              │ │ country week ret vol    │                         └────────────────────┘  │ Challenge in Ask                    │
+│ ✓ County unemployment  │ └─────────────────────────┘                                                 │                                     │
+│     built              │                                                                             │                                     │
+│                        │ OUTPUT PREVIEW                                                              │                                     │
+│                        │ country   week      shock_index   ret_next_week                             │                                     │
+│                        │ JP        2024-W01        0.42          0.8%                                │                                     │
+│                        │ KR        2024-W01       -0.10         -0.2%                                │                                     │
+│                        │ TW        2024-W01        0.05          0.1%                                │                                     │
+│                        │                                                                             │                                     │
+│                        │ ✓ Requested  ✓ Ran  ✓ Archived  ✓ Registered                 Run details ▸  │                                     │
+├────────────────────────┼─────────────────────────────────────────────────────────────────────────────┼─────────────────────────────────────┤
+│ Asia news shocks       │ Built: the result, not a description                                        │ Selected build                      │
+└────────────────────────┴─────────────────────────────────────────────────────────────────────────────┴─────────────────────────────────────┘
