@@ -27,6 +27,7 @@ import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
 import { ExcursionRecordPanel } from "./ExcursionRecordPanel.jsx";
 import { SynthesisHome } from "./SynthesisHome.jsx";
 import { MethodDiagram } from "./MethodDiagram.jsx";
+import { methodGraph } from "./synthesisMethodGraph.js";
 import { focusFor } from "./synthesisFocus.js";
 import { synthesisExecutionLabel, synthesisAssistRequestContext, synthesisAssist } from "@/v2/synthesisAssist.js";
 import { synthesisDraftBrief, synthesisDraftPrompt } from "@/v2/synthesisDraft.js";
@@ -2223,6 +2224,22 @@ export function SynthesisPage({
   const preAcceptance = Boolean(selected && isPreAcceptance(selected));
   const hasRecommendation = Boolean(displayedSelected && recommendedConstruction(displayedSelected).present);
   const hasMappedEvidence = Boolean(displayedSelected && evidenceNodes(displayedSelected).length);
+  const methodDrawn = Boolean(displayedSelected && methodGraph(displayedSelected));
+  const evidenceMapView = displayedSelected ? (
+    <EvidenceMap
+      thread={displayedSelected}
+      onAsk={ask}
+      selectedField={selectedField}
+      onSelectField={setSelectedField}
+      onRouteToDiscover={routeToDiscover}
+      onSearchBeyond={routeObjectiveToDiscover}
+      missingIds={missingEvidenceIds}
+      evidenceProposal={evidenceProposal}
+      mappingEvidence={mappingEvidence}
+      onFindEvidence={findHeldEvidence}
+      onApplyEvidence={applyHeldEvidence}
+    />
+  ) : null;
   const surfaceState = resolveSurfaceLifecycle({
     loading,
     error,
@@ -2285,7 +2302,7 @@ export function SynthesisPage({
                   reasoningStatus={reasoningStatus}
                 />
               ) : null}
-              {!preAcceptance ? <MethodDiagram thread={displayedSelected} onOpenDataset={onOpenDataset} /> : null}
+              {!preAcceptance || mode !== "proposal" ? <MethodDiagram thread={displayedSelected} onOpenDataset={onOpenDataset} /> : null}
               <ThreadPicker threads={threads} selectedId={selectedId} onSelect={selectThread} />
               <ContextStrip items={focus.strip.filter((item) => !RECORD_ALWAYS.includes(item.id))}
                             onPromote={setPromoted} promoted={focus.promoted}
@@ -2365,35 +2382,13 @@ export function SynthesisPage({
                   onAsk={reasoningAvailable ? ask : null}
                 />
               ) : null}
-              {synthesisShowsEvidenceMap(displayedSelected) || (preAcceptance && hasMappedEvidence) ? (
-                <EvidenceMap
-                  thread={displayedSelected}
-                  onAsk={ask}
-                  selectedField={selectedField}
-                  onSelectField={setSelectedField}
-                  onRouteToDiscover={routeToDiscover}
-                  onSearchBeyond={routeObjectiveToDiscover}
-                  missingIds={missingEvidenceIds}
-                  evidenceProposal={evidenceProposal}
-                  mappingEvidence={mappingEvidence}
-                  onFindEvidence={findHeldEvidence}
-                  onApplyEvidence={applyHeldEvidence}
-                />
-              ) : null}
-              {preAcceptance && !hasMappedEvidence ? (
-                <EvidenceMap
-                  thread={displayedSelected}
-                  onAsk={ask}
-                  selectedField={selectedField}
-                  onSelectField={setSelectedField}
-                  onRouteToDiscover={routeToDiscover}
-                  onSearchBeyond={routeObjectiveToDiscover}
-                  missingIds={missingEvidenceIds}
-                  evidenceProposal={evidenceProposal}
-                  mappingEvidence={mappingEvidence}
-                  onFindEvidence={findHeldEvidence}
-                  onApplyEvidence={applyHeldEvidence}
-                />
+              {synthesisShowsEvidenceMap(displayedSelected) || (preAcceptance && hasMappedEvidence) || (preAcceptance && !hasMappedEvidence) ? (
+                methodDrawn && !missingEvidenceIds.size ? (
+                  <details className="s04-fold" data-testid="synthesis-evidence-map-fold">
+                    <summary>Evidence map</summary>
+                    {evidenceMapView}
+                  </details>
+                ) : evidenceMapView
               ) : null}
               {showExecution ? (
                 <ExecutionRecord

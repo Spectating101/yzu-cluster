@@ -73,14 +73,23 @@ export function methodGraph(thread) {
       held: true, queryReady: n.query_ready === true,
     }));
   }
+  const joinCandidate = rankCandidates(state.join_candidates || []).find((c) => c.usable);
+  if (spec && joinCandidate) {
+    for (const id of [joinCandidate.leftDatasetId, joinCandidate.rightDatasetId].map(str).filter(Boolean)) {
+      if (inputs.some((input) => input.id === id)) continue;
+      const node = labels.get(id);
+      inputs.push({ id, title: str(node?.label) || str(id === joinCandidate.leftDatasetId ? joinCandidate.leftLabel : joinCandidate.rightLabel) || id, grain: plainGrain(node?.grain), held: true, queryReady: node?.query_ready === true });
+    }
+  }
   const hiddenInputs = Math.max(inputs.length - INPUT_LIMIT, 0);
   inputs = inputs.slice(0, INPUT_LIMIT);
 
   const steps = [];
-  const joinCandidate = rankCandidates(state.join_candidates || []).find((c) => c.usable);
-  if (joinCandidate && inputs.length >= 2) steps.push(joinStep(joinCandidate));
-  const aggregate = aggregateStep(spec);
-  if (aggregate) steps.push(aggregate);
+  if (spec) {
+    if (joinCandidate && inputs.length >= 2) steps.push(joinStep(joinCandidate));
+    const aggregate = aggregateStep(spec);
+    if (aggregate) steps.push(aggregate);
+  }
 
   const execution = state.execution || {};
   const rows = Number(execution.rows);
@@ -99,13 +108,13 @@ export function methodGraph(thread) {
     registered: ["registered", "query_ready"].includes(str(execution.status).toLowerCase()),
   };
 
-  if (!steps.length && !spec) return null;
+  if (!spec) return null;
   return { inputs, hiddenInputs, steps, output, proposed };
 }
 
 export function partDetail(graph, id) {
   if (!graph) return null;
-  const state = graph.output.registered ? "Recorded" : graph.proposed ? "Proposed" : "Planned";
+  const state = graph.output?.registered ? "Recorded" : graph.proposed ? "Proposed" : "Planned";
   const input = graph.inputs.find((n) => n.id === id);
   if (input) {
     return {
@@ -123,10 +132,11 @@ export function partDetail(graph, id) {
     return {
       id, kind: "step", kicker: `Step ${index + 1} · ${step.kind}`, title: `${step.kind} ${step.label}`, datasetId: "",
       rows: step.facts.map((fact, i) => [i === 0 ? (step.measured ? "Measured" : "Does") : "", fact]),
-      note: step.measured ? "Measured from Library data." : graph.output.registered ? "Recorded in the saved method." : "Proposed. Nothing has run.",
+      note: step.measured ? "Measured from Library data." : graph.output?.registered ? "Recorded in the saved method." : "Proposed. Nothing has run.",
     };
   }
   const out = graph.output;
+  if (!out) return null;
   return {
     id: "output", kind: "output", kicker: "Output", title: out.title, datasetId: out.registered ? out.datasetId : "",
     rows: [

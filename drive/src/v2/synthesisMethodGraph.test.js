@@ -27,21 +27,23 @@ test("a built thread draws its input, the aggregate step and the measured output
 test("a join step appears only from a usable measured candidate and carries its numbers", () => {
   const t = structuredClone(built);
   t.state.execution_spec = null;
+  t.state.proposal = { id: "p", execution_spec: { input_dataset_id: "trust", group_by: ["week"], metrics: [] } };
   t.state.nodes.push({ id: "mkt", dataset_id: "mkt", type: "source", layer: "evidence", label: "Markets", grain: "country_week" });
-  t.state.join_candidates = [{ left_key: "country", right_key: "country", key_parts: ["country", "week"], matched: 5865, left_distinct: 6240, match_rate_pct: 94, right_duplicate_rows: 0, usable: true, complete_identity_domain: true }];
+  t.state.join_candidates = [{ left_dataset_id: "trust", right_dataset_id: "mkt", left_key: "country", right_key: "country", key_parts: ["country", "week"], matched: 5865, left_distinct: 6240, match_rate_pct: 94, right_duplicate_rows: 0, usable: true, complete_identity_domain: true }];
   const g = methodGraph(t);
-  assert.deepEqual(g.steps.map((s) => s.kind), ["Join"]);
+  assert.deepEqual(g.steps.map((s) => s.kind), ["Join", "Aggregate"]);
+  assert.equal(g.inputs.length, 2);
   assert.equal(g.steps[0].label, "on country, week");
   assert.equal(g.steps[0].facts[0], "94% of keys match");
   t.state.join_candidates[0].usable = false;
-  assert.equal(methodGraph(t), null);
+  assert.deepEqual(methodGraph(t).steps.map((x) => x.kind), ["Aggregate"]);
 });
 
 test("nothing recorded draws nothing", () => {
   assert.equal(methodGraph({ state: { nodes: [] } }), null);
 });
 
-test("mapped evidence with no method or spec draws no arrows", () => {
+test("mapped evidence with no method or spec draws nothing", () => {
   const t = structuredClone(built);
   t.state.execution_spec = null;
   t.state.execution = null;

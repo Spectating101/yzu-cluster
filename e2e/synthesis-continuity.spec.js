@@ -129,6 +129,8 @@ test.describe("Synthesis continuity surfaces", () => {
     await expect(page.locator(".s04-opening-workflow-wrap")).not.toBeVisible();
     await expect(page.getByRole("region", { name: "Suggested build" })).not.toBeVisible();
     await expect(page.getByRole("region", { name: "What happens next" })).not.toBeVisible();
+    await expect(page.getByTestId("synthesis-evidence-map-fold")).toBeVisible();
+    await page.getByTestId("synthesis-evidence-map-fold").locator("summary").click();
     await expect(page.getByTestId("synthesis-evidence-state")).toBeVisible();
     await page.screenshot({ path: `${outDir}/proposal-review-1440.png`, fullPage: true });
   });

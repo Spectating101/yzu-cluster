@@ -3418,3 +3418,5 @@
 .s04-rail-part dl { display: grid; grid-template-columns: auto 1fr; gap: var(--rd-space-1) var(--rd-space-3); margin: 0; }
 .s04-rail-part dt { color: var(--rd-muted); }
 .s04-rail-part dd { margin: 0; color: var(--rd-body); }
+
+.s04-fold > summary { cursor: pointer; color: var(--rd-muted); font-size: var(--rd-text-xs); font-weight: 600; padding: var(--rd-space-2) 0; }
