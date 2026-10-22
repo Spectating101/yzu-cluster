@@ -782,6 +782,9 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await expect(diagram).toBeVisible();
     await expect(diagram.getByRole("list", { name: "Steps" })).toContainText("Aggregate");
     await expect(diagram.getByTestId("method-node-output")).toContainText("13,827 rows");
+    const diagramTop = (await diagram.boundingBox()).y;
+    const resultTop = (await page.getByTestId("synthesis-registered-state").boundingBox()).y;
+    expect(diagramTop, "the diagram leads the built page").toBeLessThan(resultTop);
     await diagram.getByTestId("method-node-aggregate").click();
     const part = page.getByTestId("synthesis-rail-part");
     await expect(part).toContainText("mean of attention");

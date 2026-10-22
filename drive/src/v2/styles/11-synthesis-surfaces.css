@@ -3428,3 +3428,5 @@
 
 .s04-diagram { margin-top: var(--rd-space-3); }
 .s04-review-grid > details.s04-resolved-list { align-self: start; }
+
+#root .rd-v2-synthesis-page .s04-main > .s04-diagram { order: 1; }
