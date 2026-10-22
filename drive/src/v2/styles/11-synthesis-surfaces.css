@@ -3307,7 +3307,6 @@
 .s04-compose {
   display: grid;
   gap: var(--rd-space-2);
-  max-width: 880px;
 }
 
 .s04-compose > label {
