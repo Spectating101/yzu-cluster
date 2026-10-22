@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { methodGraph, partDetail } from "./synthesisMethodGraph.js";
 import { methodSelection, useMethodSelection } from "./methodSelection.js";
+import { useDatasetName } from "./useDatasetName.js";
 
 function Node({ node, kind, selected, onSelect, children }) {
   return (
@@ -35,7 +36,17 @@ export function PartDetail({ detail, onOpenDataset }) {
 }
 
 export function MethodDiagram({ thread, onOpenDataset }) {
-  const graph = useMemo(() => methodGraph(thread), [thread]);
+  const specState = thread?.state || {};
+  const spec = specState.execution_spec || specState.proposal?.execution_spec || {};
+  const inputId = String(spec.input_dataset_id || "");
+  const outputId = String(specState.execution?.output_dataset_id || spec.output_dataset_id || "");
+  const registered = ["registered", "query_ready"].includes(String(specState.execution?.status || "").toLowerCase());
+  const inputName = useDatasetName(inputId);
+  const outputName = useDatasetName(registered ? outputId : "");
+  const graph = useMemo(
+    () => methodGraph(thread, { [inputId]: inputName, [outputId]: outputName }),
+    [thread, inputId, outputId, inputName, outputName],
+  );
   const [selectedId, setSelectedId] = useState("");
   const { railMounted } = useMethodSelection();
   const threadId = thread?.id || "";

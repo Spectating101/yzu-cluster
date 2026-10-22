@@ -257,14 +257,16 @@ function DiscoverCandidateRow({
         "",
     ).trim(),
   );
-  const evidenceLine = hasExplicitDescription ? humanizeDiscoverDescription(descriptiveLine(row)) : "";
+  const evidenceLine = hasExplicitDescription
+    ? humanizeDiscoverDescription(descriptiveLine(row)).replace(/\s*Bounded official API collection requires approval; no local mirror is implied\.?/i, "").trim()
+    : "";
+  const restatesTitle = evidenceLine.toLowerCase().replace(/[.\s]+$/, "") === candidateTitle(row).toLowerCase().replace(/[.\s]+$/, "");
   const fitLine = partialFitLine(row);
   const coverage = coverageLine(row);
   const showCoverage = coverage && coverage !== "Coverage not described";
   const offeringFacts = [
     ["Fit", row?.place_fit ? row.place_fit.charAt(0).toUpperCase() + row.place_fit.slice(1) : null],
     ["Type", OFFERING_LABELS[offeringType(row, taxonomy)] || offeringType(row, taxonomy)],
-    ["Coverage", showCoverage ? coverage : null],
     ["Refresh", row?.refresh_frequency || row?.refresh || row?.update_frequency],
     ["Route", !taxonomy.key.startsWith("local-") && collectRouteDisplayLabel(row?.collect_via)
       ? `Collect via ${collectRouteDisplayLabel(row.collect_via)}`
@@ -302,7 +304,8 @@ function DiscoverCandidateRow({
             <em className="rd-v2-discover-possession">{taxonomyLine}</em>
           </span>
           {fitLine ? <span className="rd-v2-discover-evidence" data-testid="discover-partial-fit">{fitLine}</span> : null}
-          {evidenceLine ? <span className="rd-v2-discover-evidence">{evidenceLine}</span> : null}
+          {evidenceLine && !restatesTitle ? <span className="rd-v2-discover-evidence">{evidenceLine}</span> : null}
+          {showCoverage ? <span className="rd-v2-discover-coverage-line" data-testid="discover-coverage-line">{coverage}</span> : null}
           <span className="rd-v2-discover-offering-facts" role="group" aria-label="Offering facts" hidden={!selected}>
             {offeringFacts.map(([label, value]) => (
               <span key={`${label}:${value}`}>

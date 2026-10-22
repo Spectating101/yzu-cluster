@@ -600,8 +600,11 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await expect(proposal).toBeVisible();
     await expect(proposal.getByRole("button", { name: "Accept & test method" })).toBeVisible();
     await expect(proposal).toContainText("Aggregate held weekly panel");
-    await expect(proposal.getByTestId("synthesis-method-diagram")).toBeVisible();
-    await expect(proposal.getByTestId("method-node-output")).toContainText("Not run yet");
+    await expect(page.getByTestId("synthesis-method-diagram")).toBeVisible();
+    await expect(page.getByTestId("method-node-output")).toContainText("Not run yet");
+    const diagramBox = await page.getByTestId("synthesis-method-diagram").boundingBox();
+    const proposalBox = await proposal.boundingBox();
+    expect(diagramBox.y).toBeLessThan(proposalBox.y);
     await expect(proposal).toContainText("Still not established");
     await expect(proposal).toContainText("Pending proposal limitation from the exact change set");
     await expect(proposal).toContainText("Direct investor belief is not observed");
@@ -1272,8 +1275,11 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await page.getByRole("button", { name: /Weekly trust panel.*Review proposal/ }).first().click();
     await expect(page.getByRole("combobox", { name: "Choose Synthesis thread" })).toHaveValue("thread-proposal");
     const proposal = page.getByTestId("synthesis-proposal-state");
-    await expect(proposal.getByTestId("synthesis-method-diagram")).toBeVisible();
-    await expect(proposal.getByTestId("method-node-output")).toContainText("Not run yet");
+    await expect(page.getByTestId("synthesis-method-diagram")).toBeVisible();
+    await expect(page.getByTestId("method-node-output")).toContainText("Not run yet");
+    const diagramBox = await page.getByTestId("synthesis-method-diagram").boundingBox();
+    const proposalBox = await proposal.boundingBox();
+    expect(diagramBox.y).toBeLessThan(proposalBox.y);
     await expect
       .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth))
       .toBe(true);

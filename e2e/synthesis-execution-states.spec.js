@@ -95,8 +95,9 @@ async function openThread(page, status) {
   // durable execution lifecycle. A previous/default thread may already have
   // rendered while React is switching the selected construction.
   await expect(item).toHaveClass(/\bactive\b/);
-  await expect(visibleExecutionTrack(page)).toHaveCount(1);
-  await expect(visibleExecutionTrack(page)).toBeVisible();
+  const lifecycle = visibleExecutionTrack(page).or(page.getByTestId("synthesis-exec-done"));
+  await expect(lifecycle).toHaveCount(1);
+  await expect(lifecycle).toBeVisible();
   return thread;
 }
 
@@ -123,6 +124,11 @@ test("every post-approval state renders its execution lifecycle", async ({ page 
   const missing = [];
   for (const status of ["queued", "running", "registering", "archiving", "registered", "query_ready", "failed"]) {
     await openThread(page, status);
+    if (["registered", "query_ready"].includes(status)) {
+      const done = page.getByTestId("synthesis-exec-done");
+      if (!(await done.isVisible()) || !/Library handoff/.test(await done.innerText())) missing.push(status);
+      continue;
+    }
     const track = await steps(page);
     if (!track.length) missing.push(status);
   }
@@ -155,11 +161,9 @@ test("a failure does not advance archive or Library handoff", async ({ page }) =
 test("registered and query-ready complete archive and Library handoff", async ({ page }) => {
   for (const status of ["registered", "query_ready"]) {
     await openThread(page, status);
-    const track = await steps(page);
+    const done = await page.getByTestId("synthesis-exec-done").innerText();
     for (const label of ["Archive + registry", "Library handoff"]) {
-      const step = track.find((candidate) => candidate.label === label);
-      expect(step, `${status}: ${label} missing`).toBeTruthy();
-      expect(step.state, `${status}: ${label} not completed`).toContain("done");
+      expect(done, `${status}: ${label} not completed`).toContain(label);
     }
   }
 });

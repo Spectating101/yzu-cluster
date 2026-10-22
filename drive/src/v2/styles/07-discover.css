@@ -2212,3 +2212,10 @@ body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(
 .rd-v2-discover-page .rd-v2-discover-ranked-results .rd-v2-discover-offering-facts[hidden] { display: none !important; }
 
 .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer { padding-inline: 0; }
+
+.rd-v2-discover-page .rd-v2-discover-coverage-line {
+  display: block;
+  color: var(--rd-body);
+  font-size: var(--rd-text-xs);
+  line-height: 1.4;
+}

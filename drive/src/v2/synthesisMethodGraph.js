@@ -49,7 +49,12 @@ function joinStep(candidate) {
   return { id: "join", kind: "Join", label: `on ${keys}`, facts, measured: true };
 }
 
-export function methodGraph(thread) {
+function humanize(id) {
+  const words = str(id).replace(/[_-]+/g, " ").trim();
+  return words ? words.charAt(0).toUpperCase() + words.slice(1) : "";
+}
+
+export function methodGraph(thread, names = {}) {
   const state = thread?.state || {};
   const proposedSpec = state.proposal?.execution_spec || null;
   const spec = state.execution_spec || proposedSpec;
@@ -61,7 +66,7 @@ export function methodGraph(thread) {
   if (spec?.input_dataset_id) {
     const id = str(spec.input_dataset_id);
     const node = labels.get(id);
-    inputs = [{ id, title: str(node?.label) || id, grain: plainGrain(node?.grain), held: true, queryReady: node?.query_ready === true }];
+    inputs = [{ id, title: str(names[id]) || str(node?.label) || humanize(id), grain: plainGrain(node?.grain), held: true, queryReady: node?.query_ready === true }];
   } else if (construction.present) {
     inputs = construction.nodes.map((n) => ({
       id: n.id, title: n.source || n.id, grain: plainGrain(n.grain), role: n.role,
@@ -78,7 +83,7 @@ export function methodGraph(thread) {
     for (const id of [joinCandidate.leftDatasetId, joinCandidate.rightDatasetId].map(str).filter(Boolean)) {
       if (inputs.some((input) => input.id === id)) continue;
       const node = labels.get(id);
-      inputs.push({ id, title: str(node?.label) || str(id === joinCandidate.leftDatasetId ? joinCandidate.leftLabel : joinCandidate.rightLabel) || id, grain: plainGrain(node?.grain), held: true, queryReady: node?.query_ready === true });
+      inputs.push({ id, title: str(names[id]) || str(node?.label) || str(id === joinCandidate.leftDatasetId ? joinCandidate.leftLabel : joinCandidate.rightLabel) || humanize(id), grain: plainGrain(node?.grain), held: true, queryReady: node?.query_ready === true });
     }
   }
   const hiddenInputs = Math.max(inputs.length - INPUT_LIMIT, 0);
@@ -99,7 +104,7 @@ export function methodGraph(thread) {
   const metricColumns = (spec?.metrics || []).map((m) => str(m?.field)).filter(Boolean);
   const output = {
     id: "output",
-    title: str(state.title || thread?.title) || "Output dataset",
+    title: str(names[str(execution.output_dataset_id || spec?.output_dataset_id)]) || str(state.title || thread?.title) || "Output dataset",
     grain,
     rows: Number.isFinite(rows) && rows > 0 ? rows : null,
     columns: columns.length ? columns : [...groupColumns, ...metricColumns],

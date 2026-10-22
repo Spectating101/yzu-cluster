@@ -667,7 +667,7 @@ body:has(.rd-v2-synthesis-page [data-testid="synthesis-execution-state"] .s04-ex
     [data-testid="synthesis-method-surface"],
     [data-testid="synthesis-execution-state"]
   ) :is(p, dd, td, li span) {
-    font-size: max(9.5px, 0.53vw);
+    font-size: var(--rd-text-label);
   }
 
   .rd-v2-synthesis-page .s04-new-entry-section > p,

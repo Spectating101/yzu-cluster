@@ -27,6 +27,7 @@ import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
 import { ExcursionRecordPanel } from "./ExcursionRecordPanel.jsx";
 import { SynthesisHome } from "./SynthesisHome.jsx";
 import { MethodDiagram } from "./MethodDiagram.jsx";
+import { useDatasetName } from "./useDatasetName.js";
 import { methodGraph } from "./synthesisMethodGraph.js";
 import { focusFor } from "./synthesisFocus.js";
 import { synthesisExecutionLabel, synthesisAssistRequestContext, synthesisAssist } from "@/v2/synthesisAssist.js";
@@ -466,14 +467,17 @@ function ConstructionFacts({ recommendation }) {
   ].filter(Boolean);
   if (!facts.length) return null;
   return (
-    <dl className="s04-opening-facts">
-      {facts.map(([label, value, note]) => (
-        <div key={label}>
-          <dt>{label}</dt>
-          <dd>{value}{note ? <em>{note}</em> : null}</dd>
-        </div>
-      ))}
-    </dl>
+    <details className="s04-fold" data-testid="synthesis-construction-facts">
+      <summary>What this build resolves and what it can't</summary>
+      <dl className="s04-opening-facts">
+        {facts.map(([label, value, note]) => (
+          <div key={label}>
+            <dt>{label}</dt>
+            <dd>{value}{note ? <em>{note}</em> : null}</dd>
+          </div>
+        ))}
+      </dl>
+    </details>
   );
 }
 
@@ -958,7 +962,6 @@ function ProposalReview({ thread, busy, onDecide, onAsk, onOpenDataset }) {
       <p className="s04-proposal-summary">
         {text(proposal.summary, "The agent proposed a change to this saved build.")}
       </p>
-      {proposal.execution_spec ? <MethodDiagram thread={thread} onOpenDataset={onOpenDataset} /> : null}
       <div className="s04-review-grid">
         <section className="s04-review-risks">
           <small>Still not established</small>
@@ -1109,24 +1112,6 @@ function formatCell(value) {
   return String(value);
 }
 
-function useDatasetName(datasetId) {
-  const [named, setNamed] = useState({ id: "", name: "" });
-  useEffect(() => {
-    if (!datasetId) return undefined;
-    let cancelled = false;
-    describeDataset(datasetId)
-      .then((payload) => {
-        const ds = payload?.dataset || payload || {};
-        if (!cancelled) setNamed({ id: datasetId, name: String(ds.name || ds.display_name || ds.title || "") });
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, [datasetId]);
-  return named.id === datasetId ? named.name : "";
-}
-
 function useRegisteredOutput(outputId, enabled) {
   const [state, setState] = useState({ id: "", loading: false, analysis: null, chart: null, name: "", queryReady: false, rows: [], columns: [], total: null, error: "" });
   useEffect(() => {
@@ -1235,15 +1220,11 @@ function ExecutionRecord({ thread, busy, onRequest, onReview, onAsk, onOpenDatas
         <em className={registered || previewTruth.succeeded ? "success" : failed || previewTruth.failed ? "warn" : "neutral"}>{badge}</em>
       </header>
       {registered ? <RegisteredResultTable result={result} /> : null}
-      {hasSpec ? (
-        <dl className="s04-method">
-          <div><dt>Input</dt><dd>{inputName || softIdentifier(spec.input_dataset_id)}</dd></div>
-          <div><dt>Output</dt><dd>{(registered && result.name) || softIdentifier(spec.output_dataset_id)}</dd></div>
-          <div><dt>Group by</dt><dd>{Array.isArray(spec.group_by) ? (spec.group_by.length ? spec.group_by.join(" · ") : "None (all rows)") : "Not reported"}</dd></div>
-          {Array.isArray(spec.metrics) && spec.metrics.length ? <div><dt>Metrics</dt><dd>{`${spec.metrics.length} defined`}</dd></div> : null}
-        </dl>
-      ) : null}
-      {hasSpec ? (
+      {hasSpec && registered ? (
+        <p className="s04-exec-done" data-testid="synthesis-exec-done">
+          {track.filter((step) => step.state === "done").map((step) => step.label).join(" · ")}
+        </p>
+      ) : hasSpec ? (
         <ol className="s04-exec-track" aria-label="Synthesis execution stages">
           {track.map((step, index) => (
             <li key={step.label} className={step.state}>
@@ -2295,14 +2276,14 @@ export function SynthesisPage({
                 onArchive={() => setArchivedBuild(selected.id, true)}
                 archiving={archivingId === selected.id}
               />
-              {preAcceptance ? (
+              <MethodDiagram thread={displayedSelected} onOpenDataset={onOpenDataset} />
+              {preAcceptance && !methodDrawn ? (
                 <OpeningWorkflow
                   thread={displayedSelected}
                   reasoningAvailable={reasoningAvailable}
                   reasoningStatus={reasoningStatus}
                 />
               ) : null}
-              {!preAcceptance || mode !== "proposal" ? <MethodDiagram thread={displayedSelected} onOpenDataset={onOpenDataset} /> : null}
               <ThreadPicker threads={threads} selectedId={selectedId} onSelect={selectThread} />
               <ContextStrip items={focus.strip.filter((item) => !RECORD_ALWAYS.includes(item.id))}
                             onPromote={setPromoted} promoted={focus.promoted}
