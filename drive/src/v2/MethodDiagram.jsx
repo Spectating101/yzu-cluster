@@ -39,7 +39,7 @@ function Detail({ graph, selectedId, onOpenDataset }) {
         <ul>
           {step.facts.map((fact) => <li key={fact}>{fact}</li>)}
         </ul>
-        <small>{step.measured ? "Measured from Library data." : "Proposed. Nothing has run."}</small>
+        <small>{step.measured ? "Measured from Library data." : graph.output.registered ? "Recorded in the saved method." : "Proposed. Nothing has run."}</small>
       </>
     );
   }

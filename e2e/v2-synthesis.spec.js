@@ -783,6 +783,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await expect(diagram.getByRole("region", { name: "Selected part" })).toContainText("Built");
     await diagram.getByTestId("method-node-aggregate").click();
     await expect(diagram.getByRole("region", { name: "Selected part" })).toContainText("mean of attention");
+    await expect(diagram.getByRole("region", { name: "Selected part" })).toContainText("Recorded in the saved method");
     await expect(diagram.getByTestId("method-node-aggregate")).toHaveAttribute("aria-pressed", "true");
     await capture(page, "04b-method-diagram");
   });
