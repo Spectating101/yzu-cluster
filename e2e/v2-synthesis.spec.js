@@ -774,6 +774,19 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await capture(page, "04-registered-desktop");
   });
 
+  test("a built thread draws its recorded input, step and output, and each part opens its detail", async ({ page }) => {
+    await page.getByTestId("synthesis-thread-item").filter({ hasText: "Stablecoin attention weekly panel" }).click();
+    const diagram = page.getByTestId("synthesis-method-diagram");
+    await expect(diagram).toBeVisible();
+    await expect(diagram.getByRole("list", { name: "Steps" })).toContainText("Aggregate");
+    await expect(diagram.getByTestId("method-node-output")).toContainText("13,827 rows");
+    await expect(diagram.getByRole("region", { name: "Selected part" })).toContainText("Built");
+    await diagram.getByTestId("method-node-aggregate").click();
+    await expect(diagram.getByRole("region", { name: "Selected part" })).toContainText("mean of attention");
+    await expect(diagram.getByTestId("method-node-aggregate")).toHaveAttribute("aria-pressed", "true");
+    await capture(page, "04b-method-diagram");
+  });
+
   test("finalized output exposes the exact frozen method without asking the LLM to regenerate code", async ({ page }) => {
     let chatCalls = 0;
     page.on("request", (request) => {
