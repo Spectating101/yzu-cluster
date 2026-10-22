@@ -27,6 +27,9 @@ BACKING (verify before building)
            step, and what "Edit step" does to an accepted method (it must invalidate it).
 
 LOOP LOG
+  Round 4 (user): W1 gained three starting-point cards (featured / profile-matched Library rows,
+  one collectable row from the research-context recommendations); W3 gained a directory of
+  builds (needs you / building / built, with output rows) and a 'Built' start-from option.
   Round 1  drafted five frames.
   Round 2  fixed edge alignment; removed text repeated between centre and rail; split
            "Approve & run" because accepting a method and approving a run are separate gates.
@@ -43,27 +46,27 @@ LOOP LOG
 ┌────────────────────────┬─────────────────────────────────────────────────────────────────────────────┬─────────────────────────────────────┐
 │ RESEARCH DRIVE         │ DISCOVER                                            EXPLORE ●    HISTORY 1  │ DETAIL ●                ASK         │
 │                        │                                                                             │ ─────────────────────────────────── │
-│    Home                │ What data do you need?                                                      │                                     │
-│    Library             │                                                                             │                                     │
-│  ● Discover            │ ┌────────────────────────────────────────────────────────────────────────┐  │                                     │
+│    Home                │ What data do you need?                                                      │ Select a card or a result to        │
+│    Library             │                                                                             │ see its source, coverage and        │
+│  ● Discover            │ ┌────────────────────────────────────────────────────────────────────────┐  │ what is still unknown.              │
 │    Synthesis           │ │ Search datasets, or describe the research you are doing…    [ Search ] │  │                                     │
 │    Resources           │ └────────────────────────────────────────────────────────────────────────┘  │                                     │
 │    Profile             │                                                                             │                                     │
 │    Settings            │ Try   unemployment by country  ·  stablecoin de-pegs  ·  Taiwan listed firms│                                     │
 │                        │                                                                             │                                     │
-│ ACTIVE RESEARCH        │                                                                             │                                     │
+│ ACTIVE RESEARCH        │ START WITH THESE                                      All of the Library →  │                                     │
 │                        │                                                                             │                                     │
-│ Stablecoin Research    │                                                                             │                                     │
-│ Event studies          │                                                                             │                                     │
-│ Market structure       │                                                                             │                                     │
-│                        │                                                                             │                                     │
-│ ────────────────────── │                                                                             │                                     │
-│ RECENT                 │                                                                             │                                     │
-│                        │                                                                             │                                     │
+│ Stablecoin Research    │ ┌──────────────────────┐ ┌──────────────────────┐ ┌──────────────────────┐  │                                     │
+│ Event studies          │ │ Cross-country        │ │ USDT transactions    │ │ Taiwan listed firms  │  │                                     │
+│ Market structure       │ │ monthly unemployment │ │ on Ethereum          │ │ daily prices         │  │                                     │
+│                        │ │ country × month      │ │ transfer × day       │ │ firm × day           │  │                                     │
+│ ────────────────────── │ │                      │ │                      │ │                      │  │                                     │
+│ RECENT                 │ │ READY TO QUERY       │ │ READY TO QUERY       │ │ AVAILABLE TO COLLECT │  │                                     │
+│                        │ └──────────────────────┘ └──────────────────────┘ └──────────────────────┘  │                                     │
 │ USDT transactions      │                                                                             │                                     │
-│ Event study panel      │                                                                             │                                     │
+│ Event study panel      │ Picked from your research context. Nothing here has been run for you.       │                                     │
 ├────────────────────────┼─────────────────────────────────────────────────────────────────────────────┼─────────────────────────────────────┤
-│ Stablecoin Research    │ Idle: one question, nothing else                                            │ Selected evidence                   │
+│ Stablecoin Research    │ Idle: one question, three starting points                                   │ Selected evidence                   │
 └────────────────────────┴─────────────────────────────────────────────────────────────────────────────┴─────────────────────────────────────┘
 
 === W2 Discover results ===
@@ -103,24 +106,30 @@ LOOP LOG
 === W3 Synthesis new build ===
 
 ┌────────────────────────┬─────────────────────────────────────────────────────────────────────────────┬─────────────────────────────────────┐
-│ RESEARCH DRIVE         │ SYNTHESIS · New build                                          Not started  │ DETAIL         ASK ●                │
+│ RESEARCH DRIVE         │ SYNTHESIS                                           4 builds · 1 needs you  │ DETAIL         ASK ●                │
 │                        │                                                                             │ ─────────────────────────────────── │
-│    Home                │ What dataset do you need?                                                   │ The conversation starts when        │
-│    Library             │ ┌────────────────────────────────────────────────────────────────────────┐  │ you press Propose, and continues    │
-│    Discover            │ │ e.g. weekly news-shock measures for Asian markets                      │  │ here.                               │
-│  ● Synthesis           │ │                                                                        │  │                                     │
+│    Home                │ What dataset do you need, and what is it for?                               │ Describe what you need and press    │
+│    Library             │ ┌────────────────────────────────────────────────────────────────────────┐  │ Propose method. The conversation    │
+│    Discover            │ │ e.g. weekly news shocks for Asian markets, to see if they lead         │  │ continues here; it proposes, it     │
+│  ● Synthesis           │ │                                                                        │  │ cannot run.                         │
 │    Resources           │ └────────────────────────────────────────────────────────────────────────┘  │                                     │
-│    Profile             │                                                                             │                                     │
-│    Settings            │ What is it for?                                                             │                                     │
-│                        │ ┌────────────────────────────────────────────────────────────────────────┐  │                                     │
-│ BUILDS           + New │ │ e.g. test whether shocks lead returns                                  │  │                                     │
-│                        │ │                                                                        │  │                                     │
-│ ● New build            │ └────────────────────────────────────────────────────────────────────────┘  │                                     │
-│     draft              │                                                                             │                                     │
-│ ✓ Stablecoin de-pegs   │ Optional: Library dataset ▾   saved method ▾ 3          [ Propose method ]  │                                     │
+│    Profile             │ Start from   Library ▾   Built ▾   Saved method ▾ 3     [ Propose method ]  │                                     │
+│    Settings            │                                                                             │                                     │
+│                        │ YOUR BUILDS                                                                 │                                     │
+│ BUILDS           + New │                                                                             │                                     │
+│                        │ BUILD                          STATE          OUTPUT            UPDATED     │                                     │
+│ ● New build            │ ──────────────────────────────────────────────────────────────────────────  │                                     │
+│     draft              │ ! Asia news shocks             Needs you      —                 today       │                                     │
+│ ! Asia news shocks     │ … Taiwan listed firms panel    Building       —                 today       │                                     │
+│     needs you          │ ✓ Stablecoin de-pegs           Built          5,200 rows        Oct 14      │                                     │
+│ … Taiwan listed firms  │ ✓ County unemployment          Built          3,142 rows        Oct 02      │                                     │
+│     building           │                                                                             │                                     │
+│ ✓ Stablecoin de-pegs   │ Open a build to review it, or press Use in a new build on a built one.      │                                     │
+│     built              │                                                                             │                                     │
+│ ✓ County unemployment  │                                                                             │                                     │
 │     built              │                                                                             │                                     │
 ├────────────────────────┼─────────────────────────────────────────────────────────────────────────────┼─────────────────────────────────────┤
-│ New build              │ New: two questions, one conversation                                        │ Ask proposes. It cannot run.        │
+│ New build              │ New: one question, your builds below                                        │ Ask proposes. It cannot run.        │
 └────────────────────────┴─────────────────────────────────────────────────────────────────────────────┴─────────────────────────────────────┘
 
 === W4 Synthesis proposal ===
