@@ -13,6 +13,8 @@ import { synthesisPreviewTruth } from "@/v2/synthesisLifecycle";
 import { isPreAcceptance, recommendedConstruction, researchBrief } from "@/v2/synthesisBrief.js";
 import { describeDataset } from "@/v2/api";
 import { plainGrain } from "./plainText.js";
+import { methodSelection, useMethodSelection } from "./methodSelection.js";
+import { PartDetail } from "./MethodDiagram.jsx";
 
 function normalizedExecutionStatus(thread) {
   return String(thread?.state?.execution?.status || "").trim().toLowerCase().replace(/-/g, "_");
@@ -337,6 +339,29 @@ export function SynthesisThreadRailPanel({ thread: recordedThread, onAskAbout, o
     thread,
   };
   const ask = onAskAbout ? (prompt) => onAskAbout(target, prompt) : null;
+  const selection = useMethodSelection();
+  useEffect(() => {
+    methodSelection.setRailMounted(true);
+    return () => methodSelection.setRailMounted(false);
+  }, []);
+
+  if (selection.detail && selection.threadId === thread?.id) {
+    return (
+      <RailFrame>
+        <div className="rd-v2-rail-scroll s04-rail-part" data-testid="synthesis-rail-part">
+          <PartDetail detail={selection.detail} onOpenDataset={onOpenInLibrary} />
+        </div>
+        <RailStickyFooter>
+          {typeof ask === "function" ? (
+            <button type="button" className="rd-v2-btn" onClick={() => ask(`Explain this part of the method: ${selection.detail.title}. Say what is measured, what is proposed, and what is unknown.`)}>
+              Ask about this part
+            </button>
+          ) : null}
+          <button type="button" className="rd-v2-linkish" onClick={() => methodSelection.clear()}>Back to the thread</button>
+        </RailStickyFooter>
+      </RailFrame>
+    );
+  }
 
   if (thread?.ephemeral || state.ephemeral) {
     return <NewEntryRail thread={thread} onAsk={ask} />;

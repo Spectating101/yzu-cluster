@@ -3410,3 +3410,11 @@
   .s04-diagram-flow, .s04-diagram-flow:not(:has(ol)) { grid-template-columns: minmax(0, 1fr); }
   .s04-diagram-arrow { transform: rotate(90deg); justify-self: center; }
 }
+
+.s04-diagram-detail small, .s04-rail-part small { color: var(--rd-muted); font-size: var(--rd-text-label); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+.s04-diagram-detail dl > div, .s04-rail-part dl > div { display: contents; }
+.s04-rail-part { display: grid; gap: var(--rd-space-2); align-content: start; font-size: var(--rd-text-xs); }
+.s04-rail-part strong { color: var(--rd-text); font-size: var(--rd-text-sm); }
+.s04-rail-part dl { display: grid; grid-template-columns: auto 1fr; gap: var(--rd-space-1) var(--rd-space-3); margin: 0; }
+.s04-rail-part dt { color: var(--rd-muted); }
+.s04-rail-part dd { margin: 0; color: var(--rd-body); }

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { methodGraph } from "./synthesisMethodGraph.js";
+import { methodGraph, partDetail } from "./synthesisMethodGraph.js";
 
 const built = {
   title: "Stablecoin attention weekly panel",
@@ -46,4 +46,20 @@ test("mapped evidence with no method or spec draws no arrows", () => {
   t.state.execution_spec = null;
   t.state.execution = null;
   assert.equal(methodGraph(t), null);
+});
+
+test("a proposal's spec draws as proposed, not built, and part detail says so", () => {
+  const t = {
+    title: "Weekly attention",
+    state: {
+      nodes: [{ id: "trust", dataset_id: "trust", type: "source", layer: "evidence", label: "Trust engagement", grain: "asset_day" }],
+      proposal: { id: "p1", execution_spec: { input_dataset_id: "trust", output_dataset_id: "attn", group_by: ["week"], metrics: [{ field: "attention", aggregate: "mean" }] } },
+    },
+  };
+  const g = methodGraph(t);
+  assert.equal(g.proposed, true);
+  assert.equal(g.output.registered, false);
+  assert.equal(partDetail(g, "aggregate").note, "Proposed. Nothing has run.");
+  assert.deepEqual(partDetail(g, "output").rows.at(-1), ["State", "Proposed · not run"]);
+  assert.equal(partDetail(g, "trust").datasetId, "trust");
 });

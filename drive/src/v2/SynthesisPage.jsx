@@ -370,20 +370,13 @@ function ResearchBrief({ thread, onEditIntent }) {
         </div>
       </details>
       {brief.body ? <p>{synthesisObjectiveDisplay(brief.body)}</p> : null}
-      <dl>
-        <div>
-          <dt>Unit of observation</dt>
-          <dd className={plainGrain(brief.targetGrain) ? "" : "unstated"}>{text(plainGrain(brief.targetGrain), "Not stated")}</dd>
-        </div>
-        <div>
-          <dt>Target period</dt>
-          <dd className={brief.targetPeriod ? "" : "unstated"}>{text(brief.targetPeriod, "Not stated")}</dd>
-        </div>
-        <div>
-          <dt>Intended use</dt>
-          <dd className={brief.intendedUse ? "" : "unstated"}>{text(brief.intendedUse, "Not stated")}</dd>
-        </div>
-      </dl>
+      {plainGrain(brief.targetGrain) || brief.targetPeriod || brief.intendedUse ? (
+        <dl>
+          {plainGrain(brief.targetGrain) ? <div><dt>Unit of observation</dt><dd>{plainGrain(brief.targetGrain)}</dd></div> : null}
+          {brief.targetPeriod ? <div><dt>Target period</dt><dd>{brief.targetPeriod}</dd></div> : null}
+          {brief.intendedUse ? <div><dt>Intended use</dt><dd>{brief.intendedUse}</dd></div> : null}
+        </dl>
+      ) : null}
     </section>
   );
 }
@@ -923,7 +916,7 @@ function proposalOperationLabel(operation) {
   );
 }
 
-function ProposalReview({ thread, busy, onDecide, onAsk }) {
+function ProposalReview({ thread, busy, onDecide, onAsk, onOpenDataset }) {
   const state = thread?.state || {};
   const proposal = state.proposal || {};
   const spec = proposal.execution_spec || {};
@@ -964,34 +957,22 @@ function ProposalReview({ thread, busy, onDecide, onAsk }) {
       <p className="s04-proposal-summary">
         {text(proposal.summary, "The agent proposed a change to this saved build.")}
       </p>
-      {proposal.execution_spec ? (
-        <div className="s04-method-flow" role="group" aria-label="Proposed build pipeline">
-          <article>
-            <small>Library input</small>
-            <strong>{softIdentifier(spec.input_dataset_id)}</strong>
-            <span>Data saved to Library</span>
-          </article>
-          <b aria-hidden="true">→</b>
-          <article className="transform">
-            <small>Build</small>
-            <strong>{groupBy.length ? `Group by ${groupBy.join(" + ")}` : "Aggregate all rows"}</strong>
-            <div>
-              {metrics.length
-                ? metrics.slice(0, 5).map((metric, index) => <span key={`${metricLabel(metric)}-${index}`}>{metricLabel(metric)}</span>)
-                : <span>Metric detail not reported</span>}
-            </div>
-          </article>
-          <b aria-hidden="true">→</b>
-          <article className="output">
-            <small>Proposed output</small>
-            <strong>{softIdentifier(spec.output_dataset_id)}</strong>
-            <span>Nothing is built yet</span>
-          </article>
-        </div>
-      ) : null}
+      {proposal.execution_spec ? <MethodDiagram thread={thread} onOpenDataset={onOpenDataset} /> : null}
       <div className="s04-review-grid">
-        <section className="s04-resolved-list">
-          <small>Exact change set</small>
+        <section className="s04-review-risks">
+          <small>Still not established</small>
+          {limitations.length || unknowns.length ? (
+            <ul>
+              {[...limitations, ...unknowns].slice(0, 5).map((item, index) => (
+                <li key={`${text(item)}-${index}`}>? {text(item)}</li>
+              ))}
+            </ul>
+          ) : (
+            <p>No additional limitation was recorded. Ask should still challenge construct validity before acceptance.</p>
+          )}
+        </section>
+        <details className="s04-resolved-list">
+          <summary>Exact change set</summary>
           <ul>
             {operations.length ? (
               operations.slice(0, 8).map((operation, index) => (
@@ -1003,26 +984,11 @@ function ProposalReview({ thread, busy, onDecide, onAsk }) {
               <li>No operation summary was returned. Inspect this proposal with Ask before deciding.</li>
             )}
           </ul>
-        </section>
-        <section className="s04-review-risks">
-          <small>Still not established</small>
-          {limitations.length || unknowns.length ? (
-            <ul>
-              {[...limitations, ...unknowns].slice(0, 5).map((item, index) => (
-                <li key={`${text(item)}-${index}`}>{text(item)}</li>
-              ))}
-            </ul>
-          ) : (
-            <p>No additional limitation was recorded. Ask should still challenge construct validity before acceptance.</p>
-          )}
-        </section>
+        </details>
       </div>
       {!canDecide ? <p className="s04-fixture">This proposal has no version identifier, so Research Drive cannot accept it. Refresh it through Ask.</p> : null}
       <footer className="s04-actions">
-        <p>
-          <small>Approval boundary</small>
-          Your decision applies to this version of the proposal. If the proposal changes, review it again.
-        </p>
+        <p>Applies to this version of the proposal only.</p>
         <button type="button" className="rd-v2-btn" onClick={() => onAsk("Challenge this Synthesis proposal and explain every methodological consequence.")}>Challenge in Ask</button>
         <button type="button" className="rd-v2-btn" disabled={busy || !canDecide} onClick={() => onDecide("reject")}>Reject</button>
         <button type="button" className="rd-v2-btn primary" disabled={busy || !canDecide} onClick={() => onDecide("accept")}>Accept & test method</button>
@@ -2358,6 +2324,7 @@ export function SynthesisPage({
                       busy={busy}
                       onDecide={decideProposal}
                       onAsk={ask}
+                      onOpenDataset={onOpenDataset}
                     />
                   ) : null}
                 </>

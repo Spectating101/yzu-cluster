@@ -303,7 +303,7 @@ function DiscoverCandidateRow({
           </span>
           {fitLine ? <span className="rd-v2-discover-evidence" data-testid="discover-partial-fit">{fitLine}</span> : null}
           {evidenceLine ? <span className="rd-v2-discover-evidence">{evidenceLine}</span> : null}
-          <span className="rd-v2-discover-offering-facts" role="group" aria-label="Offering facts">
+          <span className="rd-v2-discover-offering-facts" role="group" aria-label="Offering facts" hidden={!selected}>
             {offeringFacts.map(([label, value]) => (
               <span key={`${label}:${value}`}>
                 <b>{label}</b>
@@ -1231,7 +1231,6 @@ export function BrowsePage({
     return [...filtered].sort((left, right) => candidateTitle(left).localeCompare(candidateTitle(right)));
   }, [filtered, sortMode]);
 
-  const interpretation = useMemo(() => interpretEvidenceNeed(searchQuery), [searchQuery]);
 
   const resultGroups = useMemo(() => {
     const groups = {
@@ -1657,37 +1656,6 @@ export function BrowsePage({
               </header>
 
               <div className="rd-v2-discover-query-tools">
-                {interpretation.chips.length && !assessmentActive ? (
-                  <div className="rd-v2-discover-interpreting" data-testid="discover-interpreting">
-                    <span className="rd-v2-eyebrow">Research brief</span>
-                  <div className="rd-v2-discover-interpreting-chips" role="list" aria-label="Interpreted evidence need">
-                    {interpretation.chips.map((chip) => (
-                      <span key={chip} role="listitem" className="rd-v2-discover-chip">
-                        {chip}
-                      </span>
-                    ))}
-                    {interpretation.overflow > 0 ? (
-                      <span role="listitem" className="rd-v2-discover-chip muted">
-                        +{interpretation.overflow}
-                      </span>
-                    ) : null}
-                  </div>
-                  <details className="rd-v2-discover-refine">
-                    <summary>Refine evidence need</summary>
-                    <div className="rd-v2-discover-refine-body">
-                      <p>
-                        <b>Research object</b> {interpretation.chips[0] || "—"}
-                      </p>
-                      <p>
-                        <b>Evidence need</b> {q}
-                      </p>
-                      <p>
-                        <b>Signals</b> {interpretation.tokens?.join(" · ") || interpretation.chips.join(" · ")}
-                      </p>
-                    </div>
-                  </details>
-                  </div>
-                ) : null}
                 <div className="rd-v2-discover-frozen-controls">
                   {filterMenu}
                   {sortMenu}
@@ -1865,9 +1833,6 @@ export function BrowsePage({
 
             {centreRows.length ? (
               <section className="rd-v2-discover-ranked-results" aria-label="Ranked Discover results" data-testid="discover-ranked-results">
-                <header className="rd-v2-discover-ranked-results-head">
-                  <span className="rd-v2-eyebrow">Results</span>
-                </header>
                 <DiscoverCandidateList
                   rows={centreRows}
                   labIds={labIds}

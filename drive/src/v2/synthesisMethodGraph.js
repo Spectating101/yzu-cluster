@@ -51,7 +51,9 @@ function joinStep(candidate) {
 
 export function methodGraph(thread) {
   const state = thread?.state || {};
-  const spec = state.execution_spec || null;
+  const proposedSpec = state.proposal?.execution_spec || null;
+  const spec = state.execution_spec || proposedSpec;
+  const proposed = !state.execution_spec && Boolean(proposedSpec);
   const labels = new Map(sourceNodes(state).map((n) => [str(n.dataset_id || n.id), n]));
   const construction = recommendedConstruction(thread);
 
@@ -98,5 +100,41 @@ export function methodGraph(thread) {
   };
 
   if (!steps.length && !spec) return null;
-  return { inputs, hiddenInputs, steps, output };
+  return { inputs, hiddenInputs, steps, output, proposed };
+}
+
+export function partDetail(graph, id) {
+  if (!graph) return null;
+  const state = graph.output.registered ? "Recorded" : graph.proposed ? "Proposed" : "Planned";
+  const input = graph.inputs.find((n) => n.id === id);
+  if (input) {
+    return {
+      id, kind: "input", kicker: "Input", title: input.title, datasetId: input.held ? input.id : "",
+      rows: [
+        input.grain ? ["One row per", input.grain] : null,
+        ["State", input.held ? (input.queryReady ? "In your Library · ready to query" : "In your Library") : "Not held yet"],
+      ].filter(Boolean),
+      note: "",
+    };
+  }
+  const index = graph.steps.findIndex((n) => n.id === id);
+  if (index >= 0) {
+    const step = graph.steps[index];
+    return {
+      id, kind: "step", kicker: `Step ${index + 1} · ${step.kind}`, title: `${step.kind} ${step.label}`, datasetId: "",
+      rows: step.facts.map((fact, i) => [i === 0 ? (step.measured ? "Measured" : "Does") : "", fact]),
+      note: step.measured ? "Measured from Library data." : graph.output.registered ? "Recorded in the saved method." : "Proposed. Nothing has run.",
+    };
+  }
+  const out = graph.output;
+  return {
+    id: "output", kind: "output", kicker: "Output", title: out.title, datasetId: out.registered ? out.datasetId : "",
+    rows: [
+      out.grain ? ["One row per", out.grain] : null,
+      out.rows ? ["Rows", out.rows.toLocaleString()] : null,
+      out.columns.length ? ["Columns", out.columns.join(", ")] : null,
+      ["State", out.registered ? "Built · in your Library" : `${state} · not run`],
+    ].filter(Boolean),
+    note: "",
+  };
 }

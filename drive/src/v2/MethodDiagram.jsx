@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
-import { methodGraph } from "./synthesisMethodGraph.js";
+import { useEffect, useMemo, useState } from "react";
+import { methodGraph, partDetail } from "./synthesisMethodGraph.js";
+import { methodSelection, useMethodSelection } from "./methodSelection.js";
 
 function Node({ node, kind, selected, onSelect, children }) {
   return (
@@ -15,44 +16,20 @@ function Node({ node, kind, selected, onSelect, children }) {
   );
 }
 
-function Detail({ graph, selectedId, onOpenDataset }) {
-  const input = graph.inputs.find((n) => n.id === selectedId);
-  const step = graph.steps.find((n) => n.id === selectedId);
-  if (input) {
-    return (
-      <>
-        <strong>{input.title}</strong>
-        <dl>
-          {input.grain ? <><dt>One row per</dt><dd>{input.grain}</dd></> : null}
-          <dt>State</dt><dd>{input.held ? (input.queryReady ? "In your Library · ready to query" : "In your Library") : "Not held yet"}</dd>
-        </dl>
-        {input.held && onOpenDataset ? (
-          <button type="button" className="rd-v2-linkish" onClick={() => onOpenDataset({ dataset_id: input.id })}>Open in Library →</button>
-        ) : null}
-      </>
-    );
-  }
-  if (step) {
-    return (
-      <>
-        <strong>{step.kind} {step.label}</strong>
-        <ul>
-          {step.facts.map((fact) => <li key={fact}>{fact}</li>)}
-        </ul>
-        <small>{step.measured ? "Measured from Library data." : graph.output.registered ? "Recorded in the saved method." : "Proposed. Nothing has run."}</small>
-      </>
-    );
-  }
-  const out = graph.output;
+export function PartDetail({ detail, onOpenDataset }) {
   return (
     <>
-      <strong>{out.title}</strong>
+      <small>{detail.kicker}</small>
+      <strong>{detail.title}</strong>
       <dl>
-        {out.grain ? <><dt>One row per</dt><dd>{out.grain}</dd></> : null}
-        {out.rows ? <><dt>Rows</dt><dd>{out.rows.toLocaleString()}</dd></> : null}
-        {out.columns.length ? <><dt>Columns</dt><dd>{out.columns.join(", ")}</dd></> : null}
-        <dt>State</dt><dd>{out.registered ? "Built · in your Library" : "Planned · not run"}</dd>
+        {detail.rows.map(([label, value], index) => (
+          <div key={`${label}-${index}`}><dt>{label}</dt><dd>{value}</dd></div>
+        ))}
       </dl>
+      {detail.note ? <small>{detail.note}</small> : null}
+      {detail.datasetId && onOpenDataset ? (
+        <button type="button" className="rd-v2-linkish" onClick={() => onOpenDataset({ dataset_id: detail.datasetId })}>Open in Library →</button>
+      ) : null}
     </>
   );
 }
@@ -60,10 +37,22 @@ function Detail({ graph, selectedId, onOpenDataset }) {
 export function MethodDiagram({ thread, onOpenDataset }) {
   const graph = useMemo(() => methodGraph(thread), [thread]);
   const [selectedId, setSelectedId] = useState("");
+  const { railMounted } = useMethodSelection();
+  const threadId = thread?.id || "";
+  useEffect(() => {
+    setSelectedId("");
+    methodSelection.clear();
+    return () => methodSelection.clear();
+  }, [threadId]);
   if (!graph) return null;
   const out = graph.output;
   const active = selectedId || "output";
-  const toggle = (id) => setSelectedId((current) => (current === id ? "" : id));
+  const toggle = (id) => {
+    const next = selectedId === id ? "" : id;
+    setSelectedId(next);
+    if (next) methodSelection.select(threadId, partDetail(graph, next));
+    else methodSelection.clear();
+  };
   return (
     <section className="s04-diagram" aria-label="How this dataset is built" data-testid="synthesis-method-diagram">
       <div className="s04-diagram-flow">
@@ -104,9 +93,11 @@ export function MethodDiagram({ thread, onOpenDataset }) {
           </Node>
         </div>
       </div>
-      <div className="s04-diagram-detail" role="region" aria-label="Selected part" aria-live="polite">
-        <Detail graph={graph} selectedId={active} onOpenDataset={onOpenDataset} />
-      </div>
+      {!railMounted ? (
+        <div className="s04-diagram-detail" role="region" aria-label="Selected part" aria-live="polite">
+          <PartDetail detail={partDetail(graph, active)} onOpenDataset={onOpenDataset} />
+        </div>
+      ) : null}
     </section>
   );
 }

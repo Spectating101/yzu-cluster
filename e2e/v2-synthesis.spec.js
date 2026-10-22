@@ -600,9 +600,8 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await expect(proposal).toBeVisible();
     await expect(proposal.getByRole("button", { name: "Accept & test method" })).toBeVisible();
     await expect(proposal).toContainText("Aggregate held weekly panel");
-    await expect(proposal).toContainText("Library input");
-    await expect(proposal).toContainText("Proposed output");
-    await expect(proposal).toContainText("Nothing is built yet");
+    await expect(proposal.getByTestId("synthesis-method-diagram")).toBeVisible();
+    await expect(proposal.getByTestId("method-node-output")).toContainText("Not run yet");
     await expect(proposal).toContainText("Still not established");
     await expect(proposal).toContainText("Pending proposal limitation from the exact change set");
     await expect(proposal).toContainText("Direct investor belief is not observed");
@@ -780,10 +779,11 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await expect(diagram).toBeVisible();
     await expect(diagram.getByRole("list", { name: "Steps" })).toContainText("Aggregate");
     await expect(diagram.getByTestId("method-node-output")).toContainText("13,827 rows");
-    await expect(diagram.getByRole("region", { name: "Selected part" })).toContainText("Built");
     await diagram.getByTestId("method-node-aggregate").click();
-    await expect(diagram.getByRole("region", { name: "Selected part" })).toContainText("mean of attention");
-    await expect(diagram.getByRole("region", { name: "Selected part" })).toContainText("Recorded in the saved method");
+    const part = page.getByTestId("synthesis-rail-part");
+    await expect(part).toContainText("mean of attention");
+    await expect(part).toContainText("Recorded in the saved method");
+    await expect(page.locator("aside.rd-v2-rail").getByRole("button", { name: "Ask about this part" })).toBeVisible();
     await expect(diagram.getByTestId("method-node-aggregate")).toHaveAttribute("aria-pressed", "true");
     await capture(page, "04b-method-diagram");
   });
@@ -1272,9 +1272,8 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await page.getByRole("button", { name: /Weekly trust panel.*Review proposal/ }).first().click();
     await expect(page.getByRole("combobox", { name: "Choose Synthesis thread" })).toHaveValue("thread-proposal");
     const proposal = page.getByTestId("synthesis-proposal-state");
-    await expect(proposal).toContainText("Library input");
-    await expect(proposal).toContainText("Build");
-    await expect(proposal).toContainText("Proposed output");
+    await expect(proposal.getByTestId("synthesis-method-diagram")).toBeVisible();
+    await expect(proposal.getByTestId("method-node-output")).toContainText("Not run yet");
     await expect
       .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth))
       .toBe(true);

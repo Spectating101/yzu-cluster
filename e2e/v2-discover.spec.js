@@ -89,7 +89,7 @@ test.describe("v2 Discover tab", () => {
     // the candidates themselves carry the composition now.
     await expect(page.locator(".rd-v2-catalog")).toContainText(/TWSE Open\s*API|TWSE|MOPS|candidate/i);
     await expect(page.getByTestId("discover-best-fit")).toHaveCount(0);
-    await expect(page.getByTestId("discover-interpreting")).toBeVisible();
+    await expect(page.getByTestId("discover-interpreting")).toHaveCount(0);
     // "N results" was replaced by the chrome row plus an offering breakdown:
     //   Available · N   Library evidence · N   Web context · N
     await expect(page.getByTestId("discover-result-summary")).toContainText(/\d+ sources?/i);
@@ -694,8 +694,9 @@ test.describe("v2 Discover tab", () => {
     await waitForShell(page);
     await searchDiscover(page, "governance filings");
 
+    await page.locator(".rd-v2-discover-candidate").first().click();
     const evidence = page.locator(".rd-v2-discover-evidence").first();
-    const offeringFacts = page.locator(".rd-v2-discover-offering-facts").first();
+    const offeringFacts = page.locator(".rd-v2-discover-offering-facts:not([hidden])").first();
     await expect(evidence).toBeVisible();
     await expect(offeringFacts).toContainText("Dataset");
     expect(await evidence.evaluate((node) => getComputedStyle(node).webkitLineClamp)).toBe("2");

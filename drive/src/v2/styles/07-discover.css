@@ -2208,3 +2208,5 @@ body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(
 
 .rd-v2-discover-page .rd-v2-discover-start-cards > li { display: grid; gap: var(--rd-space-1); align-content: start; }
 .rd-v2-discover-page .rd-v2-discover-start-cards .rd-v2-discover-row-add { justify-self: start; }
+
+.rd-v2-discover-page .rd-v2-discover-ranked-results .rd-v2-discover-offering-facts[hidden] { display: none !important; }
