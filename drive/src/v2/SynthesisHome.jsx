@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { handleEnterToSubmit } from "@/v2/enterToSubmit";
 import { GuestSynthesisShowcase } from "@/v2/GuestSynthesisShowcase";
 import { synthesisObjectiveDisplay } from "./uiVocabularyLabels.js";
@@ -106,6 +106,8 @@ export function SynthesisHome({
   const methods = Array.isArray(profiles) ? profiles : [];
   const { needsYou, active, building, results } = partitionSynthesisWorkspace(allThreads);
   const composerRef = useRef(null);
+  const [methodId, setMethodId] = useState("");
+  const chosenMethod = methods.find((item) => String(item.id) === methodId) || null;
 
   const status = [
     needsYou.length ? [`${needsYou.length} ${needsYou.length === 1 ? "needs" : "need"} your decision`, "needs"] : null,
@@ -150,18 +152,15 @@ export function SynthesisHome({
             <label className="s04-compose-method">
               Start from
               <select
-                value=""
+                value={methodId}
                 disabled={busy}
                 data-testid="synthesis-home-methods"
                 aria-label="Start from a saved method"
-                onChange={(event) => {
-                  const profile = methods.find((item) => String(item.id) === event.target.value);
-                  if (profile) onStartBlueprint?.(profile);
-                }}
+                onChange={(event) => setMethodId(event.target.value)}
               >
                 <option value="">Saved method · {methods.length}</option>
                 {methods.map((profile) => (
-                  <option key={profile.id} value={profile.id}>{text(profile.title, profile.id)}</option>
+                  <option key={profile.id} value={String(profile.id)}>{text(profile.title, profile.id)}</option>
                 ))}
               </select>
             </label>
@@ -169,11 +168,11 @@ export function SynthesisHome({
           <button
             type="button"
             className="rd-v2-btn primary"
-            disabled={busy || !objective.trim()}
-            onClick={onCreate}
-            title={objective.trim() ? undefined : "Enter what the dataset is for to continue"}
+            disabled={busy || (!chosenMethod && !objective.trim())}
+            onClick={() => (chosenMethod ? onStartBlueprint?.(chosenMethod) : onCreate?.())}
+            title={chosenMethod || objective.trim() ? undefined : "Enter what the dataset is for to continue"}
           >
-            Create build
+            {chosenMethod ? "Start from this method" : "Create build"}
           </button>
         </div>
         {profilesError ? <DeskError raw={profilesError} surface="Synthesis methods saved to Library" /> : null}

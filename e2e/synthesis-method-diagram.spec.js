@@ -71,3 +71,39 @@ for (const [w, h] of [[1440, 900], [1920, 1080]]) {
     expect(done.height, "the finished-build line is a single line").toBeLessThan(40);
   });
 }
+
+test("choosing a saved method creates nothing until Start from this method is pressed", async ({ page }) => {
+  await mockV2Api(page);
+  await page.route("**/library/synthesis/profiles", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({ profiles: [{ id: "method-1", title: "Weekly news shocks", description: "Aggregate daily news to weeks and join market returns." }] }),
+  }));
+  const posts = [];
+  page.on("request", (request) => {
+    if (request.method() === "POST" && /library\/synthesis\/threads(?:\?|$)/.test(request.url())) posts.push(request.url());
+  });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/?tab=synthesis", { waitUntil: "domcontentloaded" });
+  await waitForShell(page);
+  const select = page.getByTestId("synthesis-home-methods");
+  await expect(select).toBeVisible();
+  const option = (await select.locator("option").all())[1];
+  await select.selectOption(await option.getAttribute("value"));
+  await page.waitForTimeout(800);
+  expect(posts, "selecting a method must not create a build").toHaveLength(0);
+  await expect(page.getByRole("button", { name: "Start from this method" })).toBeEnabled();
+  await page.getByRole("button", { name: "Start from this method" }).click();
+  await expect.poll(() => posts.length).toBeGreaterThan(0);
+});
+
+test("Home's Recent trail View all opens request History, not a stale search", async ({ page }) => {
+  await mockV2Api(page);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/?tab=home", { waitUntil: "domcontentloaded" });
+  await waitForShell(page);
+  const viewAll = page.getByRole("button", { name: /^View all/ });
+  await expect(viewAll).toBeVisible();
+  await viewAll.click();
+  await expect(page.getByRole("tab", { name: "History" })).toHaveAttribute("aria-selected", "true");
+});

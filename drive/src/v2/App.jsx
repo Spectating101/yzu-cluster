@@ -1978,6 +1978,7 @@ function DeskWorkspace({ onIdentityChanged }) {
           showOperationalHeadroom={canViewOperations}
           canUseSynthesis={canUseAsk}
           isGuest={deskAccess?.principal?.role === "public_guest"}
+          onOpenHistory={() => openDiscoverAwaiting({ focusAwaiting: false })}
           onSignIn={memberSignInAvailable ? beginMemberSignIn : undefined}
           onCreateAccount={emailSignInAvailable && deskAccess?.session?.email_signup_available ? () => openAccess("signup") : undefined}
           acquisitions={acquisitions}

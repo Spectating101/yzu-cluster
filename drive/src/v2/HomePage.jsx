@@ -289,6 +289,7 @@ export function HomePage({
   loadError = "",
   onRetryLoad,
   onGoTab,
+  onOpenHistory,
   onOpenAttention,
   onSelectDataset,
   onPreviewDataset,
@@ -542,7 +543,7 @@ export function HomePage({
           <button
             type="button"
             className="rd-v2-linkish"
-            onClick={() => onGoTab?.("browse")}
+            onClick={() => (onOpenHistory ? onOpenHistory() : onGoTab?.("browse"))}
           >
             View all →
           </button>
