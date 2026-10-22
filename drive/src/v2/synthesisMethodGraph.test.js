@@ -18,36 +18,38 @@ test("a built thread draws its input, the aggregate step and the measured output
   assert.equal(g.inputs[0].title, "Trust engagement");
   assert.equal(g.inputs[0].grain, "asset day");
   assert.deepEqual(g.steps.map((s) => s.kind), ["Aggregate"]);
+  assert.equal(g.steps[0].id, "aggregate");
   assert.deepEqual(g.steps[0].facts, ["mean of attention"]);
   assert.equal(g.output.rows, 13827);
   assert.equal(g.output.registered, true);
   assert.deepEqual(g.output.columns, ["asset_id", "week", "attention"]);
 });
 
-test("a join step appears only from a usable measured candidate and carries its numbers", () => {
+test("recorded transforms draw in order, joins add their right dataset, and a matching measurement adds its numbers", () => {
   const t = structuredClone(built);
-  t.state.execution_spec = null;
-  t.state.proposal = { id: "p", execution_spec: { input_dataset_id: "trust", group_by: ["week"], metrics: [] } };
+  t.state.execution_spec = {
+    input_dataset_id: "trust",
+    output_dataset_id: "attn",
+    transforms: [
+      { op: "filter", column: "year", cmp: ">=", value: 2020 },
+      { op: "join", right_dataset_id: "mkt", on: ["country", "week"], how: "inner" },
+    ],
+    group_by: ["week"],
+    metrics: [],
+  };
   t.state.nodes.push({ id: "mkt", dataset_id: "mkt", type: "source", layer: "evidence", label: "Markets", grain: "country_week" });
-  t.state.join_candidates = [{ left_dataset_id: "trust", right_dataset_id: "mkt", left_key: "country", right_key: "country", key_parts: ["country", "week"], matched: 5865, left_distinct: 6240, match_rate_pct: 94, right_duplicate_rows: 0, usable: true, complete_identity_domain: true }];
+  t.state.join_candidates = [{ left_dataset_id: "trust", right_dataset_id: "mkt", left_key: "country", right_key: "country", key_parts: ["country", "week"], matched: 5865, left_distinct: 6240, match_rate_pct: 94, right_duplicate_rows: 0, usable: true }];
   const g = methodGraph(t);
-  assert.deepEqual(g.steps.map((s) => s.kind), ["Join", "Aggregate"]);
-  assert.equal(g.inputs.length, 2);
-  assert.equal(g.steps[0].label, "on country, week");
-  assert.equal(g.steps[0].facts[0], "94% of keys match");
-  t.state.join_candidates[0].usable = false;
-  assert.deepEqual(methodGraph(t).steps.map((x) => x.kind), ["Aggregate"]);
-});
-
-test("nothing recorded draws nothing", () => {
-  assert.equal(methodGraph({ state: { nodes: [] } }), null);
-});
-
-test("mapped evidence with no method or spec draws nothing", () => {
-  const t = structuredClone(built);
-  t.state.execution_spec = null;
-  t.state.execution = null;
-  assert.equal(methodGraph(t), null);
+  assert.deepEqual(g.inputs.map((i) => i.id), ["trust", "mkt"]);
+  assert.deepEqual(g.steps.map((s) => s.kind), ["Filter", "Join", "Aggregate"]);
+  const join = g.steps[1];
+  assert.equal(join.label, "inner on country, week");
+  assert.equal(join.facts[0], "94% of keys match");
+  assert.equal(join.measured, true);
+  t.state.join_candidates = [];
+  const unmeasured = methodGraph(t).steps[1];
+  assert.equal(unmeasured.measured, false);
+  assert.deepEqual(unmeasured.facts, ["with Markets"]);
 });
 
 test("a proposal's spec draws as proposed, not built, and part detail says so", () => {
@@ -64,4 +66,18 @@ test("a proposal's spec draws as proposed, not built, and part detail says so", 
   assert.equal(partDetail(g, "aggregate").note, "Proposed. Nothing has run.");
   assert.deepEqual(partDetail(g, "output").rows.at(-1), ["State", "Proposed · not run"]);
   assert.equal(partDetail(g, "trust").datasetId, "trust");
+});
+
+test("measured evidence with no method or spec draws nothing", () => {
+  const t = structuredClone(built);
+  t.state.execution_spec = null;
+  t.state.execution = null;
+  assert.equal(methodGraph(t), null);
+  assert.equal(methodGraph({ state: { nodes: [] } }), null);
+});
+
+test("repeated step kinds get distinct ids", () => {
+  const t = structuredClone(built);
+  t.state.execution_spec.transforms = [{ op: "filter", column: "a", cmp: "==", value: 1 }, { op: "filter", column: "b", cmp: "==", value: 2 }];
+  assert.deepEqual(methodGraph(t).steps.map((s) => s.id), ["filter-1", "filter-2", "aggregate"]);
 });

@@ -3424,9 +3424,14 @@
 .s04-diagram-node strong { font-size: var(--rd-text-md); }
 .s04-diagram-node span { font-size: var(--rd-text-sm); }
 .s04-diagram-node.is-selected { padding: calc(var(--rd-space-3) - 1px); }
-.s04-exec-done { margin: 0; color: var(--rd-muted); font-size: var(--rd-text-xs); }
+.s04-exec-done { grid-column: 1 / -1; min-width: 0; margin: 0; color: var(--rd-muted); font-size: var(--rd-text-xs); }
 
 .s04-diagram { margin-top: var(--rd-space-3); }
 .s04-review-grid > details.s04-resolved-list { align-self: start; }
 
-#root .rd-v2-synthesis-page .s04-main > .s04-diagram { order: 1; }
+#root .rd-v2-synthesis-page .s04-main > .s04-diagram { grid-column: 1 / -1; }
+#root .rd-v2-synthesis-page .s04-main:has(> :is([data-testid="synthesis-execution-state"], [data-testid="synthesis-failed-state"], [data-testid="synthesis-registered-state"], [data-testid="synthesis-query-ready-state"])) > .s04-diagram { order: 1; }
+#root .rd-v2-synthesis-page .s04-main > [data-testid="synthesis-proposal-state"] { align-self: start; }
+ol.s04-diagram-col > li:not(:last-child)::after { content: "↓"; display: block; margin-top: var(--rd-space-1); text-align: center; color: var(--rd-muted); }
+
+#root .rd-v2-synthesis-page .s04-main:has(> .s04-diagram):has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction)) > [data-testid="synthesis-proposal-state"] { min-height: 0; height: auto; align-self: start; }
