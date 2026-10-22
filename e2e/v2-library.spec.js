@@ -342,6 +342,6 @@ test.describe("v2 Library navigation", () => {
     await page.reload({ waitUntil: "domcontentloaded" });
     await waitForShell(page);
     await expect(page.getByRole("heading", { name: "Discover", exact: true })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Explore", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Search", exact: true })).toBeVisible();
   });
 });

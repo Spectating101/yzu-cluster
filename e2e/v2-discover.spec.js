@@ -15,7 +15,7 @@ import {
 
 async function searchDiscover(page, query = "MOPS") {
   await page.getByLabel("Search or describe a research need").fill(query);
-  await page.getByRole("button", { name: "Explore", exact: true }).click();
+  await page.getByRole("button", { name: "Search", exact: true }).click();
   await expect(page.getByTestId("discover-result-summary")).toBeVisible();
 }
 
@@ -33,60 +33,44 @@ test.describe("v2 Discover tab", () => {
     await waitForShell(page);
   });
 
-  test("empty state offers one evidence entrance with two first-use examples", async ({ page }) => {
+  test("empty state offers one question, three try-phrases and starting cards", async ({ page }) => {
     await expect(page.getByTestId("discover-empty")).toBeVisible();
     await expect(page.getByLabel("Search or describe a research need")).toBeVisible();
-    await expect(page.getByRole("button", { name: "Explore", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Search", exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: /mode/i })).toHaveCount(0);
     await expect(page.getByLabel("Public URL or DOI")).toBeVisible();
     const examples = page.getByTestId("discover-composer-examples");
-    await expect(examples.getByText("Try a keyword")).toBeVisible();
-    await expect(examples.getByText("Ask a research need")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "What data do you need?" })).toBeVisible();
+    await expect(examples.getByRole("button")).toHaveCount(3);
     await expect(
       page.getByRole("heading", { name: "Sources Research Drive knows how to investigate" }),
     ).toHaveCount(0);
-    await expect(page.getByText("No collection methods are listed yet")).toBeVisible();
+    await expect(page.getByText("Curated beyond your Library")).toHaveCount(0);
   });
 
   test("mobile landing keeps retrieval ahead of workstation capacity context", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await expect(page.getByLabel("Search or describe a research need")).toBeVisible();
-    await expect(page.getByTestId("discover-coverage")).toBeVisible();
+    await expect(page.getByTestId("discover-empty")).toBeVisible();
     await expect(page.locator(".rd-v2-discover-radar-panel--execution")).toBeHidden();
   });
 
-  test("idle state leads with live coverage and does not invent a search summary", async ({ page }) => {
+  test("idle state offers starting cards from featured Library rows and invents no search summary", async ({ page }) => {
     await mockV2Api(page, {
       datasetsBody: {
-        datasets: [
-          ...MOCK_DATASETS.datasets,
-          {
-            dataset_id: "declared_stablecoin_catalogue",
-            name: "Declared stablecoin catalogue",
-            source_access_mode: "catalog_only",
-            access_shape: "catalog_reference",
-            registry_id: "declared-stablecoin-catalogue",
-          },
-        ],
-      },
-      libraryNavBody: {
-        partitions: [],
-        shelves: [{ id: "markets", label: "Markets", dataset_count: 4, query_ready_count: 3 }],
+        datasets: MOCK_DATASETS.datasets.map((row, index) => (index === 0 ? { ...row, featured_rank: 1 } : row)),
       },
     });
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
 
-    const coverage = page.getByTestId("discover-coverage");
-    const knownRoutes = page.getByText("No collection methods are listed yet");
-    await expect(coverage).toBeVisible();
-    await expect(knownRoutes).toBeVisible();
+    const cards = page.getByRole("list").filter({ has: page.locator(".rd-v2-discover-start-card") }).locator("button");
+    await expect(page.getByRole("heading", { name: "Start with these" })).toBeVisible();
+    await expect(cards.first()).toBeVisible();
     await expect(page.getByTestId("discover-resting-summary")).toHaveCount(0);
     await expect(page.getByRole("status")).toContainText("No candidate selected");
-
-    const coverageBox = await coverage.boundingBox();
-    const routesBox = await knownRoutes.boundingBox();
-    expect(coverageBox?.y).toBeLessThan(routesBox?.y ?? Number.POSITIVE_INFINITY);
+    await cards.first().click();
+    await expect(page.locator(".rd-v2-discover-start-card.selected")).toHaveCount(1);
   });
 
   test("keyword search renders the external result composition", async ({ page }) => {
@@ -714,7 +698,7 @@ test.describe("v2 Discover tab", () => {
     const offeringFacts = page.locator(".rd-v2-discover-offering-facts").first();
     await expect(evidence).toBeVisible();
     await expect(offeringFacts).toContainText("Dataset");
-    expect(await evidence.evaluate((node) => getComputedStyle(node).webkitLineClamp)).toBe("1");
+    expect(await evidence.evaluate((node) => getComputedStyle(node).webkitLineClamp)).toBe("2");
     // The compact ledger preserves fact labels at normal workstation height;
     // hiding them made the evidence row harder to scan, not denser.
     expect(await offeringFacts.locator("b").first().evaluate((node) => getComputedStyle(node).display)).toBe("block");

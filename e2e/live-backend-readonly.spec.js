@@ -19,7 +19,7 @@ async function openDiscover(page) {
 
 async function search(page, query) {
   await page.getByLabel("Search or describe a research need").fill(query);
-  await page.getByRole("button", { name: "Explore", exact: true }).click();
+  await page.getByRole("button", { name: "Search", exact: true }).click();
   return page.getByTestId("discover-result-summary");
 }
 

@@ -882,15 +882,8 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose b {
 .rd-v2-discover-page .rd-v2-discover-idle-intake {
   width: 100%;
   max-width: none;
-  grid-template-columns: auto minmax(220px, 440px) auto 1fr;
+  grid-template-columns: auto minmax(220px, 440px) auto;
   padding: var(--rd-space-3) 0 0;
-}
-
-.rd-v2-discover-page .rd-v2-discover-idle-intake::after {
-  content: "Direct inspection is separate from acquisition.";
-  align-self: center;
-  color: var(--rd-muted, #5d6574);
-  font-size: var(--rd-text-2xs);
 }
 
 /* Active discovery should read as one evidence landscape, not nested cards. */
@@ -1601,12 +1594,12 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
 }
 
 .rd-v2-discover-ranked-results .rd-v2-discover-evidence {
-  display: block;
+  display: -webkit-box;
   overflow: hidden;
   font-size: var(--rd-text-2xs);
-  line-height: 1.25;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  line-height: 1.4;
+  white-space: normal;
+  -webkit-box-orient: vertical;
 }
 
 .rd-v2-discover-ranked-results .rd-v2-discover-offering-facts {
@@ -2000,13 +1993,13 @@ body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(
   }
 
   .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-evidence {
-    display: block;
+    display: -webkit-box;
     overflow: hidden;
     max-width: 100%;
     font-size: var(--rd-text-2xs);
     line-height: 1.3;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    -webkit-box-orient: vertical;
+    white-space: normal;
   }
 
   .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-offering-facts {
@@ -2105,3 +2098,113 @@ body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(
 .rd-v2-discover-page span.rd-v2-discover-row-add.is-locked {
   cursor: default;
 }
+
+.rd-v2-discover-page .rd-v2-discover-idle {
+  gap: var(--rd-space-4);
+  max-width: 880px;
+}
+
+.rd-v2-discover-page .rd-v2-discover-idle-title {
+  margin: var(--rd-space-3) 0 0;
+  color: var(--rd-text);
+  font-size: var(--rd-text-xl);
+  font-weight: 600;
+}
+
+.rd-v2-discover-page .rd-v2-discover-composer-examples {
+  align-items: baseline;
+  gap: var(--rd-space-1) var(--rd-space-4);
+}
+
+.rd-v2-discover-page .rd-v2-discover-composer-examples span {
+  font-weight: 600;
+}
+
+.rd-v2-discover-page .rd-v2-discover-composer-examples button {
+  color: var(--rd-link);
+  font: inherit;
+  font-size: var(--rd-text-xs);
+}
+
+.rd-v2-discover-page .rd-v2-discover-composer-examples button:hover {
+  text-decoration: underline;
+}
+
+.rd-v2-discover-page .rd-v2-discover-start {
+  display: grid;
+  gap: var(--rd-space-3);
+  padding-top: var(--rd-space-3);
+}
+
+.rd-v2-discover-page .rd-v2-discover-start-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--rd-space-3);
+}
+
+.rd-v2-discover-page .rd-v2-discover-start-head h2 {
+  margin: 0;
+  color: var(--rd-muted);
+  font-size: var(--rd-text-label);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.rd-v2-discover-page .rd-v2-discover-start-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--rd-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rd-v2-discover-page .rd-v2-discover-start-card {
+  display: grid;
+  align-content: start;
+  gap: var(--rd-space-1);
+  width: 100%;
+  height: 100%;
+  min-height: 112px;
+  padding: var(--rd-space-3);
+  border: 1px solid var(--rd-border);
+  border-radius: var(--rd-radius);
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.rd-v2-discover-page .rd-v2-discover-start-card:hover,
+.rd-v2-discover-page .rd-v2-discover-start-card.selected {
+  border-color: var(--rd-link);
+}
+
+.rd-v2-discover-page .rd-v2-discover-start-card strong {
+  color: var(--rd-text);
+  font-size: var(--rd-text-sm);
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.rd-v2-discover-page .rd-v2-discover-start-card span {
+  color: var(--rd-muted);
+  font-size: var(--rd-text-xs);
+}
+
+.rd-v2-discover-page .rd-v2-discover-start-card em {
+  align-self: end;
+  margin-top: var(--rd-space-2);
+  color: var(--rd-muted);
+  font-size: var(--rd-text-label);
+  font-style: normal;
+  font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  .rd-v2-discover-page .rd-v2-discover-start-cards { grid-template-columns: 1fr; }
+}
+
+.rd-v2-discover-page .rd-v2-discover-start-cards > li { display: grid; gap: var(--rd-space-1); align-content: start; }
+.rd-v2-discover-page .rd-v2-discover-start-cards .rd-v2-discover-row-add { justify-self: start; }

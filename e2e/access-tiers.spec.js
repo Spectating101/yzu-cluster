@@ -39,7 +39,7 @@ const LICENSED = {
 
 async function explore(page, query) {
   await page.getByLabel("Search or describe a research need").fill(query);
-  await page.getByRole("button", { name: "Explore", exact: true }).click();
+  await page.getByRole("button", { name: "Search", exact: true }).click();
   await expect(page.getByTestId("discover-result-summary")).toBeVisible();
 }
 
@@ -122,7 +122,7 @@ test("a visitor sees finished Synthesis builds they can open, not only a sign-in
   await page.goto("/?tab=synthesis", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
   const showcase = page.getByTestId("guest-synthesis-showcase");
-  await expect(showcase).toContainText("Finished builds you can open now");
+  await expect(showcase).toContainText("Built in Synthesis");
   await showcase.getByRole("button", { name: /County unemployment trend/ }).click();
   await expect(page).toHaveURL(/tab=library/);
   await expect(page.getByTestId("library-asset-workspace")).toBeVisible();

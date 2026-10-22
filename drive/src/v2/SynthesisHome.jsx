@@ -1,3 +1,5 @@
+import { useRef } from "react";
+import { handleEnterToSubmit } from "@/v2/enterToSubmit";
 import { GuestSynthesisShowcase } from "@/v2/GuestSynthesisShowcase";
 import { synthesisObjectiveDisplay } from "./uiVocabularyLabels.js";
 import { DeskError } from "@/v2/DeskError";
@@ -5,6 +7,7 @@ import {
   partitionSynthesisWorkspace,
   synthesisWorkspaceActionLabel,
   synthesisWorkspaceDecisionSummary,
+  synthesisWorkspacePhase,
   synthesisWorkspacePhaseLabel,
 } from "@/v2/synthesisWorkspace.js";
 
@@ -34,46 +37,45 @@ function updatedLabel(thread) {
   return `Updated ${date.toLocaleDateString(undefined, { month: "short", day: "numeric" })}`;
 }
 
-function ThreadCard({ thread, onOpen, priority = false }) {
+function BuildRow({ thread, onOpen, onReuse, priority = false }) {
   const output = outputFor(thread);
   const projectKey = text(thread?.project_key || thread?.state?.project_key);
   const summary = priority
     ? synthesisWorkspaceDecisionSummary(thread) || objectiveFor(thread)
     : objectiveFor(thread);
+  const finished = synthesisWorkspacePhase(thread) === "result";
   return (
-    <button
-      type="button"
-      className={`s04-home-thread${priority ? " is-priority" : ""}`}
-      onClick={() => onOpen?.(thread.id)}
-      data-testid="synthesis-home-thread"
-    >
-      <span className="s04-home-thread-main">
-        <strong>{titleFor(thread)}</strong>
-        {summary && summary !== titleFor(thread) ? <small>{summary}</small> : null}
-      </span>
-      <span className="s04-home-thread-state">
-        <b>{synthesisWorkspacePhaseLabel(thread)}</b>
-        <small>{projectKey ? `Project · ${projectKey} · ` : output ? "Library-bound · " : ""}{updatedLabel(thread)}</small>
-      </span>
-      <em>{synthesisWorkspaceActionLabel(thread)} →</em>
-    </button>
+    <li className={`s04-build-row${priority ? " is-priority" : ""}`} data-testid="synthesis-home-thread">
+      <button type="button" className={`s04-home-thread${priority ? " is-priority" : ""}`} onClick={() => onOpen?.(thread.id)}>
+        <span className="s04-home-thread-main">
+          <strong>{titleFor(thread)}</strong>
+          {summary && summary !== titleFor(thread) ? <small>{summary}</small> : null}
+        </span>
+        <span className="s04-home-thread-state">
+          <b>{synthesisWorkspacePhaseLabel(thread)}</b>
+          <small>{projectKey ? `Project · ${projectKey} · ` : output ? "Library-bound · " : ""}{updatedLabel(thread)}</small>
+        </span>
+        <em>{synthesisWorkspaceActionLabel(thread)} →</em>
+      </button>
+      {finished ? (
+        <button type="button" className="rd-v2-linkish s04-build-reuse" onClick={() => onReuse?.(thread)}>
+          Use in a new build
+        </button>
+      ) : null}
+    </li>
   );
 }
 
-function ThreadSection({ title, description, rows, onOpen, priority = false, empty = "" }) {
+function BuildSection({ title, rows, onOpen, onReuse, priority = false }) {
+  if (!rows.length) return null;
   return (
     <section className="s04-home-section">
-      <header>
-        <h2>{title} <span className="s04-home-count">{rows.length}</span></h2>
-        {description ? <p>{description}</p> : null}
-      </header>
-      {rows.length ? (
-        <div className="s04-home-thread-grid">
-          {rows.map((thread) => (
-            <ThreadCard key={thread.id} thread={thread} onOpen={onOpen} priority={priority} />
-          ))}
-        </div>
-      ) : empty ? <p className="s04-home-empty-row">{empty}</p> : null}
+      <h2>{title} <span className="s04-home-count">{rows.length}</span></h2>
+      <ul className="s04-home-thread-grid s04-build-list">
+        {rows.map((thread) => (
+          <BuildRow key={thread.id} thread={thread} onOpen={onOpen} onReuse={onReuse} priority={priority} />
+        ))}
+      </ul>
     </section>
   );
 }
@@ -84,12 +86,10 @@ export function SynthesisHome({
   threads = [],
   loading = false,
   profiles = [],
-  profilesLoading = false,
   profilesError = "",
   reasoningAvailable = false,
   reasoningStatus = "Assistant runtime not verified",
   onOpenThread,
-  onNew,
   onStartBlueprint,
   onOpenResources,
   archivedCount = 0,
@@ -97,10 +97,15 @@ export function SynthesisHome({
   onShowArchived,
   onRestore,
   restoringId = "",
+  objective = "",
+  setObjective,
+  busy = false,
+  onCreate,
 }) {
   const allThreads = Array.isArray(threads) ? threads : [];
   const methods = Array.isArray(profiles) ? profiles : [];
   const { needsYou, active, building, results } = partitionSynthesisWorkspace(allThreads);
+  const composerRef = useRef(null);
 
   const status = [
     needsYou.length ? [`${needsYou.length} ${needsYou.length === 1 ? "needs" : "need"} your decision`, "needs"] : null,
@@ -109,78 +114,90 @@ export function SynthesisHome({
     results.length ? [`${results.length} finished`, ""] : null,
   ].filter(Boolean);
 
+  const reuse = (thread) => {
+    setObjective?.(`Build on "${titleFor(thread)}": `);
+    composerRef.current?.focus();
+  };
+
   return (
     <section className="s04-home" data-testid="synthesis-home-state">
       <header className="s04-home-hero">
-        <div>
-          <h1>Synthesis</h1>
-          <p>Turn a research question into a dataset you can reuse.</p>
-          {status.length ? (
-            <p className="s04-home-status" aria-label="Synthesis workspace status">
-              {status.map(([label, tone]) => <span key={label} className={tone}>{label}</span>)}
-            </p>
-          ) : null}
-        </div>
-        <button type="button" className="rd-v2-btn primary" onClick={onNew}>
-          Start from a research question
-        </button>
+        <h1>Synthesis</h1>
+        {status.length ? (
+          <p className="s04-home-status" aria-label="Synthesis workspace status">
+            {status.map(([label, tone]) => <span key={label} className={tone}>{label}</span>)}
+          </p>
+        ) : null}
       </header>
 
-      {!reasoningAvailable ? (
-        <div className="s04-home-runtime" role="group" aria-label="Assistant status">
-          <span><strong>Assistant reasoning is paused.</strong> {reasoningStatus}. You can still create builds and review or map data in your Library.</span>
-          <button type="button" className="rd-v2-btn" onClick={() => onOpenResources?.()}>Check Resources</button>
+      <section className="s04-compose" data-testid="synthesis-intent-state" aria-label="New build">
+        <label htmlFor="synthesis-objective">What dataset do you need, and what is it for?</label>
+        <textarea
+          id="synthesis-objective"
+          ref={composerRef}
+          rows={3}
+          value={objective}
+          onChange={(event) => setObjective?.(event.target.value)}
+          placeholder="e.g. weekly news shocks for Asian markets, to see if they lead returns"
+          onKeyDown={(event) => {
+            handleEnterToSubmit(event, () => {
+              if (!busy && objective.trim()) onCreate?.();
+            });
+          }}
+        />
+        <div className="s04-compose-row">
+          {methods.length ? (
+            <label className="s04-compose-method">
+              Start from
+              <select
+                value=""
+                disabled={busy}
+                data-testid="synthesis-home-methods"
+                aria-label="Start from a saved method"
+                onChange={(event) => {
+                  const profile = methods.find((item) => String(item.id) === event.target.value);
+                  if (profile) onStartBlueprint?.(profile);
+                }}
+              >
+                <option value="">Saved method · {methods.length}</option>
+                {methods.map((profile) => (
+                  <option key={profile.id} value={profile.id}>{text(profile.title, profile.id)}</option>
+                ))}
+              </select>
+            </label>
+          ) : <span />}
+          <button
+            type="button"
+            className="rd-v2-btn primary"
+            disabled={busy || !objective.trim()}
+            onClick={onCreate}
+            title={objective.trim() ? undefined : "Enter what the dataset is for to continue"}
+          >
+            Create build
+          </button>
         </div>
-      ) : null}
+        {profilesError ? <DeskError raw={profilesError} surface="Synthesis methods saved to Library" /> : null}
+        {!reasoningAvailable ? (
+          <p className="s04-home-runtime" role="group" aria-label="Assistant status">
+            <span>Assistant reasoning is paused. {reasoningStatus}. You can still create builds.</span>
+            <button type="button" className="rd-v2-linkish" onClick={() => onOpenResources?.()}>Check Resources</button>
+          </p>
+        ) : null}
+      </section>
 
       {loading ? <p className="s04-home-loading">Loading saved builds…</p> : null}
       {!loading && !allThreads.length ? (
-        <p className="s04-home-empty-row" data-testid="synthesis-empty-state">
-          No builds yet. Start from a research question or a saved method above.
-        </p>
+        <p className="s04-home-empty-row" data-testid="synthesis-empty-state">No builds yet.</p>
       ) : null}
 
-      {needsYou.length ? (
-        <ThreadSection
-          title="Needs your decision"
-          description="These builds are waiting on a choice, an approval or a sample check from you."
-          rows={needsYou}
-          onOpen={onOpenThread}
-          priority
-        />
-      ) : null}
-
-      {allThreads.length ? (
-        <ThreadSection
-          title="Builds in progress"
-          rows={active}
-          onOpen={onOpenThread}
-          empty={!loading ? "No builds in progress." : ""}
-        />
-      ) : null}
-
-      {building.length ? (
-        <ThreadSection
-          title="Running or being checked"
-          description="These builds are producing their data, or it is being checked before it is saved to your Library."
-          rows={building}
-          onOpen={onOpenThread}
-        />
-      ) : null}
-
-      {results.length ? (
-        <ThreadSection
-          title="Finished builds"
-          rows={results}
-          onOpen={onOpenThread}
-        />
-      ) : null}
+      <BuildSection title="Needs your decision" rows={needsYou} onOpen={onOpenThread} onReuse={reuse} priority />
+      <BuildSection title="In progress" rows={active} onOpen={onOpenThread} onReuse={reuse} />
+      <BuildSection title="Running or being checked" rows={building} onOpen={onOpenThread} onReuse={reuse} />
+      <BuildSection title="Finished" rows={results} onOpen={onOpenThread} onReuse={reuse} />
 
       {archivedCount ? (
         <section className="s04-home-section" data-testid="synthesis-home-archived">
-          <header>
-            <h2>Archived builds <span className="s04-home-count">{archivedCount}</span></h2>
-          </header>
+          <h2>Archived builds <span className="s04-home-count">{archivedCount}</span></h2>
           {Array.isArray(archivedThreads) ? (
             archivedThreads.length ? (
               <ul className="s04-home-archived-list">
@@ -201,36 +218,6 @@ export function SynthesisHome({
           )}
         </section>
       ) : null}
-
-      <section className="s04-home-section s04-home-methods" id="synthesis-home-methods">
-        <header>
-          <h2>Start from a saved method <span className="s04-home-count">{methods.length}</span></h2>
-          <p>Using one starts a new build. You review its assumptions before anything runs.</p>
-        </header>
-        {profilesLoading ? <p className="s04-home-empty-row">Loading saved methods…</p> : null}
-        {profilesError ? <DeskError raw={profilesError} surface="Synthesis methods saved to Library" /> : null}
-        {!profilesLoading && !profilesError && methods.length ? (
-          <div className="s04-home-method-grid" data-testid="synthesis-home-methods">
-            {methods.map((profile) => (
-              <button
-                type="button"
-                key={profile.id}
-                onClick={() => onStartBlueprint?.(profile)}
-                title={text(profile.title, profile.id)}
-              >
-                <span className="s04-home-thread-main">
-                  <strong>{text(profile.title, profile.id)}</strong>
-                  <small>{text(profile.description, "Recorded build recipe")}</small>
-                </span>
-                <em>Use as starting point →</em>
-              </button>
-            ))}
-          </div>
-        ) : null}
-        {!profilesLoading && !profilesError && !methods.length ? (
-          <p className="s04-home-empty-row">No saved methods yet.</p>
-        ) : null}
-      </section>
       <GuestSynthesisShowcase catalog={catalog} onOpen={onOpenDataset} />
     </section>
   );

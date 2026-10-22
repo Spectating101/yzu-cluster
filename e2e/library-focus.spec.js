@@ -133,7 +133,7 @@ test("Discover suggests neutral searches to a guest", async ({ page }) => {
   await waitForShell(page);
   const examples = page.getByTestId("discover-composer-examples");
   await expect(examples).toContainText("inflation");
-  await expect(examples).toContainText("study unemployment across countries");
+  await expect(examples).toContainText("unemployment across countries");
   await expect(examples).not.toContainText("stablecoin");
 });
 
@@ -144,7 +144,7 @@ test("Discover suggests a member's own topic", async ({ page }) => {
   await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
   const examples = page.getByTestId("discover-composer-examples");
-  await expect(examples).toContainText("What data can I use to study stablecoin de-pegging?");
+  await expect(examples).toContainText("stablecoin de-pegging");
   await examples.getByRole("button").first().click();
   await expect(page.getByLabel("Search or describe a research need")).toHaveValue("stablecoin de-pegging");
 });

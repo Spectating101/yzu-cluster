@@ -5788,7 +5788,7 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
   }
 
   .rd-v2-discover-evidence {
-    -webkit-line-clamp: 1;
+    -webkit-line-clamp: 2;
   }
 
   .rd-v2-discover-sufficiency {

@@ -31,7 +31,7 @@ test("Explore and History are the only Discover modes", async ({ page }) => {
 test("§2 — one composer in the centre, and no Search | Ask toggle beside it", async ({ page }) => {
   await open(page);
   const centre = page.locator(".rd-v2-discover-idle, .s04-main, main").first();
-  await expect(centre.getByRole("button", { name: /^Search$/ })).toHaveCount(0);
+  await expect(centre.getByRole("tab", { name: /^Search$/ })).toHaveCount(0);
   await expect(centre.getByRole("button", { name: /^Ask$/ })).toHaveCount(0);
   // exactly one free-text input drives Explore
   const boxes = centre.locator('input[type="text"], input:not([type]), textarea');

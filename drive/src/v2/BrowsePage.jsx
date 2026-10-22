@@ -2,7 +2,7 @@ import { LockMark, lockTitle } from "@/v2/Lock";
 import { uiVocabularyLabel } from "./uiVocabularyLabels.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { instantLibraryMatches } from "@/v2/discoverInstantMatches";
-import { NEUTRAL_EXAMPLES, discoverExamples } from "@/v2/libraryFocus";
+import { tryPhrases, startCards } from "@/v2/discoverStartCards";
 import { useResearchFocus } from "@/v2/useResearchFocus";
 import { discoverSearch, discoverSources, webDiscover } from "@/v2/api";
 import { partialFitLine, reconcileDiscoverRegistryRows, searchHitToCandidate, sourcesResponseToRows } from "@/v2/discoverAdapters";
@@ -41,7 +41,6 @@ import {
 } from "@/v2/discoverQuerySpecificity";
 import { Chip, PageShell, SourceRibbon } from "@/v2/ui";
 import { discoverTerritories, territoryText } from "@/v2/discoverTerritories";
-import { DiscoverCoveragePanel } from "@/v2/DiscoverCoveragePanel";
 import { DeskError } from "@/v2/DeskError";
 import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
 
@@ -99,6 +98,14 @@ function accessLabel(taxonomy) {
       return "Access review required";
     default:
       return taxonomy?.label || "State not recorded";
+  }
+}
+
+function cardState(taxonomy) {
+  switch (taxonomy?.key) {
+    case "local-query-ready": return "Ready to query";
+    case "external-acquirable": return "Available to collect";
+    default: return taxonomy?.key?.startsWith("local-") ? "In your Library" : accessLabel(taxonomy);
   }
 }
 
@@ -179,6 +186,46 @@ function DiscoverModeTabs({ mode = "explore", pendingCount = 0, onChange }) {
         </button>
       ))}
     </div>
+  );
+}
+
+function RowAdd({ canAdd, lockedAdd, row, onAdd }) {
+  return (
+    <>
+      {canAdd ? (
+        <button
+          type="button"
+          className="rd-v2-discover-row-add"
+          onClick={(event) => {
+            event.stopPropagation();
+            onAdd(row);
+          }}
+        >
+          Add to collection
+        </button>
+      ) : lockedAdd && !lockedAdd.onClick ? (
+        <span className="rd-v2-discover-row-add is-locked" data-testid="discover-row-add-locked">
+          <LockMark className="rd-v2-lock-mark" />
+          Add to collection
+          <span className="rd-v2-visually-hidden">. {lockTitle(lockedAdd.who)}</span>
+        </span>
+      ) : lockedAdd ? (
+        <button
+          type="button"
+          className="rd-v2-discover-row-add is-locked"
+          data-testid="discover-row-add-locked"
+          title={lockTitle(lockedAdd.who)}
+          aria-label={`Add to collection. ${lockTitle(lockedAdd.who)}`}
+          onClick={(event) => {
+            event.stopPropagation();
+            lockedAdd.onClick(row);
+          }}
+        >
+          <LockMark className="rd-v2-lock-mark" />
+          Add to collection
+        </button>
+      ) : null}
+    </>
   );
 }
 
@@ -274,44 +321,11 @@ function DiscoverCandidateRow({
           ) : null}
         </span>
       </button>
-      {canAdd ? (
-        <button
-          type="button"
-          className="rd-v2-discover-row-add"
-          onClick={(event) => {
-            event.stopPropagation();
-            onAdd(row);
-          }}
-        >
-          Add to collection
-        </button>
-      ) : lockedAdd && !lockedAdd.onClick ? (
-        <span className="rd-v2-discover-row-add is-locked" data-testid="discover-row-add-locked">
-          <LockMark className="rd-v2-lock-mark" />
-          Add to collection
-          <span className="rd-v2-visually-hidden">. {lockTitle(lockedAdd.who)}</span>
-        </span>
-      ) : lockedAdd ? (
-        <button
-          type="button"
-          className="rd-v2-discover-row-add is-locked"
-          data-testid="discover-row-add-locked"
-          title={lockTitle(lockedAdd.who)}
-          aria-label={`Add to collection. ${lockTitle(lockedAdd.who)}`}
-          onClick={(event) => {
-            event.stopPropagation();
-            lockedAdd.onClick(row);
-          }}
-        >
-          <LockMark className="rd-v2-lock-mark" />
-          Add to collection
-        </button>
-      ) : null}
+      <RowAdd canAdd={canAdd} lockedAdd={lockedAdd} row={row} onAdd={onAdd} />
     </li>
   );
 }
 
-const IDLE_SOURCE_PREVIEW = 4;
 
 export function isDiscoverResearchQuestion(value) {
   const text = String(value || "").trim();
@@ -330,7 +344,7 @@ function DiscoverQueryComposer({
   onAsk,
   onAssess,
   idle = false,
-  examples = NEUTRAL_EXAMPLES,
+  focus = null,
   inputRef,
   prompt = "",
 }) {
@@ -357,33 +371,17 @@ function DiscoverQueryComposer({
         aria-label="Search or describe a research need"
       />
       <button type="submit" className="rd-v2-btn sm primary">
-        Explore
+        Search
       </button>
       {prompt ? (
         <div className="rd-v2-discover-composer-prompt" role="status" data-testid="discover-bounded-prompt">{prompt}</div>
       ) : null}
-      <p>
-        Keywords return fast results. A research question also checks what your Library already covers.
-      </p>
-      <div className="rd-v2-discover-composer-scope" role="group" aria-label="Discover search universe">
-        <span>Library index</span>
-        <span>Source catalogues</span>
-        <span>Open web context</span>
-        <span>URL / DOI inspection</span>
-        <span>Approval-gated acquisition</span>
-      </div>
-      {/* VC-5: two compact examples teach the one-composer behaviour by
-          demonstration. They are examples, not modes or tabs. */}
       {idle ? (
         <div className="rd-v2-discover-composer-examples" data-testid="discover-composer-examples">
-          <button type="button" onClick={() => onValueChange?.(examples.keyword)}>
-            <span>Try a keyword</span>
-            <em>{examples.keyword}</em>
-          </button>
-          <button type="button" onClick={() => onValueChange?.(examples.question)}>
-            <span>Ask a research need</span>
-            <em>{examples.question}</em>
-          </button>
+          <span>Try</span>
+          {tryPhrases(focus).map((phrase) => (
+            <button key={phrase} type="button" onClick={() => onValueChange?.(phrase)}>{phrase}</button>
+          ))}
         </div>
       ) : null}
     </form>
@@ -732,7 +730,6 @@ export function BrowsePage({
   useEffect(() => {
     if (boundedRequest?.row) startBoundedRequest(boundedRequest.row);
   }, [boundedRequest]);
-  const [showAllSources, setShowAllSources] = useState(false);
   const researchFocus = useResearchFocus(askAvailable);
   const [searchRevision, setSearchRevision] = useState(0);
   const [loadedQuery, setLoadedQuery] = useState("");
@@ -1390,19 +1387,23 @@ export function BrowsePage({
     assessmentStatus,
   );
   const assessmentPending = Boolean(assessmentActive && !assessmentResult);
-  const idleHoldings = useMemo(
-    () => catalog.filter((row) => labIds.has(row.dataset_id || row.id)).slice(0, 4).map((row) => ({
-      ...row,
-      discover_taxonomy: classifyDiscoverResult(row, labIds),
-    })),
-    [catalog, labIds],
-  );
   const idleRecommendations = useMemo(
     () => merged
       .filter((row) => !(row.discover_taxonomy || classifyDiscoverResult(row, labIds)).key.startsWith("local-"))
       .filter((row) => String(row.result_type || row.kind || "").toLowerCase() !== "connector")
       .slice(0, 4),
     [merged, labIds],
+  );
+  const idleCards = useMemo(
+    () => startCards({
+      catalog: catalog.filter((row) => labIds.has(row.dataset_id || row.id)),
+      focus: researchFocus,
+      collectable: idleRecommendations.filter((row) => (row.discover_taxonomy || classifyDiscoverResult(row, labIds)).key === "external-acquirable"),
+    }).map(({ kind, row }) => ({
+      kind,
+      row: withCandidateKey({ ...row, discover_taxonomy: row.discover_taxonomy || classifyDiscoverResult(row, labIds) }),
+    })),
+    [catalog, labIds, researchFocus, idleRecommendations],
   );
 
   const exploreSurfaceState = resolveSurfaceLifecycle({
@@ -1542,7 +1543,7 @@ export function BrowsePage({
     <PageShell
       className="rd-v2-discover-page"
       title="Discover"
-      lead="Check what your Library already holds, and where to get what it doesn't"
+      lead={q ? "Check what your Library already holds, and where to get what it doesn't" : undefined}
       headExtra={modeTabs}
       toolbar={demoMode ? <Chip warn>Demo preview · static sample</Chip> : null}
       surfaceState={exploreSurfaceState}
@@ -1570,64 +1571,57 @@ export function BrowsePage({
         ) : null}
         {!q ? (
           <section className="rd-v2-discover-idle" data-testid="discover-empty">
+            <h2 className="rd-v2-discover-idle-title">What data do you need?</h2>
             <DiscoverQueryComposer
               value={queryDraft}
               onValueChange={setQueryDraft}
               onSearch={requestSearch}
               onAsk={askAvailable ? (question) => onAskQuery?.(question, { kind: "investigation" }) : undefined}
               onAssess={askAvailable ? onOpenAssessment : undefined}
-              examples={discoverExamples(researchFocus)}
+              focus={researchFocus}
               inputRef={composerInputRef}
               prompt={boundedPrompt}
               idle
             />
-            <div className="rd-v2-discover-idle-held">
-              <DiscoverCoveragePanel catalog={catalog} partitions={partitions} shelves={shelves} onSearchShelf={
-                onSuggestSearch ? (shelf) => onSuggestSearch(shelf.label.toLowerCase()) : undefined
-              } />
-              {/* VC-5: with no known routes this collapses to one quiet line
-                  instead of an oversized empty section. */}
-              {idleRecommendations.length ? (
-                <>
-                  <div className="rd-v2-home-section-head">
-                    <div>
-                      <span className="rd-v2-eyebrow">Curated beyond your Library</span>
-                      <h2>Sources Research Drive knows how to investigate</h2>
-                    </div>
-                    <span className="muted">{plural(merged.length, "known collection method")}</span>
-                  </div>
-                  <DiscoverCandidateList
-                    rows={showAllSources ? idleRecommendations : idleRecommendations.slice(0, IDLE_SOURCE_PREVIEW)}
-                    labIds={labIds}
-                    selectedId={selectedId}
-                    onSelectRow={onSelectRow}
-                    onAdd={onReviewAcquisition}
-                    addLock={acquisitionLock}
-                  />
-                  {idleRecommendations.length > IDLE_SOURCE_PREVIEW ? (
-                    <button
-                      type="button"
-                      className="rd-v2-btn sm rd-v2-discover-sources-toggle"
-                      data-testid="discover-sources-toggle"
-                      aria-expanded={showAllSources}
-                      onClick={() => setShowAllSources((open) => !open)}
-                    >
-                      {showAllSources ? "Show fewer sources" : `Show all ${idleRecommendations.length} sources`}
-                    </button>
-                  ) : null}
-                </>
-              ) : (
-                <p className="muted">
-                  No collection methods are listed yet. Search above, or paste a URL or DOI below.
-                </p>
-              )}
-              {idleHoldings.length ? (
-                <div className="rd-v2-discover-idle-library-note">
-                  Your Library · {plural(libraryEvidenceCount ?? labIds.size, "dataset")}{" "}
-                  {(libraryEvidenceCount ?? labIds.size) === 1 ? "is" : "are"} checked automatically after a research question.
+            {idleCards.length ? (
+              <section className="rd-v2-discover-start" aria-label="Start with these">
+                <div className="rd-v2-discover-start-head">
+                  <h2>Start with these</h2>
+                  <button type="button" className="rd-v2-linkish" onClick={() => onOpenLibraryResults?.()} disabled={!onOpenLibraryResults}>
+                    All of the Library →
+                  </button>
                 </div>
-              ) : null}
-            </div>
+                <ul className="rd-v2-discover-start-cards">
+                  {idleCards.map(({ kind, row }) => {
+                    const taxonomy = row.discover_taxonomy || classifyDiscoverResult(row, labIds);
+                    const selected = isSelectedCandidate(selectedId, row);
+                    return (
+                      <li key={candidateKey(row) || candidateTitle(row)}>
+                        <button
+                          type="button"
+                          className={`rd-v2-discover-start-card${selected ? " selected" : ""}`}
+                          data-kind={kind}
+                          aria-pressed={selected}
+                          onClick={() => onSelectRow?.(row)}
+                        >
+                          <strong>{candidateTitle(row)}</strong>
+                          {row.grain ? <span>{String(row.grain).replace(/_/g, " ")}</span> : null}
+                          <em>{cardState(taxonomy)}</em>
+                        </button>
+                        {kind === "collect" ? (
+                          <RowAdd
+                            canAdd={typeof onReviewAcquisition === "function"}
+                            lockedAdd={typeof onReviewAcquisition === "function" ? null : acquisitionLock}
+                            row={row}
+                            onAdd={onReviewAcquisition}
+                          />
+                        ) : null}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+            ) : null}
             {onCraftUrl ? (
               <form
                 className="rd-v2-discover-idle-intake"

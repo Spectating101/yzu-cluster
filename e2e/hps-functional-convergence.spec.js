@@ -209,7 +209,7 @@ test("a Discover research question keeps results and starts assessment without o
     if (/\/library\/chat(?:\?|$)/.test(request.url())) chatRequests.push(request.url());
   });
   await page.getByLabel("Search or describe a research need").fill("How do forest fires affect county employment?");
-  await page.getByRole("button", { name: "Explore", exact: true }).click();
+  await page.getByRole("button", { name: "Search", exact: true }).click();
   await expect(page.getByTestId("discover-result-summary")).toBeVisible();
   await expect(page.locator("aside.rd-v2-rail").getByRole("tab", { name: "Detail" })).toHaveAttribute("aria-selected", "true");
   await expect.poll(() => reasoningRequests.length).toBeGreaterThan(0);
@@ -228,7 +228,7 @@ test("a Discover keyword search spends no Ask or assessment", async ({ page }) =
   await page.goto("/?tab=discover", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
   await page.getByLabel("Search or describe a research need").fill("stablecoin");
-  await page.getByRole("button", { name: "Explore", exact: true }).click();
+  await page.getByRole("button", { name: "Search", exact: true }).click();
   await expect(page.getByTestId("discover-result-summary")).toBeVisible();
   await page.waitForTimeout(500);
   expect(reasoningRequests).toEqual([]);

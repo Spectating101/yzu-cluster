@@ -66,7 +66,7 @@ test("capture the frozen adaptive Discover composition after polish", async ({ p
   await waitForShell(page);
 
   await page.getByLabel("Search or describe a research need").fill(QUESTION);
-  await page.getByRole("button", { name: "Explore", exact: true }).click();
+  await page.getByRole("button", { name: "Search", exact: true }).click();
   await expect(page.getByTestId("discover-best-fit")).toContainText("CoinGecko market history");
   await expect(page.getByTestId("ask-messages")).toContainText("Use dated de-peg events as the spine");
   await expect(page.getByRole("button", { name: "Custom strategy ready" })).toBeVisible();

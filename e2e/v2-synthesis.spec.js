@@ -549,7 +549,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
       }),
     );
     await page.getByRole("button", { name: "New synthesis", exact: true }).click();
-    const objective = page.getByPlaceholder(/Build a weekly measure/i);
+    const objective = page.getByPlaceholder(/weekly news shocks/i);
     await objective.fill("Test whether Indonesian microstructure predicts later analyst revisions.");
     await page.getByRole("button", { name: "Create build" }).click();
 
@@ -929,7 +929,7 @@ test.describe("v2 Synthesis durable thread surface", () => {
   test("creates a durable thread quietly, then hands mapped evidence to Ask only on explicit reasoning", async ({ page }) => {
     await page.getByRole("button", { name: "New synthesis", exact: true }).click();
     await expect(page.locator(".s04-intent-contract")).toHaveCount(0);
-    await expect(page.getByText(/No data is built here\./)).toBeVisible();
+    await expect(page.getByTestId("synthesis-intent-state")).toBeVisible();
     await expect(page.locator("aside.rd-v2-rail")).toContainText("Ask · Research objective");
     await expect(page.getByRole("tab", { name: "Ask" })).toHaveAttribute("aria-selected", "false");
     await expect(page.getByTestId("rail-pane-detail")).toBeVisible();

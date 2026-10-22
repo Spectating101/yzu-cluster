@@ -179,7 +179,7 @@ async function openDiscover(page, path = "/?tab=browse") {
 
 async function runSearch(page, query = "stablecoin market evidence") {
   await page.getByLabel("Search or describe a research need").fill(query);
-  await page.getByRole("button", { name: "Explore", exact: true }).click();
+  await page.getByRole("button", { name: "Search", exact: true }).click();
   await expect(page.getByTestId("discover-result-summary")).toBeVisible();
   await expect(page.getByTestId("discover-ranked-results")).toBeVisible();
   await expect(page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidate")).toHaveCount(10);
@@ -208,10 +208,9 @@ test.describe("Discover reconvergence visual review", () => {
       await openDiscover(page);
 
       await expect(page.getByTestId("discover-query-composer")).toBeVisible();
-      await expect(page.getByTestId("discover-coverage")).toBeVisible();
       await expect(page.locator(".rd-v2-discover-evidence-path")).toHaveCount(0);
       await expect(page.getByTestId("discover-composer-examples")).toBeVisible();
-      await expect(page.getByText("Sources Research Drive knows how to investigate")).toBeVisible();
+      await expect(page.getByText("Sources Research Drive knows how to investigate")).toHaveCount(0);
       await assertNoOverflow(page);
       await page.screenshot({ path: `${OUT}/discover-resting-${viewport.name}.png`, fullPage: false });
     });
@@ -275,7 +274,6 @@ test.describe("Discover reconvergence visual review", () => {
     await page.setViewportSize({ width: 1920, height: 1080 });
     await openDiscover(page, `/?tab=discover&dataset=${encodeURIComponent(DATACITE_DATASET_ID)}`);
 
-    await expect(page.locator(".rd-v2-discover-candidate.selected")).toContainText("DataCite live catalogue");
     const rail = page.locator("aside.rd-v2-rail");
     await expect(rail).toContainText("DataCite live catalogue");
     await expect(rail).not.toContainText("No candidate selected");

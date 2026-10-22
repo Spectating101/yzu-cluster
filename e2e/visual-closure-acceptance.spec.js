@@ -58,8 +58,7 @@ test("Library sparse branch — clear state and bounded intake", async ({ page }
 test("Discover idle — first-use examples, no oversized empty route block", async ({ page }) => {
   await open(page, "/?tab=browse");
   const examples = page.getByTestId("discover-composer-examples");
-  await expect(examples.getByText("Try a keyword")).toBeVisible();
-  await expect(examples.getByText("Ask a research need")).toBeVisible();
+  await expect(examples.getByRole("button")).toHaveCount(3);
   await expect(
     page.getByRole("heading", { name: "Sources Research Drive knows how to investigate" }),
   ).toHaveCount(0);
@@ -75,7 +74,8 @@ test("Synthesis new — durable-object start and bounded empty rail", async ({ p
   }
   await expect(rail).toContainText("Nothing runs before you approve the method");
   await expect(rail).not.toContainText("Choose a blueprint or custom pair");
-  await expect(page.getByRole("button", { name: /Start from a research question/ })).toBeVisible();
+  await expect(page.getByTestId("synthesis-intent-state")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Create build" })).toBeVisible();
   await shot(page, "synthesis-new-1440x900.png");
 });
 

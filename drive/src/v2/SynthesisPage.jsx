@@ -26,6 +26,7 @@ import { DeskError } from "@/v2/DeskError";
 import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
 import { ExcursionRecordPanel } from "./ExcursionRecordPanel.jsx";
 import { SynthesisHome } from "./SynthesisHome.jsx";
+import { MethodDiagram } from "./MethodDiagram.jsx";
 import { focusFor } from "./synthesisFocus.js";
 import { synthesisExecutionLabel, synthesisAssistRequestContext, synthesisAssist } from "@/v2/synthesisAssist.js";
 import { synthesisDraftBrief, synthesisDraftPrompt } from "@/v2/synthesisDraft.js";
@@ -1466,150 +1467,6 @@ function DraftCanvas({ thread, onAsk, stalled, onRetry }) {
   );
 }
 
-function NewThread({
-  objective,
-  setObjective,
-  busy,
-  profiles,
-  onCreate,
-  onStartBlueprint,
-  onCancel,
-  returnLabel,
-  reasoningAvailable,
-  reasoningStatus,
-  onOpenResources,
-  onFrameInAsk,
-}) {
-  const startingPoints = (Array.isArray(profiles) ? profiles : []).slice(0, 3);
-  const draft = synthesisDraftBrief(objective);
-  return (
-    <section className="s04-intent s04-new-entry" data-testid="synthesis-intent-state">
-      <header className="s04-new-entry-head">
-        <div>
-          <small>New build</small>
-          <h1>Describe the dataset you want to build</h1>
-          <p>Nothing is saved until you create the build or reuse a saved method.</p>
-        </div>
-        <button type="button" className="s04-new-entry-back" onClick={onCancel}>
-          ← Back to {text(returnLabel, "Synthesis")}
-        </button>
-      </header>
-      <ol className="s04-new-entry-steps" aria-label="How a build works">
-        <li className="is-current"><b>1</b><span><strong>Describe it</strong><small>What the data should measure</small></span></li>
-        <li><b>2</b><span><strong>Choose data</strong><small>From your Library, or request more</small></span></li>
-        <li><b>3</b><span><strong>Approve the method</strong><small>Nothing runs before you approve</small></span></li>
-        <li><b>4</b><span><strong>Get the dataset</strong><small>Saved to your Library with its sources</small></span></li>
-      </ol>
-      <div className="s04-new-entry-grid">
-        <section className="s04-new-entry-section s04-new-entry-purpose">
-          <small>Research purpose</small>
-          <h2>What should the dataset measure?</h2>
-          <p>Write it the way you would explain it to a colleague. You choose the data and approve the method in the next steps.</p>
-          <textarea
-            rows={7}
-            value={objective}
-            onChange={(event) => setObjective(event.target.value)}
-            placeholder="Example: Build a weekly measure of stablecoin trust deterioration that separates security incidents, liquidity stress, and public attention…"
-            onKeyDown={(event) => {
-              handleEnterToSubmit(event, () => {
-                if (!busy && objective.trim()) onCreate();
-              });
-            }}
-          />
-          <footer>
-            <span>
-              {objective.trim()
-                ? "Saves one Synthesis build with this research purpose."
-                : "Enter a research purpose to save a build."}
-            </span>
-            {!reasoningAvailable ? (
-              <button type="button" className="rd-v2-btn" onClick={() => onOpenResources?.()}>
-                Check Resources
-              </button>
-            ) : null}
-            <button
-              type="button"
-              className="rd-v2-btn primary"
-              disabled={busy || !objective.trim()}
-              onClick={onCreate}
-              title={objective.trim() ? undefined : "Enter an objective to continue"}
-            >
-              Create build
-            </button>
-          </footer>
-          <div className="s04-new-entry-framing" role="group" aria-label="Research brief framing checklist">
-            <header>
-              <div>
-                <small>Brief checklist</small>
-                <strong>{draft.complete}/4 framing cues</strong>
-              </div>
-              <button type="button" onClick={() => onFrameInAsk?.(objective)} disabled={!reasoningAvailable}>
-                Frame this in Ask →
-              </button>
-            </header>
-            <ul>
-              {draft.cues.map((cue) => (
-                <li key={cue.id} className={cue.ready ? "is-ready" : ""}>
-                  <b aria-hidden="true">{cue.ready ? "✓" : "·"}</b>
-                  <span>
-                    <strong>{cue.label}</strong>
-                    <small>{cue.ready ? "Mentioned" : cue.help}</small>
-                    {!cue.ready ? <em>e.g. {cue.example}</em> : null}
-                  </span>
-                </li>
-              ))}
-            </ul>
-            <p>This checklist is guidance only. It does not infer evidence, methodology, or research validity.</p>
-          </div>
-          <p className="s04-new-entry-boundary">
-            No data is built here. After you create the build, Research Drive reviews data in your Library. Ask reasoning is a separate step and waits if the assistant is unavailable.
-          </p>
-        </section>
-
-        <section className="s04-new-entry-section s04-new-entry-methods">
-          <small>Saved methods</small>
-          <h2>Or start from a saved method.</h2>
-          <p>Pick one, then review how its data and assumptions change for this build.</p>
-          {startingPoints.length ? (
-            <div className="s04-new-entry-method-list">
-              {startingPoints.map((profile) => (
-                <button
-                  type="button"
-                  key={profile.id}
-                  disabled={busy}
-                  onClick={() => onStartBlueprint?.(profile)}
-                  title={text(profile.title, profile.id)}
-                >
-                  <strong>{text(profile.title, profile.id)}</strong>
-                  <em>Use →</em>
-                  <span>{text(profile.description, "Build recipe saved to Library")}</span>
-                </button>
-              ))}
-            </div>
-          ) : (
-            <p className="s04-new-entry-method-empty">No method saved to Library is reported by Research Drive yet.</p>
-          )}
-        </section>
-      </div>
-
-      <dl className="s04-new-entry-contract" aria-label="New Synthesis entry contract">
-        <div>
-          <dt>Creates</dt>
-          <dd>A saved research build</dd>
-        </div>
-        <div>
-          <dt>Then</dt>
-          <dd>Data in your Library is reviewed before method acceptance</dd>
-        </div>
-        <div>
-          <dt>Does not</dt>
-          <dd>Execute, register, or silently choose consequential methodology</dd>
-        </div>
-      </dl>
-    </section>
-  );
-}
-
 function EmptyWorkspace({
   profiles,
   profilesLoading,
@@ -2422,26 +2279,7 @@ export function SynthesisPage({
       <div className="s04-shell" data-testid="synthesis-studio">
         <div className="s04-main">
           {error ? <DeskError raw={error} surface="your builds" alert onRetry={error === threadsLoadError ? () => refreshThreads() : undefined} /> : null}
-          {newMode ? (
-            <NewThread
-              objective={objective}
-              setObjective={setObjective}
-              busy={busy}
-              profiles={profiles}
-              onCreate={createThread}
-              onStartBlueprint={startBlueprint}
-              onCancel={cancelNew}
-              returnLabel="Synthesis home"
-              reasoningAvailable={reasoningAvailable}
-              reasoningStatus={reasoningStatus}
-              onOpenResources={() => onGoTab?.("resources")}
-              onFrameInAsk={(purpose) => onAskComposer?.({
-                prompt: synthesisDraftPrompt(purpose),
-                displayText: purpose ? "Help me sharpen this research object" : "Help me frame a research object",
-              })}
-            />
-          ) : null}
-          {!newMode && !loading && !selected ? (
+          {(newMode || (!loading && !selected)) ? (
             <SynthesisHome
               catalog={datasets}
               onOpenDataset={onOpenDataset}
@@ -2456,15 +2294,14 @@ export function SynthesisPage({
               onShowArchived={loadArchived}
               onRestore={(threadId) => setArchivedBuild(threadId, false)}
               restoringId={archivingId}
-              onNew={beginNew}
+              objective={objective}
+              setObjective={setObjective}
+              busy={busy}
+              onCreate={createThread}
               onStartBlueprint={startBlueprint}
               reasoningAvailable={reasoningAvailable}
               reasoningStatus={reasoningStatus}
               onOpenResources={() => onGoTab?.("resources")}
-              onFrameInAsk={(purpose) => onAskComposer?.({
-                prompt: synthesisDraftPrompt(purpose),
-                displayText: purpose ? "Help me sharpen this research object" : "Help me frame a research object",
-              })}
             />
           ) : null}
           {!newMode && selected ? (
@@ -2482,6 +2319,7 @@ export function SynthesisPage({
                   reasoningStatus={reasoningStatus}
                 />
               ) : null}
+              {!preAcceptance ? <MethodDiagram thread={displayedSelected} onOpenDataset={onOpenDataset} /> : null}
               <ThreadPicker threads={threads} selectedId={selectedId} onSelect={selectThread} />
               <ContextStrip items={focus.strip.filter((item) => !RECORD_ALWAYS.includes(item.id))}
                             onPromote={setPromoted} promoted={focus.promoted}

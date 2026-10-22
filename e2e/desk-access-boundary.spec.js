@@ -150,7 +150,7 @@ test("a public guest can browse shared evidence but must sign in to Ask", async 
   await expect(page.getByTestId("discover-row-add-locked").first()).toHaveAccessibleName(/sign in/i);
   await expect(page.getByTestId("discover-craft-form")).toHaveCount(0);
   await page.getByLabel("Search or describe a research need").fill("MOPS filings");
-  await page.getByRole("button", { name: "Explore", exact: true }).click();
+  await page.getByRole("button", { name: "Search", exact: true }).click();
   await expect(page.getByTestId("discover-result-summary")).toBeVisible();
   const rankedResults = page.getByTestId("discover-ranked-results");
   await rankedResults.getByRole("button", { name: /MOPS financial statements/ }).click();
@@ -227,7 +227,7 @@ test("a signed-in public member sees the collection authority boundary, not anot
 
   await page.goto("/?tab=discover", { waitUntil: "domcontentloaded" });
   await page.getByLabel("Search or describe a research need").fill("MOPS filings");
-  await page.getByRole("button", { name: "Explore", exact: true }).click();
+  await page.getByRole("button", { name: "Search", exact: true }).click();
   await page.getByTestId("discover-ranked-results").getByRole("button", { name: /MOPS financial statements/ }).click();
 
   const restricted = page.locator("aside.rd-v2-rail").getByRole("button", {

@@ -1017,6 +1017,6 @@ export async function waitForShell(page) {
 
 export async function searchDiscover(page, query) {
   await page.getByLabel("Search or describe a research need").fill(query);
-  await page.getByRole("button", { name: "Explore", exact: true }).click();
+  await page.getByRole("button", { name: "Search", exact: true }).click();
   await page.getByTestId("discover-result-summary").waitFor({ timeout: 15_000 });
 }

@@ -29,7 +29,7 @@ test.describe("frozen composition guard", () => {
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
     await page.getByLabel("Search or describe a research need").fill("mops");
-    await page.getByRole("button", { name: "Explore", exact: true }).click();
+    await page.getByRole("button", { name: "Search", exact: true }).click();
     await expect(page.getByTestId("discover-result-summary")).toBeVisible();
     const body = (await page.locator("body").innerText()).toUpperCase();
     for (const term of WITHDRAWN) {
@@ -45,7 +45,7 @@ test.describe("frozen composition guard", () => {
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
     await page.getByLabel("Search or describe a research need").fill("mops");
-    await page.getByRole("button", { name: "Explore", exact: true }).click();
+    await page.getByRole("button", { name: "Search", exact: true }).click();
     const ranked = page.getByTestId("discover-ranked-results");
     const candidate = ranked.locator("button.rd-v2-discover-candidate").first();
     await candidate.click();

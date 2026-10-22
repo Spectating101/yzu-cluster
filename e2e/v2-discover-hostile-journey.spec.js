@@ -202,7 +202,7 @@ test.describe("Discover continuous hostile researcher journey", () => {
 
     const query = "Do we hold issuer-quarter governance data for Taiwan?";
     await page.getByLabel("Search or describe a research need").fill(query);
-    await page.getByRole("button", { name: "Explore", exact: true }).click();
+    await page.getByRole("button", { name: "Search", exact: true }).click();
 
     const evidence = page.locator(".rd-v2-evidence-brief.is-workspace");
     await expect(evidence).toBeVisible();

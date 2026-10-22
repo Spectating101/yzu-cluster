@@ -302,12 +302,10 @@ test("captures Synthesis home, thread work, and new-entry navigation", async ({ 
   await page.getByRole("button", { name: "New synthesis", exact: true }).click();
   const entry = page.getByTestId("synthesis-intent-state");
   await expect(entry).toBeVisible();
-  await expect(entry.getByRole("button", { name: /Back to Synthesis home/ })).toBeVisible();
   await expect(page.getByTestId("research-situation").locator(".rd-v2-situation-state")).toHaveText("Draft");
   await expect(page.getByTestId("rail-pane-detail")).toContainText("Draft entry");
   const draftPurpose = "Build a weekly asset × week stablecoin trust measure from 2021–2026 as a reusable input to an event-study analysis.";
   await entry.getByRole("textbox").fill(draftPurpose);
-  await expect(entry.getByLabel("Research brief framing checklist")).toContainText("4/4 framing cues");
   await expect(page.getByLabel("Draft research brief checklist")).toContainText("4/4 framed");
   await expect(page.getByTestId("rail-pane-detail")).toContainText("Ready to create");
   await capture(page, "02-new-entry-1440x1000");
@@ -318,7 +316,7 @@ test("captures Synthesis home, thread work, and new-entry navigation", async ({ 
   await capture(page, "04-new-entry-390x844");
 
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await entry.getByRole("button", { name: /Back to Synthesis home/ }).click();
+  await page.getByRole("button", { name: /Synthesis workspace/ }).click();
   await expect(home).toBeVisible();
   await expect(page.getByTestId("research-situation").locator(".rd-v2-situation-state")).toHaveText("Workspace");
   await capture(page, "05-returned-home-1440x1000");

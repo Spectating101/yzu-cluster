@@ -270,7 +270,7 @@ async function installSynthesisWorkspaceSeed(page) {
 async function expectDestinationReady(page, destination) {
   if (destination.synthesis) {
     await expect(page.getByTestId("synthesis-home-state").getByRole("heading", { name: "Synthesis", exact: true })).toBeVisible();
-    await expect(page.getByRole("region", { name: "Start or continue Synthesis work" })).toBeVisible();
+    await expect(page.getByTestId("synthesis-intent-state")).toBeVisible();
     return;
   }
   await expect(page.getByRole("heading", { name: destination.heading, exact: true }).first()).toBeVisible();
@@ -400,7 +400,7 @@ test.describe("converged platform shell", () => {
 
     const discoverComposer = page.getByLabel("Search or describe a research need");
     await discoverComposer.fill("Asia daily news");
-    await page.getByRole("button", { name: "Explore", exact: true }).click();
+    await page.getByRole("button", { name: "Search", exact: true }).click();
     await expect(page.getByTestId("discover-result-summary")).toBeVisible();
     await expect(page.getByLabel("Discover next actions")).toContainText(/declared route|Search wider/i);
     await expect(page.getByTestId("research-situation")).toContainText("Discover");

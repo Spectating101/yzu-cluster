@@ -28,7 +28,7 @@ test.describe("primary surface lifecycle contract", () => {
     await page.locator("aside.yzu-sidebar").getByRole("button", { name: "Discover", exact: true }).click();
     await expect(surface(page)).toHaveAttribute("data-surface-state", "idle");
     await page.getByLabel("Search or describe a research need").fill("no matching held evidence");
-    await page.getByRole("button", { name: "Explore", exact: true }).click();
+    await page.getByRole("button", { name: "Search", exact: true }).click();
     await expect(surface(page)).toHaveAttribute("data-surface-state", "loading");
     await expect(surface(page)).toHaveAttribute("data-surface-state", "empty", { timeout: 5_000 });
 
