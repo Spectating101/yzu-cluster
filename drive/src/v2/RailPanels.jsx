@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { fetchLiveIdentity } from "@/v2/api";
 import { DiscoverEvaluationSurface } from "@/v2/DiscoverEvaluationSurface";
 import { displayName } from "@/v2/datasetMeta";
+import { topicCounts } from "./libraryTopics.js";
 import { EmptyRailState } from "@/v2/EmptyRailState";
 import { liveIdentityReadinessLabel, identityLookupFromRow } from "@/v2/liveIdentity";
 import {
@@ -468,6 +469,31 @@ export function PageRailPanel({ page = "home", onAskAbout }) {
         {onAskAbout ? <button type="button" className="rd-v2-btn sm" onClick={() => onAskAbout()}>
           Ask about this page →
         </button> : <AskUnavailableNote className="rd-v2-rail-note" subject="this page" />}
+      </RailStickyFooter>
+    </RailFrame>
+  );
+}
+
+export function HomeLibraryRailPanel({ catalog = [], onAskAbout }) {
+  const rows = Array.isArray(catalog) ? catalog : [];
+  const topics = topicCounts(rows, 8);
+  return (
+    <RailFrame>
+      <RailEntityHeader
+        title="Your Library"
+        description={rows.length ? `${rows.length} dataset${rows.length === 1 ? "" : "s"} ready to search, open and build from.` : "No datasets yet. Find some in Discover."}
+      />
+      <div className="rd-v2-rail-scroll">
+        {topics.length ? (
+          <RailFieldGrid>
+            {topics.map((topic) => <RailField key={topic.id} label={topic.label} value={`${topic.count} dataset${topic.count === 1 ? "" : "s"}`} />)}
+          </RailFieldGrid>
+        ) : null}
+      </div>
+      <RailStickyFooter>
+        {onAskAbout ? <button type="button" className="rd-v2-btn sm" onClick={() => onAskAbout()}>
+          Ask about your Library →
+        </button> : <AskUnavailableNote className="rd-v2-rail-note" subject="your Library" />}
       </RailStickyFooter>
     </RailFrame>
   );

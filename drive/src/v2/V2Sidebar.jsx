@@ -67,7 +67,7 @@ export function V2Sidebar({
         </>
       ) : (
         <>
-          {showResearchContext ? <div className="rd-v2-sidebar-context" role="group" aria-label="Active research">
+          {showResearchContext && (research.emphases?.length || research.title !== "No research focus set") ? <div className="rd-v2-sidebar-context" role="group" aria-label="Active research">
             <p className="rd-v2-sidebar-kicker">Active research</p>
             <strong className="rd-v2-sidebar-research-title">{research.title}</strong>
             {research.emphases?.length ? (
