@@ -1,6 +1,7 @@
 import { LockMark, lockTitle } from "@/v2/Lock";
 import { rowsLabel, spanOf, spanText } from "./libraryGlance.js";
 import { listDescription } from "./listDescription.js";
+import { hasNeedShape } from "./discoverQueryIntent.js";
 import { uiVocabularyLabel } from "./uiVocabularyLabels.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { instantLibraryMatches } from "@/v2/discoverInstantMatches";
@@ -342,7 +343,7 @@ export function isDiscoverResearchQuestion(value) {
   if (/^(what|which|where|when|why|how|can|could|should|would|do|does|is|are|i need|we need|help me|find me)\b/i.test(text)) {
     return true;
   }
-  return text.split(/\s+/).length >= 8;
+  return text.split(/\s+/).length >= 8 || hasNeedShape(text);
 }
 
 function DiscoverQueryComposer({
