@@ -280,28 +280,3 @@ export function buildStorageRows({ health }) {
   return list;
 }
 
-export function countBlockers(...rowSets) {
-  return rowSets.flat().filter((r) => r.warn || !r.ok).length;
-}
-
-export function filterResourcesView(
-  view,
-  { providers, layers, stack, storage, running },
-) {
-  if (view === "sources") return { providers, layers: [], stack: [], storage: [], running: [] };
-  if (view === "layers") return { providers: [], layers, stack: [], storage: [], running: [] };
-  if (view === "stack") return { providers: [], layers: [], stack, storage: [], running: [] };
-  if (view === "usage") return { providers: [], layers: [], stack: [], storage, running: [] };
-  if (view === "running") return { providers: [], layers: [], stack: [], storage: [], running };
-  if (view === "issues") {
-    const bad = (rows) => rows.filter((r) => r.warn || !r.ok);
-    return {
-      providers: bad(providers),
-      layers: bad(layers),
-      stack: bad(stack),
-      storage: bad(storage),
-      running: bad(running),
-    };
-  }
-  return { providers, layers, stack, storage, running };
-}

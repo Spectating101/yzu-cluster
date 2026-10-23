@@ -1,10 +1,8 @@
 import { AskUnavailableNote } from "@/v2/askNote";
 import { collectionStatusLabel } from "./procurementJobs.js";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { fetchLiveIdentity } from "@/v2/api";
 import { DiscoverEvaluationSurface } from "@/v2/DiscoverEvaluationSurface";
-import { displayName } from "@/v2/datasetMeta";
-import { EmptyRailState } from "@/v2/EmptyRailState";
 import { liveIdentityReadinessLabel, identityLookupFromRow } from "@/v2/liveIdentity";
 import {
   RailDecisionSummary,
@@ -15,24 +13,13 @@ import {
   RailStickyFooter,
 } from "@/v2/RailFrame";
 import { DetailPanel } from "@/v2/DetailPanel";
-import { handleEnterToSubmit } from "@/v2/enterToSubmit";
-import { DISCOVER_TAB, tabLabel } from "@/v2/tabIdentity";
+import { tabLabel } from "@/v2/tabIdentity";
 import { storageUsed } from "./storageFormat.js";
 import { shortDate } from "./shortDate.js";
 
 function fmtGiB(gib) {
   if (gib == null) return "—";
   return `${gib} GiB`;
-}
-
-function shortRailText(value, max = 72) {
-  const text = String(value || "");
-  return text.length > max ? `${text.slice(0, max - 1)}…` : text;
-}
-
-function cleanRailTarget(target) {
-  const text = String(target || "");
-  return text.startsWith("[context:") && text.includes("]") ? text.split("]").slice(1).join("]").trim() : text;
 }
 
 function resourceRailName(row) {
@@ -139,17 +126,6 @@ function resourceRailStatus(row) {
   return "Healthy";
 }
 
-const RAIL_ACTION_LABELS = {
-  ask: "Ask",
-  discover: "Browse",
-  query: "Query",
-  job_submit: "Job",
-  job_approve: "Approved",
-  approve_collect: "Collect",
-  bq_dry_run: "BQ dry-run",
-  bq_read: "BQ read",
-};
-
 const HOME_ITEM_KINDS = {
   decision: "A request waiting for your approval",
   synthesis_thread: "A Synthesis build",
@@ -215,217 +191,6 @@ const PAGE_RAIL_COPY = {
     ],
   },
 };
-
-function pluralCount(value, singular, plural = `${singular}s`) {
-  const count = Number(value || 0);
-  return `${count} ${count === 1 ? singular : plural}`;
-}
-
-function LibraryIntakeRailPanel({ object, onSubmitUpload, onSubmitUrl, onSubmitProcure }) {
-  const inputRef = useRef(null);
-  const [files, setFiles] = useState([]);
-  const [target, setTarget] = useState("");
-  const names = files.map((file) => file.name).filter(Boolean);
-  const mode = object?.mode || "upload";
-  const destination = object?.destination || "Library root";
-
-  const chooseFiles = () => inputRef.current?.click();
-  const setPickedFiles = (picked) => setFiles(Array.from(picked || []));
-
-  if (mode === "url") {
-    return (
-      <RailFrame>
-        <RailEntityHeader
-          id={object.id}
-          title="Add URL / DOI"
-          description="Test a public source connection, collect metadata, and send the collection plan to Ask."
-          pills={<span className="rd-v2-pill ext">Intake</span>}
-        />
-        <div className="rd-v2-rail-scroll">
-          <RailFieldGrid>
-            <RailField label="Destination" value={destination} />
-            <RailField label="Path" value={object.path} />
-          </RailFieldGrid>
-          <div className="rd-v2-rail-intake">
-            <label htmlFor="rd-v2-rail-url-input">URLs or DOIs</label>
-            <textarea
-              id="rd-v2-rail-url-input"
-              rows={7}
-              value={target}
-              onChange={(event) => setTarget(event.target.value)}
-              placeholder="https://doi.org/10.1234/example&#10;https://data.example.org/dataset"
-              onKeyDown={(event) => {
-                handleEnterToSubmit(event, () => {
-                  if (target.trim()) onSubmitUrl?.(target.trim(), object);
-                });
-              }}
-            />
-            <p className="rd-v2-ask-send-hint">Enter to send · ⇧↵ newline</p>
-          </div>
-        </div>
-        <RailStickyFooter>
-          <button
-            type="button"
-            className="rd-v2-btn sm primary"
-            disabled={!target.trim()}
-            onClick={() => onSubmitUrl?.(target.trim(), object)}
-          >
-            Send to Ask
-          </button>
-        </RailStickyFooter>
-      </RailFrame>
-    );
-  }
-
-  if (mode === "procure") {
-    return (
-      <RailFrame>
-        <RailEntityHeader
-          id={object.id}
-          title="Procure branch"
-          description="Use this Library folder as the destination. Ask Research Drive to search, test connections, and propose collection steps."
-          pills={<span className="rd-v2-pill ext">Procure</span>}
-        />
-        <div className="rd-v2-rail-scroll">
-          <RailFieldGrid>
-            <RailField label="Destination" value={destination} />
-            <RailField label="Path" value={object.path} />
-            <RailField label="Known data" value={pluralCount(object.counts?.datasets, "dataset")} />
-            <RailField label="Ready to query" value={String(object.counts?.queryReady ?? 0)} />
-          </RailFieldGrid>
-        </div>
-        <RailStickyFooter>
-          <button type="button" className="rd-v2-btn sm primary" onClick={() => onSubmitProcure?.(object)}>
-            Ask to procure
-          </button>
-        </RailStickyFooter>
-      </RailFrame>
-    );
-  }
-
-  return (
-    <RailFrame>
-      <RailEntityHeader
-        id={object.id}
-        title="Upload files"
-        description="Stage local files against the current Library branch and hand ingestion to the vault via Ask."
-        pills={<span className="rd-v2-pill lab">Upload</span>}
-      />
-      <div className="rd-v2-rail-scroll">
-        <RailFieldGrid>
-          <RailField label="Destination" value={destination} />
-          <RailField label="Path" value={object.path} />
-        </RailFieldGrid>
-        <div
-          className="rd-v2-rail-upload-zone"
-          onDragOver={(event) => event.preventDefault()}
-          onDrop={(event) => {
-            event.preventDefault();
-            setPickedFiles(event.dataTransfer?.files);
-          }}
-        >
-          <input
-            ref={inputRef}
-            type="file"
-            multiple
-            aria-label="Choose files to upload"
-            onChange={(event) => setPickedFiles(event.target.files)}
-          />
-          <strong>Drop files here</strong>
-          <p>or choose files from disk for vault ingestion.</p>
-          <button type="button" className="rd-v2-btn sm" onClick={chooseFiles}>
-            Choose files
-          </button>
-        </div>
-        <div className="rd-v2-rail-file-list" role="group" aria-label="Selected files">
-          {names.length ? names.map((name) => <span key={name}>{name}</span>) : <p>No files selected yet.</p>}
-        </div>
-      </div>
-      <RailStickyFooter>
-        <button
-          type="button"
-          className="rd-v2-btn sm primary"
-          disabled={!files.length}
-          onClick={() => onSubmitUpload?.(files, object)}
-        >
-          Send to Ask
-        </button>
-      </RailStickyFooter>
-    </RailFrame>
-  );
-}
-
-export function LibraryObjectRailPanel({
-  object,
-  onAskAbout,
-  onStartUpload,
-  onStartUrl,
-  onStartProcure,
-  onSubmitUpload,
-  onSubmitUrl,
-  onSubmitProcure,
-}) {
-  if (object?.kind === "library_intake") {
-    return (
-      <LibraryIntakeRailPanel
-        object={object}
-        onSubmitUpload={onSubmitUpload}
-        onSubmitUrl={onSubmitUrl}
-        onSubmitProcure={onSubmitProcure}
-      />
-    );
-  }
-
-  const folder = object?.kind === "library_folder" ? object : null;
-  if (!folder) return null;
-  const counts = folder.counts || {};
-  const root = !folder.folderId;
-
-  return (
-    <RailFrame>
-      <div className="rd-v2-rail-scroll rd-v2-library-folder-inspector">
-        <section className="rd-v2-library-folder-summary">
-          <p className="rd-v2-rail-section-label">{root ? "In this library" : "In this collection"}</p>
-          <h3>{pluralCount(counts.datasets, root ? "asset" : "dataset")}</h3>
-          <div className="rd-v2-library-folder-readiness">
-            {counts.queryReady > 0 ? <span><b>{counts.queryReady}</b> ready to query</span> : null}
-            {counts.connected > 0 ? <span><b>{counts.connected}</b> connected</span> : null}
-            {counts.metadataOnly > 0 ? <span><b>{counts.metadataOnly}</b> metadata only</span> : null}
-            {counts.unknown > 0 ? <span><b>{counts.unknown}</b> readiness unknown</span> : null}
-          </div>
-          {root && counts.references > 0 ? (
-            <p className="rd-v2-rail-note">
-              {pluralCount(counts.references, "known source")} not yet collected; find {counts.references === 1 ? "it" : "them"} in Discover.
-            </p>
-          ) : null}
-        </section>
-
-        <section className="rd-v2-library-folder-add">
-          <p className="rd-v2-rail-section-label">Add data</p>
-          <button type="button" onClick={() => onStartUpload?.(folder)}>Upload file</button>
-          <button type="button" onClick={() => onStartUrl?.(folder)}>Add URL / DOI</button>
-          <button type="button" onClick={() => onStartProcure?.(folder)}>Find missing data</button>
-        </section>
-
-        <details className="rd-v2-library-inspector-tech rd-v2-library-folder-tech">
-          <summary>Technical details</summary>
-          <div className="rd-v2-library-inspector-tech-body">
-            <RailFieldGrid>
-              <RailField label="Destination" value={folder.destination} />
-              <RailField label="Collections" value={pluralCount(counts.folders, "collection")} />
-              <RailField label="Items" value={pluralCount(counts.items, "item")} />
-            </RailFieldGrid>
-          </div>
-        </details>
-      </div>
-      <RailStickyFooter>
-        <button type="button" className="rd-v2-btn sm primary" onClick={() => onAskAbout?.(folder)}>
-          Ask about {root ? "the library" : "this collection"} →
-        </button>
-      </RailStickyFooter>
-    </RailFrame>
-  );
-}
 
 export function PageRailPanel({ page = "home", onAskAbout }) {
   const copy = PAGE_RAIL_COPY[page] || PAGE_RAIL_COPY.home;
@@ -826,16 +591,6 @@ export function ResourcesRailPanel({ row, rollup, onApproveJob, onRefresh, onVie
           Ask about this →
         </button>
       </RailStickyFooter>
-    </RailFrame>
-  );
-}
-
-export function EmptyRailPanel() {
-  return (
-    <RailFrame>
-      <div className="rd-v2-rail-scroll">
-        <EmptyRailState />
-      </div>
     </RailFrame>
   );
 }

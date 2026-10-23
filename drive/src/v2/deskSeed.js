@@ -2,7 +2,6 @@
 
 import demoCatalog from "../../config/desk_demo_catalog.json";
 
-export const DEMO_LABEL = demoCatalog.label || "DEMO";
 export const SEED_DATASETS = demoCatalog.datasets || [];
 export const DISCOVER_SUGGESTIONS = demoCatalog.discover_suggestions || [];
 export const DISCOVER_SAMPLES = demoCatalog.discover_samples || [];
@@ -92,8 +91,3 @@ export function discoverDemoSearch(query) {
   });
 }
 
-export function deskPipelineStrips(health, acquisitions = []) {
-  const running = acquisitions.filter((a) => (a.stage || "running") === "running").slice(0, 3);
-  if (running.length) return running;
-  return [];
-}

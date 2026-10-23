@@ -115,6 +115,3 @@ export function resolveProviderMark(row = {}) {
   return { id, ...base };
 }
 
-export function providerMarkAssetMap() {
-  return { ...MARKS };
-}

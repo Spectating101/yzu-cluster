@@ -1,9 +1,6 @@
 /** Merge config/desk_sources.json with live desk telemetry (providers, not datasets). */
 
 import manifest from "../../config/desk_sources.json";
-import { measuredComposerLabel } from "./resourcesTruth.js";
-
-export const DESK_SOURCE_MANIFEST = manifest;
 
 function row(ok = true, warn = false, extra = {}) {
   return { ok, warn, ...extra };
@@ -74,40 +71,3 @@ export function buildProviderRows({ health, ops, catalogSummary } = {}) {
   });
 }
 
-export function buildCapacitySnapshot({ health, catalogSummary, cluster }) {
-  const desk = health?.desk || {};
-  const tiers = desk.storage_tiers || {};
-  const canonical = tiers.canonical || desk.archive || {};
-  const mcp = desk.mcp_tools || {};
-  const pools = desk.worker_pools;
-  const wl = cluster?.worker_pools?.windows_lab;
-
-  const vaultUsed = canonical.used_tb;
-  const vaultCap = canonical.quota_tb ?? canonical.pool_tb;
-  const vaultPct = vaultUsed != null && vaultCap ? Math.round((vaultUsed / vaultCap) * 100) : null;
-
-  const curatedSources = (manifest.sources || []).filter((src) => src.show_on_resources === true);
-
-  return {
-    sourceCount: curatedSources.length,
-    layerCount: (manifest.layers || []).length,
-    tools: {
-      mcp: mcp.total ?? null,
-      connectors: catalogSummary?.connectors ?? null,
-    },
-    vault: { used: vaultUsed, cap: vaultCap, pct: vaultPct, ok: desk.gdrive?.ok !== false },
-    workers: {
-      busy: pools?.busy ?? wl?.joined ?? 0,
-      total: pools?.total ?? wl?.total ?? "—",
-    },
-    composer: {
-      model: measuredComposerLabel(desk.composer_model),
-      ok: !!desk.composer_configured,
-      legacy: !!desk.legacy_llm_configured,
-    },
-    queryEngine: {
-      up: health?.status === "ok" || health?.status === "demo",
-      port: ":8765",
-    },
-  };
-}

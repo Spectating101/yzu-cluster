@@ -89,4 +89,3 @@ export function discoverScopeIsWide(settings = loadSettings()) {
   return settings?.discoverScope === "wide";
 }
 
-export const SETTINGS_RESEARCH_SURFACES = Object.freeze([...RESEARCH_SURFACES]);

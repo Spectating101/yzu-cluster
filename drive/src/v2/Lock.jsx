@@ -13,7 +13,6 @@ const WHO = {
   lab: { label: "Lab members", title: "Collection requests need lab membership" },
 };
 
-export const lockLabel = (who) => (WHO[who] || WHO.account).label;
 export const lockTitle = (who) => (WHO[who] || WHO.account).title;
 
 export function LockTag({ who = "account" }) {

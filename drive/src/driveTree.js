@@ -263,11 +263,6 @@ export function buildConsumerDriveTree(datasets, { scope = DRIVE_LAB, campaigns 
   return { root, scope, rootName };
 }
 
-/** @deprecated use buildConsumerDriveTree */
-export function buildDriveTree(datasets, opts = {}) {
-  return buildConsumerDriveTree(datasets, { ...opts, scope: DRIVE_LAB });
-}
-
 function foldersRoot(root) {
   return root?.foldersRoot?.kind === "folder" ? root.foldersRoot : null;
 }

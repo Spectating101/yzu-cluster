@@ -71,5 +71,3 @@ export const V2_SIDEBAR_TABS = [...V2_SIDEBAR_PRIMARY_TABS, ...V2_SIDEBAR_FOOT_T
 
 export { SYNTHESIS_NAV_DEFERRED };
 
-/** All routable tabs. */
-export const V2_TABS = V2_SIDEBAR_TABS;

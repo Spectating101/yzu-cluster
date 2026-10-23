@@ -21,11 +21,6 @@ export function RailEntityHeader({ id, title, pills, description }) {
   );
 }
 
-export function RailCtas({ children }) {
-  if (!children) return null;
-  return <div className="rd-v2-rail-ctas">{children}</div>;
-}
-
 export function RailFieldGrid({ children }) {
   return <div className="rd-v2-rail-fieldgrid">{children}</div>;
 }

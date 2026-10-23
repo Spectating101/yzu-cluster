@@ -1,6 +1,3 @@
-/** Resources — Spending | Activity model from desk rollup. */
-
-import { buildMotionRowsFromRollup } from "@/v2/resourcesFromRollup";
 import { measuredComposerLabel } from "./resourcesTruth.js";
 import { plainIdentifiers } from "./plainText.js";
 
@@ -71,124 +68,6 @@ const ACTION_LABELS = {
   approve_collect: "Collect approved",
 };
 
-export function buildCapacityCards(rollup) {
-  if (!rollup?.hero) return [];
-  const h = rollup.hero;
-  const composer = h.composer || {};
-  const workers = h.workers || {};
-  const vault = h.vault || {};
-  const qe = h.query_engine || {};
-  return [
-    rowBase({
-      kind: "capacity",
-      key: "cap-ask",
-      label: "Ask",
-      metric: measuredComposerLabel(composer.model),
-      sublabel: composer.configured ? "Composer + MCP" : "Composer not configured",
-      ok: composer.configured,
-      warn: !composer.configured,
-      section: "capacity",
-      detail: { mcp: rollup.ai?.mcp_tools?.total },
-    }),
-    rowBase({
-      kind: "capacity",
-      key: "cap-workers",
-      label: "Workers",
-      metric: `${workers.busy ?? "—"}/${workers.total ?? "—"} busy`,
-      sublabel: "windows_lab",
-      section: "capacity",
-    }),
-    rowBase({
-      kind: "capacity",
-      key: "cap-vault",
-      label: "Vault",
-      metric: vault.used_tb != null ? `${vault.used_tb}/${vault.cap_tb ?? "?"} TB` : "—",
-      sublabel: vault.pct != null ? `${vault.pct}% used` : "quota pending",
-      progress: vault.pct,
-      section: "capacity",
-    }),
-    rowBase({
-      kind: "capacity",
-      key: "cap-engine",
-      label: "Query engine",
-      metric: `:${qe.port ?? 8765} ${qe.up ? "up" : "down"}`,
-      sublabel: "research library API",
-      ok: qe.up,
-      showStatus: !qe.up,
-      section: "capacity",
-    }),
-  ];
-}
-
-export function buildSpendingMeters(rollup) {
-  if (!rollup) return [];
-  const m = rollup.metered || {};
-  const bq = m.bigquery || {};
-  const tv = m.tavily || {};
-  const period = rollup.spending?.period?.totals || {};
-  const today = rollup.spending?.today || {};
-  const drivers = rollup.spending?.drivers || [];
-
-  const rows = [
-    rowBase({
-      kind: "meter",
-      meterId: "bigquery",
-      key: "meter-bigquery",
-      label: "BigQuery",
-      metric: `${fmtGiB(period.bq_gib_billed)} period · ${fmtGiB(today.bq_gib_billed)} today`,
-      periodValue: fmtGiB(period.bq_gib_billed),
-      todayValue: fmtGiB(today.bq_gib_billed),
-      unitLabel: "billed this month",
-      sublabel: bq.project || (bq.configured ? "configured" : "not configured"),
-      ok: bq.configured,
-      warn: !bq.configured,
-      section: "spending",
-      drivers,
-      detail: bq,
-    }),
-    rowBase({
-      kind: "meter",
-      meterId: "tavily",
-      key: "meter-tavily",
-      label: "Tavily",
-      metric: `${period.tavily_calls ?? 0} period · ${today.tavily_calls ?? 0} today`,
-      periodValue: String(period.tavily_calls ?? 0),
-      todayValue: String(today.tavily_calls ?? 0),
-      unitLabel: "web calls this month",
-      sublabel: tv.keys_loaded ? `${tv.keys_loaded} keys` : "no keys",
-      ok: (tv.keys_loaded || 0) > 0,
-      section: "spending",
-      detail: tv,
-    }),
-    rowBase({
-      kind: "meter",
-      meterId: "composer",
-      key: "meter-composer",
-      label: "Composer",
-      metric: `${period.composer_turns ?? 0} turns · ${today.composer_turns ?? 0} today`,
-      periodValue: String(period.composer_turns ?? 0),
-      todayValue: String(today.composer_turns ?? 0),
-      unitLabel: "Ask turns this month",
-      sublabel: measuredComposerLabel(rollup.ai?.composer_model),
-      section: "spending",
-      detail: rollup.ai,
-    }),
-    rowBase({
-      kind: "meter",
-      meterId: "probes",
-      key: "meter-probes",
-      label: "Connection tests",
-      metric: `${period.probe_calls ?? 0} period · ${today.probe_calls ?? 0} today`,
-      periodValue: String(period.probe_calls ?? 0),
-      todayValue: String(today.probe_calls ?? 0),
-      unitLabel: "URL connection tests this month",
-      sublabel: "classify before collect",
-      section: "spending",
-    }),
-  ];
-  return rows;
-}
-
 export function buildAccountSummaryRows(rollup) {
   if (!rollup) return [];
   const period = rollup.spending?.period?.totals || {};
@@ -246,19 +125,6 @@ export function buildActionRows(rollup) {
   );
 }
 
-export function buildActiveRows(rollup, jobs = []) {
-  const motion = buildMotionRowsFromRollup(rollup, jobs);
-  const visibleKeys = new Set(["jobs-pending", "jobs-running", "gdelt"]);
-  return motion
-    .filter((r) => r.job || visibleKeys.has(r.key))
-    .slice(0, 4)
-    .map((r) => ({
-      ...r,
-      kind: "active",
-      section: "active",
-    }));
-}
-
 export function buildActivityRows(rollup, filter = null) {
   const events = rollup?.activity?.events || [];
   return events
@@ -302,10 +168,6 @@ export function buildActivityRows(rollup, filter = null) {
         ok: true,
       }),
     );
-}
-
-export function spendingDailySeries(rollup) {
-  return rollup?.spending?.period?.daily || [];
 }
 
 export function spendingPeriodLabel(rollup) {

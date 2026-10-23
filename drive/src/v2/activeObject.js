@@ -136,14 +136,6 @@ export function synthesisThreadObject(thread) {
   };
 }
 
-export function pageObject(page) {
-  return {
-    kind: "page",
-    id: page,
-    title: page,
-  };
-}
-
 export function activeObjectSelectionHint(object) {
   if (!object) return "";
   if (object.kind === "library_intake") return `${object.title} · ${object.destination}`;

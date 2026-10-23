@@ -446,35 +446,6 @@ export function probePublicSource(url, name = "", { candidateKey = "" } = {}) {
   });
 }
 
-export function submitDiscoverCollect(
-  connectorId,
-  {
-    limit = 200,
-    autoApprove = false,
-    candidateKey = "",
-    sourceIdentity = "",
-    datasetId = "",
-    doi = "",
-    url = "",
-  } = {},
-) {
-  const body = {
-    connector_id: connectorId,
-    limit,
-    auto_approve: autoApprove,
-  };
-  if (candidateKey) body.candidate_key = candidateKey;
-  if (sourceIdentity) body.source_identity = sourceIdentity;
-  if (datasetId) body.dataset_id = datasetId;
-  if (doi) body.doi = doi;
-  if (url) body.url = url;
-  return fetchJson("/library/discover/collect", {
-    method: "POST",
-    headers: deskHeaders(),
-    body: JSON.stringify(body),
-  });
-}
-
 export function submitLibraryJob({ title, plan, autoApprove = false, request = {} }) {
   return fetchJson("/library/jobs", {
     method: "POST",
@@ -504,12 +475,6 @@ export function craftCollectPlan({ researchNeed = "", url = "", title = "", mode
   });
 }
 
-export function unifiedSearch(query = "", limit = 12, email = "") {
-  const params = new URLSearchParams({ q: query, limit: String(limit) });
-  if (email) params.set("email", email);
-  return fetchJson(`/library/search?${params}`);
-}
-
 export function facultyProfile(email = "") {
   const q = email ? `?email=${encodeURIComponent(email)}` : "";
   return fetchJson(`/library/faculty/profile${q}`);
@@ -526,10 +491,6 @@ export function libraryOverview() {
 
 export function listLibraryNav() {
   return fetchJson("/library/partitions");
-}
-
-export function listPartitions() {
-  return listLibraryNav().then((d) => d.partitions || []);
 }
 
 export function procurementCatalogSummary() {
@@ -611,11 +572,6 @@ export async function deskWarm({ sessionId, userEmail, background = true } = {})
       background,
     }),
   });
-}
-
-export function libraryConsolidated(live = false) {
-  const q = live ? "?live=1" : "";
-  return fetchJson(`/library/consolidated${q}`);
 }
 
 export function listSynthesisProfiles() {
@@ -715,10 +671,6 @@ export function requestSynthesisExecution(threadId, { action = "request_approval
   });
 }
 
-export function synthesisMaterialisation(threadId) {
-  return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}/materialisation`);
-}
-
 /** Exact immutable method artifact written by the completed Synthesis execution.
  * This endpoint never asks the assistant to regenerate code. */
 export function getSynthesisMethodExport(threadId) {
@@ -729,46 +681,6 @@ export function getSynthesisMethodExport(threadId) {
  * only source of truth for whether a mapped evidence node is Discover-routable. */
 export function getSynthesisDiscoverHandoff(threadId) {
   return fetchJson(`/library/synthesis/threads/${encodeURIComponent(threadId)}/discover-handoff`);
-}
-
-export function getSynthesisProfile(profileId, { refresh = false } = {}) {
-  const q = refresh ? "?refresh=1" : "";
-  return fetchJson(`/library/synthesis/${encodeURIComponent(profileId)}${q}`);
-}
-
-export function runSynthesis(profileId, { previewLimit = 50, gapLimit = 100 } = {}) {
-  return fetchJson("/library/synthesis/run", {
-    method: "POST",
-    headers: deskHeaders(),
-    body: JSON.stringify({
-      profile_id: profileId,
-      preview_limit: previewLimit,
-      gap_limit: gapLimit,
-    }),
-  });
-}
-
-export function runSynthesisPair(leftDatasetId, rightDatasetId) {
-  return fetchJson("/library/synthesis/pair", {
-    method: "POST",
-    headers: deskHeaders(),
-    body: JSON.stringify({
-      left_dataset_id: leftDatasetId,
-      right_dataset_id: rightDatasetId,
-    }),
-  });
-}
-
-export function adviseDatasets(goal, { datasetId = "", limit = 5 } = {}) {
-  return fetchJson("/library/advise", {
-    method: "POST",
-    headers: deskHeaders(),
-    body: JSON.stringify({
-      goal,
-      current_dataset_id: datasetId || undefined,
-      limit,
-    }),
-  });
 }
 
 export function rowsToCsv(rows) {

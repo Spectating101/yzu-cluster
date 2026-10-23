@@ -11,48 +11,6 @@ export function InteractionProvider({ children }) {
   );
 }
 
-export function ContextHelp({
-  content,
-  label = "More information",
-  side = "top",
-  align = "center",
-  className = "",
-}) {
-  const [open, setOpen] = useState(false);
-  if (!content) return null;
-
-  return (
-    <TooltipPrimitive.Root open={open} onOpenChange={setOpen}>
-      <TooltipPrimitive.Trigger asChild>
-        <button
-          type="button"
-          className={`rd-v2-context-help${className ? ` ${className}` : ""}`}
-          aria-label={label}
-          onClick={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            setOpen((current) => !current);
-          }}
-        >
-          <CircleHelp aria-hidden="true" />
-        </button>
-      </TooltipPrimitive.Trigger>
-      <TooltipPrimitive.Portal>
-        <TooltipPrimitive.Content
-          className="rd-v2-tooltip"
-          side={side}
-          align={align}
-          sideOffset={8}
-          collisionPadding={12}
-        >
-          <span>{content}</span>
-          <TooltipPrimitive.Arrow className="rd-v2-tooltip-arrow" />
-        </TooltipPrimitive.Content>
-      </TooltipPrimitive.Portal>
-    </TooltipPrimitive.Root>
-  );
-}
-
 function placePopover(trigger) {
   const rect = trigger.getBoundingClientRect();
   const width = Math.min(360, Math.max(280, window.innerWidth - 24));

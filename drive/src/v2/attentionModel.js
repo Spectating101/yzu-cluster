@@ -24,11 +24,6 @@ export function countOpsAttention({ issues = [], jobs = {} } = {}) {
   };
 }
 
-/** Professor-facing Home empty copy stays decision-scoped. */
-export function homeAttentionEmptyCopy() {
-  return "Nothing needs a decision right now.";
-}
-
 /**
  * Resources rail posture — never "N items need attention" when Home is clear of decisions.
  */

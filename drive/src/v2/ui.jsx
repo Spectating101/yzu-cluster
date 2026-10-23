@@ -41,19 +41,6 @@ export function Chip({ active, warn, children, onClick, className = "", ...rest 
   return <span className={cls} {...rest}>{children}</span>;
 }
 
-export function SectionTitle({ title, actionLabel, onAction }) {
-  return (
-    <div className="rd-v2-section-title">
-      <span>{title}</span>
-      {actionLabel ? (
-        <button type="button" className="rd-v2-text-link" onClick={onAction}>
-          {actionLabel}
-        </button>
-      ) : null}
-    </div>
-  );
-}
-
 export function Strip({ warn, children, actionLabel, onAction }) {
   return (
     <div className={`rd-v2-strip${warn ? " warn" : ""}`}>
@@ -73,53 +60,6 @@ export function Card({ title, children, actions }) {
       {title ? <h3>{title}</h3> : null}
       {children}
       {actions ? <div className="rd-v2-card-actions">{actions}</div> : null}
-    </div>
-  );
-}
-
-export function LedgerSection({ title }) {
-  return <div className="rd-v2-ledger-section">{title}</div>;
-}
-
-export function LedgerRow({ label, status, metric, progress, active, onClick }) {
-  const Tag = onClick ? "button" : "div";
-  const statusCls = status === "WARN" ? "warn" : status === "FAIL" ? "fail" : "ok";
-  return (
-    <Tag
-      type={onClick ? "button" : undefined}
-      className={`rd-v2-ledger-row${active ? " on" : ""}`}
-      onClick={onClick}
-    >
-      <span className="rd-v2-ledger-label">{label}</span>
-      <span className="rd-v2-ledger-mid">
-        {progress != null ? (
-          <span className="rd-v2-progress" aria-hidden>
-            <span className="rd-v2-progress-fill" style={{ width: `${Math.min(100, Math.max(0, progress))}%` }} />
-          </span>
-        ) : metric ? (
-          <span className="rd-v2-ledger-metric">{metric}</span>
-        ) : null}
-      </span>
-      {status ? <span className={`rd-v2-status-badge ${statusCls}`}>{status}</span> : <span />}
-    </Tag>
-  );
-}
-
-export function StatCard({ label, value, tone = "neutral" }) {
-  return (
-    <div className={`rd-v2-stat-card ${tone}`}>
-      <span className="rd-v2-stat-value">{value}</span>
-      <span className="rd-v2-stat-label">{label}</span>
-    </div>
-  );
-}
-
-export function CatalogHeader({ columns }) {
-  return (
-    <div className="rd-v2-catalog-hd" role="row">
-      {columns.map((col) => (
-        <span key={col} className="rd-v2-catalog-hd-cell">{col}</span>
-      ))}
     </div>
   );
 }
@@ -146,19 +86,6 @@ export function SourceRibbon({ source }) {
     tone = "lab";
   }
   return <span className={`rd-v2-source-ribbon ${tone}`}>{label}</span>;
-}
-
-export function SettingsCard({ title, children }) {
-  return (
-    <section className="rd-v2-settings-card">
-      {title ? <h3>{title}</h3> : null}
-      {children}
-    </section>
-  );
-}
-
-export function ChipRow({ children }) {
-  return <div className="rd-v2-chips-row">{children}</div>;
 }
 
 export function StatementSection({ title, action, children }) {
@@ -189,25 +116,3 @@ export function StatementRow({ label, metric, sublabel, detail, warn, active, on
   );
 }
 
-export function EmptyPanel({ title, hint, action }) {
-  return (
-    <div className="rd-v2-empty-panel">
-      <strong>{title}</strong>
-      {hint ? <p>{hint}</p> : null}
-      {action}
-    </div>
-  );
-}
-
-export function WorkbenchIntro({ eyebrow, title, body, actions }) {
-  return (
-    <section className="rd-v2-workbench-intro">
-      <div>
-        {eyebrow ? <span className="rd-v2-workbench-eyebrow">{eyebrow}</span> : null}
-        <h2>{title}</h2>
-        {body ? <p>{body}</p> : null}
-      </div>
-      {actions ? <div className="rd-v2-workbench-actions">{actions}</div> : null}
-    </section>
-  );
-}

@@ -5,14 +5,7 @@
 
 import { coverageSpan } from "./coverageText.js";
 import { plainIdentifiers } from "./plainText.js";
-import {
-  classifyDiscoverResult,
-  exceptionalRowPill,
-  isLocalHolding,
-  orderDiscoverResults as orderByTaxonomy,
-  taxonomyMatchesFilter,
-  taxonomyStageCounts,
-} from "./discoverTaxonomy.js";
+import { classifyDiscoverResult, exceptionalRowPill, orderDiscoverResults as orderByTaxonomy, taxonomyMatchesFilter, taxonomyStageCounts } from "./discoverTaxonomy.js";
 
 export {
   classifyDiscoverResult,
@@ -93,34 +86,6 @@ export function discoverCandidateState(row, labIds) {
   };
 }
 
-export function browseRowState(row, labIds) {
-  const state = discoverCandidateState(row, labIds);
-  return { label: state.label, className: state.className };
-}
-
-export function decorateDiscoverCandidate(row, labIds) {
-  const taxonomy = classifyDiscoverResult(row, labIds);
-  return {
-    ...row,
-    discover_taxonomy: taxonomy,
-    discover_state: discoverCandidateState({ ...row, discover_taxonomy: taxonomy }, labIds),
-  };
-}
-
-/** @deprecated Prefer taxonomyStageCounts — kept for pipeline overview counts. */
-export function discoverStageCounts(rows, labIds) {
-  const tax = taxonomyStageCounts(rows, labIds);
-  return {
-    total: tax.total,
-    probeReady: tax.external - tax.needsAccess,
-    queued: rows.filter((r) => r.queued).length,
-    inLab: tax.inLab,
-    external: tax.external,
-    queryReady: tax.queryReady,
-    needsAccess: tax.needsAccess,
-  };
-}
-
 export function coverageLine(row) {
   const parts = [
     coverageSpan(row?.coverage),
@@ -190,6 +155,3 @@ export function humanizeDiscoverDescription(value) {
     .join(" · ");
 }
 
-export function isLabOwned(row, labIds) {
-  return isLocalHolding(row, labIds);
-}

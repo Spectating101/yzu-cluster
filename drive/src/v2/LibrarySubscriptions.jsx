@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { listSubscriptions } from "@/v2/api";
 import { licensedRowsLocked } from "@/v2/licensedAccess";
-import { LockMark, LockTag } from "@/v2/Lock";
+import { LockMark } from "@/v2/Lock";
 
 let subscriptionsRequest = null;
 
@@ -55,29 +55,6 @@ const sentenceCase = (value) => {
   const text = String(value || "").trim();
   return text ? text.charAt(0).toUpperCase() + text.slice(1) : text;
 };
-
-const HELD = new Set(["ready", "members", "preparing"]);
-
-export function LibrarySubscriptionStrip({ datasets = [], onSeeAll }) {
-  const state = useSubscriptions();
-  if (!state.vendors?.length) return null;
-  const licensedOpen = datasets.some((row) => row?.licensed && row?.rows_available !== false);
-  const held = state.vendors.reduce((total, vendor) => total + vendor.products.filter((product) => HELD.has(product.state)).length, 0);
-  return (
-    <div className="rd-v2-subscription-strip" data-testid="library-subscription-strip" role="group" aria-label="University subscriptions">
-      <span className="rd-v2-subscription-strip-label">University subscriptions</span>
-      <span className="rd-v2-subscription-strip-vendors">
-        {state.vendors.map((vendor) => {
-          const count = vendor.products.filter((product) => HELD.has(product.state)).length;
-          return <span key={vendor.id}><b>{vendor.name}</b>{count ? ` ${count}` : ""}</span>;
-        })}
-      </span>
-      <span className="rd-v2-subscription-strip-held">{held} datasets held</span>
-      {licensedOpen ? <em className="rd-v2-subscription-strip-open">Open to you</em> : <LockTag who="yuanze" />}
-      {onSeeAll ? <button type="button" className="rd-v2-subscription-strip-more" onClick={onSeeAll}>See what we hold →</button> : null}
-    </div>
-  );
-}
 
 export function LibrarySubscriptions({ datasets = [], onSelectDataset }) {
   const state = useSubscriptions();

@@ -388,10 +388,6 @@ export function synthesisAssist(thread) {
   };
 }
 
-export function synthesisAskPrompts(thread) {
-  return synthesisAssist(thread).prompts;
-}
-
 const EXECUTION_LABELS = {
   not_requested: "Not requested",
   spec_accepted: "Method accepted",

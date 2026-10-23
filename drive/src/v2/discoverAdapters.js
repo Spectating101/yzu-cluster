@@ -197,14 +197,6 @@ export function searchHitToCandidate(row = {}) {
   };
 }
 
-export function searchResponseToRows(data) {
-  const fromSections = (data?.sections || []).flatMap((section) => section.rows || []);
-  const flat = fromSections.length
-    ? fromSections
-    : data?.rows || data?.results || data?.hits || [];
-  return (Array.isArray(flat) ? flat : []).map(searchHitToCandidate).filter(Boolean);
-}
-
 function pickIdentity(item = {}, plan = {}) {
   return {
     job_id: item.job_id || plan.job_id || "",

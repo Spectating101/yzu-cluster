@@ -37,19 +37,6 @@ export function jobMatchesCandidate(job, candidate) {
   return ct.includes(jt) || jt.includes(ct);
 }
 
-export function findJobForCandidate(candidate, jobs = []) {
-  if (!candidate) return null;
-  if (candidate.bound_job) return candidate.bound_job;
-  const boundId = candidate.bound_job_id || candidate.job_id;
-  if (boundId) {
-    return jobs.find((j) => j.id === boundId) || candidate.bound_job || null;
-  }
-  if (candidate.kind === "job_pending") {
-    return jobs.find((j) => jobMatchesCandidate(j, candidate)) || null;
-  }
-  return null;
-}
-
 export function jobToCandidateRow(job) {
   if (!job) return null;
   const title = jobTitle(job);
@@ -104,28 +91,8 @@ export function jobToDiscoverHistoryEvent(job) {
   };
 }
 
-export function bindJobsToCandidates(rows, jobs = [], localBindings = {}) {
-  return rows.map((row) => {
-    const key = row.dataset_id || row.doi || row.title || row.url || row.name;
-    const localJobId = key ? localBindings[key] : "";
-    const boundId = localJobId || row.bound_job_id;
-    if (!boundId) return row;
-    const boundJob = jobs.find((j) => j.id === boundId) || row.bound_job;
-    if (!boundJob) return { ...row, bound_job_id: boundId };
-    return { ...row, bound_job_id: boundJob.id, bound_job: boundJob, queued: true };
-  });
-}
-
 export function pendingApprovalJobs(jobs = []) {
   return jobs.filter((j) => j.status === "pending_approval");
-}
-
-export function pendingApprovalCount(jobs = []) {
-  return pendingApprovalJobs(jobs).length;
-}
-
-export function activeProcurementJobs(jobs = []) {
-  return jobs.filter((j) => ["pending_approval", "queued", "running"].includes(String(j.status || "")));
 }
 
 export function mergeJobLists(recent, pending) {
