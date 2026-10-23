@@ -287,7 +287,7 @@ button {
 }
 
 .rd-brand-mark {
-  color: var(--rd-c-on-ink);
+  color: var(--rd-c-sidebar-fg-strong);
   font-weight: 700;
   display: grid;
   place-items: center;
@@ -1827,7 +1827,7 @@ button {
 }
 
 .rd-v2-rail .rd-v2-ask-context-notice {
-  color: color-mix(in srgb, var(--rd-c-steel) 45%, var(--rd-c-surface));
+  color: var(--rd-c-text-2);
   border-left-color: color-mix(in srgb, var(--rd-c-link) 92%, var(--rd-c-surface));
   background: rgba(107, 143, 196, 0.12);
 }

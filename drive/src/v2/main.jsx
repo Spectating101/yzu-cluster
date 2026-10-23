@@ -12,10 +12,12 @@ import "./styles/09-library.css";
 import "./styles/10-preview.css";
 import "./styles/11-synthesis-surfaces.css";
 import { V2App } from "./App";
+import { startAppearance } from "./appearance";
 import { InteractionProvider } from "./InteractionGuidance";
 import { SynthesisAuthorityMount } from "./SynthesisAuthorityMount.jsx";
 import { SynthesisObjectContextMount } from "./SynthesisObjectContextMount.jsx";
 
+startAppearance();
 const el = document.getElementById("root");
 if (el) {
   createRoot(el).render(

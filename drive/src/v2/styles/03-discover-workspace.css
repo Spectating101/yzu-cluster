@@ -1532,7 +1532,7 @@ body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-gaps {
 .rd-v2-discover-page .rd-v2-needs li span { color: var(--rd-muted); font-size: var(--rd-text-xs); }
 .rd-v2-discover-page .rd-v2-needs li.is-held b { color: #2f6b45; }
 .rd-v2-discover-page .rd-v2-needs li.is-partial b { color: var(--rd-c-warn); }
-.rd-v2-discover-page .rd-v2-needs li.is-missing b { color: #9b2c2c; }
+.rd-v2-discover-page .rd-v2-needs li.is-missing b { color: var(--rd-c-danger); }
 .rd-v2-discover-page .rd-v2-needs li.is-unverified b { color: var(--rd-muted); }
 .rd-v2-discover-page .rd-v2-needs p { margin: 0; color: var(--rd-body); font-size: var(--rd-text-sm); line-height: 1.45; }
 .rd-v2-discover-page .rd-v2-needs p strong { display: inline-block; min-width: 3.5em; margin-right: var(--rd-space-2); color: var(--rd-text); font-weight: 600; }

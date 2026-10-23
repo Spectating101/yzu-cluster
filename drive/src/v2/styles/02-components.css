@@ -18,17 +18,17 @@
    * Separated on purpose: cream paper + charcoal chrome + sage/amber signal.
    * No violet/indigo washes — those belong to a different light theme.
    */
-  --rd-canvas: #eeeae0;
+  --rd-canvas: var(--rd-c-canvas);
   --rd-surface: var(--rd-c-paper);
-  --rd-sidebar-bg: var(--rd-c-ink);
-  --rd-sidebar-fg: color-mix(in srgb, var(--rd-c-text-3) 40%, var(--rd-c-surface));
-  --rd-sidebar-fg-strong: var(--rd-c-paper);
-  --rd-sidebar-line: color-mix(in srgb, var(--rd-c-paper) 10%, transparent);
-  --rd-sidebar-hover: color-mix(in srgb, var(--rd-c-paper) 7%, transparent);
-  --rd-sidebar-active-bg: var(--rd-c-mist); /* cool mist, not lavender */
-  --rd-sidebar-active-fg: var(--rd-c-ink);
+  --rd-sidebar-bg: var(--rd-c-sidebar);
+  --rd-sidebar-fg: var(--rd-c-sidebar-fg);
+  --rd-sidebar-fg-strong: var(--rd-c-sidebar-fg-strong);
+  --rd-sidebar-line: color-mix(in srgb, var(--rd-c-sidebar-fg-strong) 10%, transparent);
+  --rd-sidebar-hover: color-mix(in srgb, var(--rd-c-sidebar-fg-strong) 7%, transparent);
+  --rd-sidebar-active-bg: var(--rd-c-sidebar-active);
+  --rd-sidebar-active-fg: var(--rd-c-sidebar-active-fg);
   --rd-border: var(--rd-c-line);
-  --rd-border2: #d2ccc0;
+  --rd-border2: color-mix(in srgb, var(--rd-c-canvas) 86%, var(--rd-c-ink));
   --rd-text: var(--rd-c-text);
   --rd-body: var(--rd-c-text-2);
   --rd-muted: color-mix(in srgb, var(--rd-c-text-3) 82%, var(--rd-c-ink));
@@ -167,7 +167,7 @@ summary:focus-visible {
   width: 34px;
   height: 34px;
   border-radius: 11px;
-  background: linear-gradient(145deg, color-mix(in srgb, var(--rd-c-ink) 88%, var(--rd-c-surface)) 0%, var(--rd-decision) 55%, #0a1014 100%);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--rd-c-sidebar) 85%, var(--rd-c-on-ink)) 0%, var(--rd-c-sidebar) 55%, color-mix(in srgb, var(--rd-c-sidebar) 70%, #000000) 100%);
   box-shadow: 0 8px 18px rgba(16, 24, 32, 0.28), inset 0 1px 0 rgba(255, 253, 246, 0.12);
   font-size: var(--rd-text-2xs);
   letter-spacing: 0.06em;
@@ -198,8 +198,8 @@ summary:focus-visible {
 }
 
 .rd-v2-trust-badge.ok {
-  border-color: #b8dfca;
-  background: #f0fdf4;
+  border-color: var(--rd-c-line-strong);
+  background: var(--rd-c-mist);
 }
 
 .rd-v2-trust-summary:is(button) {
@@ -2248,7 +2248,7 @@ summary:focus-visible {
 .rd-v2-sidebar-recent {
   /* Nudge context/recent up after Profile/Settings left the primary stack. */
   padding: var(--rd-space-3) var(--rd-space-3) var(--rd-space-2);
-  border-top: 1px solid var(--rd-sidebar-line, color-mix(in srgb, var(--rd-c-paper) 10%, transparent));
+  border-top: 1px solid var(--rd-sidebar-line, color-mix(in srgb, var(--rd-c-sidebar-fg-strong) 10%, transparent));
   flex: 0 0 auto;
 }
 .rd-v2-sidebar-recent {
@@ -2259,7 +2259,7 @@ summary:focus-visible {
   flex: 0 0 auto;
   margin-top: auto;
   padding: var(--rd-space-2) var(--rd-space-3) var(--rd-space-3);
-  border-top: 1px solid var(--rd-sidebar-line, color-mix(in srgb, var(--rd-c-paper) 10%, transparent));
+  border-top: 1px solid var(--rd-sidebar-line, color-mix(in srgb, var(--rd-c-sidebar-fg-strong) 10%, transparent));
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -2269,7 +2269,7 @@ summary:focus-visible {
   font-size: var(--rd-text-label);
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: color-mix(in srgb, var(--rd-c-paper) 60%, transparent);
+  color: color-mix(in srgb, var(--rd-c-sidebar-fg-strong) 60%, transparent);
   font-weight: 700;
 }
 .rd-v2-sidebar-research-title {
@@ -2981,7 +2981,7 @@ summary:focus-visible {
 .yzu-sidebar {
   background: var(--rd-sidebar-bg, #101820);
   color: var(--rd-sidebar-fg, #b7c0cc);
-  border-right-color: var(--rd-sidebar-line, color-mix(in srgb, var(--rd-c-paper) 10%, transparent));
+  border-right-color: var(--rd-sidebar-line, color-mix(in srgb, var(--rd-c-sidebar-fg-strong) 10%, transparent));
 }
 .yzu-sidebar button svg {
   opacity: 0.72;
@@ -4432,7 +4432,7 @@ body,
     border: 1px solid rgba(210, 216, 226, 0.92) !important;
     border-right: 1px solid rgba(210, 216, 226, 0.92) !important;
     border-radius: 20px;
-    background: color-mix(in srgb, var(--rd-c-on-ink) 97%, transparent) !important;
+    background: color-mix(in srgb, var(--rd-c-sidebar-fg-strong) 97%, transparent) !important;
     color: var(--rd-body) !important;
     box-shadow: 0 18px 50px rgba(17, 24, 39, 0.22);
     backdrop-filter: blur(20px) saturate(155%);

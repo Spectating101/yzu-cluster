@@ -1000,7 +1000,7 @@
   flex: 1 1 auto;
   min-height: 0;
   margin-top: var(--rd-space-2);
-  border-top: 1px solid var(--rd-sidebar-line, color-mix(in srgb, var(--rd-c-paper) 12%, transparent));
+  border-top: 1px solid var(--rd-sidebar-line, color-mix(in srgb, var(--rd-c-sidebar-fg-strong) 12%, transparent));
 }
 
 .yzu-sidebar .s04-threads--sidebar {
@@ -1039,7 +1039,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: color-mix(in srgb, var(--rd-c-paper) 60%, transparent);
+  color: color-mix(in srgb, var(--rd-c-sidebar-fg-strong) 60%, transparent);
   font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -1048,7 +1048,7 @@
 
 .yzu-sidebar .s04-threads--sidebar > header small {
   display: block;
-  color: color-mix(in srgb, var(--rd-c-paper) 60%, transparent);
+  color: color-mix(in srgb, var(--rd-c-sidebar-fg-strong) 60%, transparent);
   font-size: var(--rd-text-2xs);
   line-height: 1.2;
 }
@@ -1061,7 +1061,7 @@
   padding: var(--rd-space-1) var(--rd-space-2);
   border: 1px solid rgba(184, 209, 196, 0.35);
   border-radius: 7px;
-  background: color-mix(in srgb, var(--rd-c-on-ink) 6%, transparent);
+  background: color-mix(in srgb, var(--rd-c-sidebar-fg-strong) 6%, transparent);
   color: #cfe8d8;
   font-size: var(--rd-text-2xs);
   font-weight: 700;
@@ -1086,7 +1086,7 @@
 .yzu-sidebar .s04-thread-outputs {
   margin-top: var(--rd-space-3);
   padding-top: var(--rd-space-3);
-  border-top: 1px solid var(--rd-sidebar-line, color-mix(in srgb, var(--rd-c-paper) 12%, transparent));
+  border-top: 1px solid var(--rd-sidebar-line, color-mix(in srgb, var(--rd-c-sidebar-fg-strong) 12%, transparent));
 }
 
 .yzu-sidebar .s04-thread-outputs > small {
@@ -1108,22 +1108,22 @@
   border: 1px solid transparent;
   border-radius: 9px;
   background: transparent;
-  color: color-mix(in srgb, var(--rd-c-text-3) 42%, var(--rd-c-surface));
+  color: color-mix(in srgb, var(--rd-c-sidebar-fg) 42%, var(--rd-c-sidebar-fg-strong));
   text-align: left;
 }
 
 .yzu-sidebar .s04-threads--sidebar .s04-thread-list > button:hover,
 .yzu-sidebar .s04-threads--sidebar .s04-thread-outputs > button:hover {
-  background: color-mix(in srgb, var(--rd-c-on-ink) 6%, transparent);
-  color: var(--rd-c-on-ink);
+  background: color-mix(in srgb, var(--rd-c-sidebar-fg-strong) 6%, transparent);
+  color: var(--rd-c-sidebar-fg-strong);
   transform: none;
 }
 
 .yzu-sidebar .s04-threads--sidebar .s04-thread-list > button.active,
 .yzu-sidebar .s04-threads--sidebar .s04-thread-outputs > button.active {
-  border-color: rgba(184, 223, 202, 0.38);
-  background: color-mix(in srgb, var(--rd-c-mist) 15%, transparent);
-  color: var(--rd-c-mist);
+  border-color: color-mix(in srgb, var(--rd-c-sidebar-fg-strong) 30%, transparent);
+  background: color-mix(in srgb, var(--rd-c-sidebar-fg-strong) 12%, transparent);
+  color: var(--rd-c-sidebar-fg-strong);
 }
 
 .yzu-sidebar .s04-threads--sidebar button.active::after { content: none; }
@@ -1135,8 +1135,8 @@
   height: 25px;
   place-items: center;
   border-radius: 7px;
-  background: color-mix(in srgb, var(--rd-c-on-ink) 9%, transparent);
-  color: color-mix(in srgb, var(--rd-c-text-3) 42%, var(--rd-c-surface));
+  background: color-mix(in srgb, var(--rd-c-sidebar-fg-strong) 9%, transparent);
+  color: color-mix(in srgb, var(--rd-c-sidebar-fg) 42%, var(--rd-c-sidebar-fg-strong));
   font-size: var(--rd-text-2xs);
 }
 
@@ -1168,7 +1168,7 @@
 .yzu-sidebar .s04-thread-empty,
 .yzu-sidebar .s04-thread-outputs > p {
   margin: 0;
-  color: color-mix(in srgb, var(--rd-c-paper) 60%, transparent);
+  color: color-mix(in srgb, var(--rd-c-sidebar-fg-strong) 60%, transparent);
   font-size: var(--rd-text-2xs);
   line-height: 1.45;
 }
@@ -1182,7 +1182,7 @@
 }
 
 .yzu-sidebar .s04-threads--sidebar .s04-thread-home:not(.active):not(:hover) small {
-  color: color-mix(in srgb, var(--rd-c-paper) 60%, transparent);
+  color: color-mix(in srgb, var(--rd-c-sidebar-fg-strong) 60%, transparent);
 }
 
 /* EvidenceMap uses interactive source nodes.  The older map only styled
@@ -1404,15 +1404,15 @@
  * white slabs.
  */
 .rd-v2-synthesis-page {
-  --s04-desk: #eeeae0;
-  --s04-paper: #fffdf6;
-  --s04-paper-quiet: #eeeae0;
-  --s04-paper-action: #eef1ee;
-  --s04-rule: #dbd4c5;
-  --s04-rule-soft: #e2ddd2;
-  --s04-ink: #1d2a36;
-  --s04-muted: #5b6a7c;
-  --s04-accent: #3f6f5c;
+  --s04-desk: var(--rd-c-canvas);
+  --s04-paper: var(--rd-c-paper);
+  --s04-paper-quiet: var(--rd-c-canvas);
+  --s04-paper-action: var(--rd-c-mist);
+  --s04-rule: var(--rd-c-line);
+  --s04-rule-soft: color-mix(in srgb, var(--rd-c-canvas) 94%, var(--rd-c-ink));
+  --s04-ink: color-mix(in srgb, var(--rd-c-steel) 17%, var(--rd-c-ink));
+  --s04-muted: color-mix(in srgb, var(--rd-c-text-3) 98%, var(--rd-c-surface));
+  --s04-accent: var(--rd-c-link);
 }
 
 /* The centre column belongs to the whole desk grid. Remove the inherited
@@ -2836,7 +2836,7 @@
 }
 
 .s04-multi-venn-body .region-count {
-  fill: #314453;
+  fill: var(--rd-c-text-2);
   font-size: var(--rd-text-xl);
   font-weight: 700;
   text-anchor: middle;
@@ -3358,5 +3358,5 @@ ol.s04-diagram-col > li:not(:last-child)::after { content: "↓"; display: block
 
 #root .rd-v2-synthesis-page .s04-main:has(> .s04-diagram):has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction)) > [data-testid="synthesis-proposal-state"] { min-height: 0; height: auto; align-self: start; }
 
-.rd-v2-synthesis-page .s04-measurement-status .s04-measurement-facts > li.is-severe { color: #9b2c2c; border-color: color-mix(in srgb, var(--rd-c-danger) 44%, var(--rd-c-surface)); background: var(--rd-c-danger-soft); }
-.rd-v2-synthesis-page .s04-measurement-status .s04-measurement-facts > li.is-severe :is(b, span) { color: #9b2c2c; }
+.rd-v2-synthesis-page .s04-measurement-status .s04-measurement-facts > li.is-severe { color: var(--rd-c-danger); border-color: color-mix(in srgb, var(--rd-c-danger) 44%, var(--rd-c-surface)); background: var(--rd-c-danger-soft); }
+.rd-v2-synthesis-page .s04-measurement-status .s04-measurement-facts > li.is-severe :is(b, span) { color: var(--rd-c-danger); }
