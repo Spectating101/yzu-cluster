@@ -111,40 +111,7 @@ function matchText(reason, row) {
   return <>{reason.label} · {value}</>;
 }
 
-export function LibraryEvidenceEstate({
-  assets = [],
-  collections = [],
-  collectionsLoading = false,
-  referenceCount = 0,
-  onOpenCollection,
-  onReviewAvailable,
-  onSelectDataset,
-  searchQuery = "",
-  searchMatchCount = 0,
-  onAskCurrentSearch,
-  onSearchWider,
-  onResetFilters,
-  lens = null,
-  axisRows = null,
-  banner = null,
-  access = null,
-  showFolders = true,
-}) {
-  const visibleAssets = assets;
-  const showKind = true;
-  const spans = useMemo(() => new Map(visibleAssets.map((item) => {
-    const row = item?.row || item;
-    return [row.dataset_id, spanOf(row)];
-  })), [visibleAssets]);
-  const showGlance = [...spans.values()].some((span) => span.rows !== null || span.ranged);
-  const axis = useMemo(
-    () => spanAxis((axisRows || visibleAssets.map((item) => item?.row || item)).map(spanOf)),
-    [axisRows, visibleAssets],
-  );
-  const showVerify = visibleAssets.some((item) => libraryVerification(item?.row || item).key !== "not_checked");
-  const ledgerClass = `rd-v2-cap-ledger ${showVerify ? "with-verify" : "without-verify"} show-kind`;
-  const query = String(searchQuery || "").trim();
-  const [visibleLimit, setVisibleLimit] = useState(PAGE_SIZE);
+export function LibraryCollectionPicker({ collections = [], collectionsLoading = false, onOpenCollection, showFolders = true }) {
   const [collectionsOpen, setCollectionsOpen] = useState(false);
   const pickerRef = useRef(null);
 
@@ -164,29 +131,7 @@ export function LibraryEvidenceEstate({
     };
   }, [collectionsOpen]);
 
-  // A new search is a new semantic scope, so begin it from the first page.
-  useEffect(() => {
-    setVisibleLimit(PAGE_SIZE);
-  }, [query]);
-
-  // Live catalogue hydration replaces the backing array. Preserve the user's
-  // browsing depth through that refresh and clamp only if the result set shrinks.
-  useEffect(() => {
-    setVisibleLimit((limit) => {
-      if (visibleAssets.length <= PAGE_SIZE) return PAGE_SIZE;
-      return Math.min(Math.max(limit, PAGE_SIZE), visibleAssets.length);
-    });
-  }, [visibleAssets.length]);
-
-  const pagedAssets = useMemo(
-    () => visibleAssets.slice(0, visibleLimit),
-    [visibleAssets, visibleLimit],
-  );
-  const hasMore = pagedAssets.length < visibleAssets.length;
-  const filteredSearchMiss = Boolean(query && searchMatchCount > 0 && !visibleAssets.length);
-  const trueSearchMiss = Boolean(query && searchMatchCount === 0);
-
-  const collectionPicker = collections.length ? (
+  return collections.length ? (
     <details
       ref={pickerRef}
       className="rd-v2-cap-collection-picker"
@@ -235,12 +180,70 @@ export function LibraryEvidenceEstate({
       Organizing collections…
     </span>
   ) : null;
+}
+
+export function LibraryEvidenceEstate({
+  assets = [],
+  collections = [],
+  collectionsLoading = false,
+  referenceCount = 0,
+  onOpenCollection,
+  onReviewAvailable,
+  onSelectDataset,
+  searchQuery = "",
+  searchMatchCount = 0,
+  onAskCurrentSearch,
+  onSearchWider,
+  onResetFilters,
+  lens = null,
+  axisRows = null,
+  banner = null,
+  access = null,
+  showFolders = true,
+}) {
+  const visibleAssets = assets;
+  const showKind = true;
+  const spans = useMemo(() => new Map(visibleAssets.map((item) => {
+    const row = item?.row || item;
+    return [row.dataset_id, spanOf(row)];
+  })), [visibleAssets]);
+  const showGlance = [...spans.values()].some((span) => span.rows !== null || span.ranged);
+  const axis = useMemo(
+    () => spanAxis((axisRows || visibleAssets.map((item) => item?.row || item)).map(spanOf)),
+    [axisRows, visibleAssets],
+  );
+  const showVerify = visibleAssets.some((item) => libraryVerification(item?.row || item).key !== "not_checked");
+  const ledgerClass = `rd-v2-cap-ledger ${showVerify ? "with-verify" : "without-verify"} show-kind`;
+  const query = String(searchQuery || "").trim();
+  const [visibleLimit, setVisibleLimit] = useState(PAGE_SIZE);
+
+  // A new search is a new semantic scope, so begin it from the first page.
+  useEffect(() => {
+    setVisibleLimit(PAGE_SIZE);
+  }, [query]);
+
+  // Live catalogue hydration replaces the backing array. Preserve the user's
+  // browsing depth through that refresh and clamp only if the result set shrinks.
+  useEffect(() => {
+    setVisibleLimit((limit) => {
+      if (visibleAssets.length <= PAGE_SIZE) return PAGE_SIZE;
+      return Math.min(Math.max(limit, PAGE_SIZE), visibleAssets.length);
+    });
+  }, [visibleAssets.length]);
+
+  const pagedAssets = useMemo(
+    () => visibleAssets.slice(0, visibleLimit),
+    [visibleAssets, visibleLimit],
+  );
+  const hasMore = pagedAssets.length < visibleAssets.length;
+  const filteredSearchMiss = Boolean(query && searchMatchCount > 0 && !visibleAssets.length);
+  const trueSearchMiss = Boolean(query && searchMatchCount === 0);
 
   return (
     <section className="rd-v2-cap-estate" data-testid="library-evidence-estate" aria-label="Research evidence estate">
       {banner}
 
-      {lens || access || collectionPicker ? (
+      {lens || access ? (
         <div className="rd-v2-cap-lens" data-testid="library-lens">
           {lens ? (
           <div className="rd-v2-cap-lens-options" role="group" aria-label="Choose which datasets to list">
@@ -277,7 +280,6 @@ export function LibraryEvidenceEstate({
               ))}
             </div>
           ) : null}
-          {collectionPicker}
         </div>
       ) : null}
 

@@ -222,7 +222,8 @@ export function buildPickUp({
     const status = String(job?.status || job?.state || "").toLowerCase();
     if (!/failed|queued|running/.test(status)) continue;
     if (status === "failed" && failureSuperseded(job, jobs)) continue;
-    if (isHistoryNoise({ id: job.id, title: job?.plan?.title || job.title, status })) continue;
+    const event = { id: job.id, title: job?.plan?.title || job.title, status, meta: { ops_traffic: job?.request?._ops_internal === true } };
+    if (isHistoryNoise(event) || isSystemVerificationTraffic(event)) continue;
     const failed = status === "failed";
     candidates.push({
       rank: failed ? 9 : 10,

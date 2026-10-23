@@ -68,9 +68,9 @@ test("collections open from one picker that lists every collection at any window
     await open(page, viewport);
     const toggle = page.getByTestId("library-collections-toggle");
     await expect(toggle).toBeVisible();
-    const total = Number((await toggle.locator("b").innerText()).trim());
+    await expect(toggle.locator("b")).toHaveText(String(COLLECTIONS.length));
     await toggle.click();
-    await expect(page.getByTestId("library-collection-filter")).toHaveCount(total);
+    await expect(page.getByTestId("library-collection-filter")).toHaveCount(COLLECTIONS.length);
     await expect(page.getByTestId("library-collection-filter").last()).toBeInViewport();
   }
 });

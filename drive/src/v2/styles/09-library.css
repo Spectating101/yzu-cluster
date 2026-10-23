@@ -1134,8 +1134,8 @@
 
 .rd-v2-library-toolbar-search {
   transition: border-color 120ms ease, box-shadow 120ms ease;
-  flex: 1 1 330px;
-  min-width: 300px;
+  flex: 1 1 220px;
+  min-width: 220px;
   max-width: 460px;
 }
 
@@ -1246,7 +1246,7 @@
 
 @media (max-width: 1180px) {
   .rd-v2-library-toolbar-search {
-    min-width: 270px;
+    min-width: 220px;
   }
 
   .rd-v2-library-toolbar-filters {
@@ -1706,4 +1706,14 @@
   margin: 0;
   color: inherit;
   font-size: inherit;
+}
+
+.rd-v2-library-toolbar-filters .rd-v2-cap-collection-picker {
+  margin-left: 0;
+}
+
+.rd-v2-library-toolbar-filters .rd-v2-cap-collection-picker > summary {
+  min-height: 30px;
+  border-radius: 7px;
+  background: var(--rd-c-surface);
 }

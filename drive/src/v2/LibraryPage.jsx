@@ -12,7 +12,7 @@ import { isMembersOnly, libraryAssetPresentation, statusPillKind } from "@/v2/da
 import { libraryVerification } from "@/v2/libraryVerification";
 import { isBrowsableLibraryLocation, normalizeLibraryLocations } from "@/v2/libraryLocations";
 import { LibraryAssetWorkspace } from "@/v2/LibraryAssetWorkspace";
-import { LibraryEvidenceEstate } from "@/v2/LibraryEvidenceEstate";
+import { LibraryCollectionPicker, LibraryEvidenceEstate } from "@/v2/LibraryEvidenceEstate";
 import { LibrarySubscriptions } from "@/v2/LibrarySubscriptions";
 import { resolveLibrarySelection } from "@/v2/librarySelection";
 import { buildLibrarySearchAskPrompt, rankLibraryHoldings } from "@/v2/librarySearch";
@@ -713,6 +713,14 @@ export function LibraryPage({
                   <option value="updated">Modified</option>
                 </select>
               </label>
+              {isRoot && !searchActive ? (
+                <LibraryCollectionPicker
+                  collections={rootCollections}
+                  collectionsLoading={navigationLoading}
+                  onOpenCollection={(collection) => onFolderChange(collection.id)}
+                  showFolders={canBrowseFolders}
+                />
+              ) : null}
               {browsingPhysicalFolders ? (
                 <label
                   className="rd-v2-library-filter-control rd-v2-library-location-filter"

@@ -384,3 +384,11 @@ test("operator acceptance and canary runs stay out of a researcher's Home trail"
   ] });
   assert.deepEqual(trail.map((item) => item.id), ["d"]);
 });
+
+test("an operator acceptance run that failed is not a researcher's needs-you item", () => {
+  const point = buildPickUp({ threads: [], jobs: [
+    { id: "f1", status: "failed", title: "Launch acceptance Figshare acquisition 20260910b", plan: { job_type: "http_manifest" }, updated_at: "2026-09-10T00:00:00Z" },
+  ] });
+  const items = Array.isArray(point) ? point : [point].filter(Boolean);
+  assert.equal(items.some((item) => /Launch acceptance/.test(JSON.stringify(item))), false);
+});
