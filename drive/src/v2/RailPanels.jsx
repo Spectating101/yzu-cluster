@@ -4,8 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { fetchLiveIdentity } from "@/v2/api";
 import { DiscoverEvaluationSurface } from "@/v2/DiscoverEvaluationSurface";
 import { displayName } from "@/v2/datasetMeta";
-import { topicCounts } from "./libraryTopics.js";
-import { libraryHoldings } from "./deskCounts.js";
 import { EmptyRailState } from "@/v2/EmptyRailState";
 import { liveIdentityReadinessLabel, identityLookupFromRow } from "@/v2/liveIdentity";
 import {
@@ -20,6 +18,7 @@ import { DetailPanel } from "@/v2/DetailPanel";
 import { handleEnterToSubmit } from "@/v2/enterToSubmit";
 import { DISCOVER_TAB, tabLabel } from "@/v2/tabIdentity";
 import { storageUsed } from "./storageFormat.js";
+import { shortDate } from "./shortDate.js";
 
 function fmtGiB(gib) {
   if (gib == null) return "—";
@@ -475,33 +474,13 @@ export function PageRailPanel({ page = "home", onAskAbout }) {
   );
 }
 
-export function HomeLibraryRailPanel({ catalog = [], onAskAbout }) {
-  const rows = libraryHoldings(Array.isArray(catalog) ? catalog : []);
-  const topics = topicCounts(rows, 8);
-  return (
-    <RailFrame>
-      <RailEntityHeader
-        title="Your Library"
-        description={rows.length ? `${rows.length} dataset${rows.length === 1 ? "" : "s"} ready to search, open and build from.` : "No datasets yet. Find some in Discover."}
-      />
-      <div className="rd-v2-rail-scroll">
-        {topics.length ? (
-          <RailFieldGrid>
-            {topics.map((topic) => <RailField key={topic.id} label={String(topic.count)} value={topic.label} />)}
-          </RailFieldGrid>
-        ) : null}
-      </div>
-      <RailStickyFooter>
-        {onAskAbout ? <button type="button" className="rd-v2-btn sm" onClick={() => onAskAbout()}>
-          Ask about your Library →
-        </button> : <AskUnavailableNote className="rd-v2-rail-note" subject="your Library" />}
-      </RailStickyFooter>
-    </RailFrame>
-  );
-}
-
 export function HomeAttentionRailPanel({ object, onAskAbout }) {
   const row = object?.row || {};
+  const thread = row.thread || null;
+  const threadInputs = (thread?.state?.nodes || [])
+    .filter((node) => node?.layer === "evidence" || node?.type === "source" || node?.type === "construct")
+    .map((node) => String(node?.title || node?.label || node?.name || "").trim())
+    .filter(Boolean);
   return (
     <RailFrame>
       <RailEntityHeader
@@ -516,6 +495,8 @@ export function HomeAttentionRailPanel({ object, onAskAbout }) {
           {row.pill ? <RailField label="Stage" value={row.pill} /> : null}
           <RailField label="Next" value={row.next || (row.action === "continue" ? "Continue where you left off" : "Review")} />
           <RailField label="Where" value={tabLabel(row.tab || "home")} />
+          {threadInputs.length ? <RailField label="Inputs" value={`${threadInputs.length} mapped · ${threadInputs.slice(0, 3).join(", ")}${threadInputs.length > 3 ? "…" : ""}`} /> : null}
+          {thread?.updated_at ? <RailField label="Updated" value={shortDate(thread.updated_at)} /> : null}
           {row.resourceRow?.job?.id ? <RailField label="Job ID" value={row.resourceRow.job.id} mono /> : null}
         </RailFieldGrid>
       </div>

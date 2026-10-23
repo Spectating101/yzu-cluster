@@ -5,7 +5,6 @@ import {
   BrowseRailPanel,
   DetailPanel,
   HomeAttentionRailPanel,
-  HomeLibraryRailPanel,
   PageRailPanel,
   ResourcesRailPanel,
 } from "@/v2/RailPanels";
@@ -359,9 +358,7 @@ export function InspectorRail({
   } else if (mainTab === "library" && !dataset?.dataset_id) {
     detailPanel = <PageRailPanel page="library" onAskAbout={onAskAbout} />;
   } else if (mainTab === "home" && activeObject?.kind === "home_attention") {
-    detailPanel = activeObject.passive
-      ? <HomeLibraryRailPanel catalog={discoverCatalog} onAskAbout={onAskAbout} />
-      : <HomeAttentionRailPanel object={activeObject} onAskAbout={onAskAbout} />;
+    detailPanel = <HomeAttentionRailPanel object={activeObject} onAskAbout={onAskAbout} />;
   } else if (
     mainTab === "home" &&
     dataset?.dataset_id &&
