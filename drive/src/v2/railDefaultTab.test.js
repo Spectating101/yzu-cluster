@@ -20,6 +20,7 @@ test("each page's own selection counts", () => {
   assert.equal(railHasSelection({ tab: "synthesis", activeObject: { kind: "synthesis_thread" } }), true);
   assert.equal(railHasSelection({ tab: "resources", resourceRow: { id: "r" } }), true);
   assert.equal(railHasSelection({ tab: "home", activeObject: { kind: "home_attention" } }), true);
+  assert.equal(railHasSelection({ tab: "home", activeObject: { kind: "home_attention", passive: true } }), false);
 });
 
 test("the whole Library at its root is not a selection", () => {

@@ -306,9 +306,12 @@
 
 .rd-v2-home-pickup-secondary > span {
   grid-column: 1;
+  overflow: hidden;
   color: var(--rd-hps-muted);
   font-size: var(--rd-text-2xs);
   line-height: 1.45;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .rd-v2-home-pickup-secondary > em {

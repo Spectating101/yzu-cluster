@@ -30,7 +30,7 @@ export function railHasSelection({
   if (page === "synthesis") return kind === "synthesis_thread";
   if (page === "resources") return Boolean(resourceRow);
   if (page === "home") {
-    return kind === "home_attention" || Boolean(dataset?.dataset_id && kind === "dataset" && activeObject?.owner === "home");
+    return (kind === "home_attention" && !activeObject.passive) || Boolean(dataset?.dataset_id && kind === "dataset" && activeObject?.owner === "home");
   }
   return false;
 }
