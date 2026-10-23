@@ -313,7 +313,6 @@
   }
 }
 
-
 /* LIBRARY FINAL FREEZE: compact decision rail
    Same semantic ownership, less vertical serialization. */
 .rd-v2-library-inspector-basis {
@@ -460,11 +459,9 @@
   }
 }
 
-
 /* LIBRARY FEDERATION FREEZE: Location deliberately reuses the same compact
    select pattern as Type, Readiness, and Sort. Provider capability remains in
    the option list instead of becoming a second navigation strip. */
-
 
 /* LIBRARY FEDERATION FREEZE: Location deliberately reuses the same compact
    select pattern as Type, Readiness, and Sort. Provider capability remains in
@@ -1023,7 +1020,6 @@
     color: var(--rd-release-ink, var(--rd-text));
   }
 
-
   .rd-v2-cap-collections {
     grid-template-columns: 1fr;
     gap: var(--rd-space-2);
@@ -1094,7 +1090,6 @@
   }
 }
 
-
 /* Library retrieval evidence */
 .rd-v2-library-match {
   display: flex;
@@ -1131,7 +1126,6 @@
   flex: 0 0 auto;
   white-space: nowrap;
 }
-
 
 /* Library file-browser ergonomics */
 .rd-v2-library-page .rd-v2-toolbar {
@@ -1408,57 +1402,6 @@
 .rd-v2-library-sources strong { font-size: var(--rd-text-sm); }
 .rd-v2-library-sources span { grid-column: 1; color: var(--rd-muted); font-size: var(--rd-text-2xs); }
 .rd-v2-library-sources em { grid-row: 1 / span 2; grid-column: 2; color: var(--rd-muted); font-size: var(--rd-text-2xs); font-style: normal; }
-
-.rd-v2-subscription-strip {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--rd-space-2) var(--rd-space-3);
-  padding: var(--rd-space-2) var(--rd-space-4);
-  border-bottom: 1px solid var(--rd-border);
-  background: color-mix(in srgb, var(--rd-ext-bg) 40%, var(--rd-surface, #fffdf6));
-  font-size: var(--rd-text-2xs);
-}
-
-.rd-v2-subscription-strip-label {
-  color: var(--rd-muted);
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.rd-v2-subscription-strip-vendors {
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: var(--rd-space-1) var(--rd-space-3);
-  color: var(--rd-muted);
-}
-
-.rd-v2-subscription-strip-vendors b {
-  color: var(--rd-text);
-  font-weight: 600;
-}
-
-.rd-v2-subscription-strip-held {
-  color: var(--rd-body);
-}
-
-.rd-v2-subscription-strip-open {
-  color: var(--rd-ready-fg);
-  font-style: normal;
-  font-weight: 600;
-}
-
-.rd-v2-subscription-strip-more {
-  margin-left: auto;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--rd-link);
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
-}
 
 .rd-v2-cap-access {
   display: inline-flex;

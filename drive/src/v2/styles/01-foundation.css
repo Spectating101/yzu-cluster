@@ -925,7 +925,6 @@ button {
 
 .rd-v2-status-unknown .rd-v2-status-dot { background: #94a3b8; }
 
-
 /* Library inspector — research asset decision hierarchy */
 .rd-v2-library-inspector-decision {
   padding: var(--rd-space-3) var(--rd-space-4) var(--rd-space-4);
@@ -1326,16 +1325,6 @@ button {
 }
 
 /* Primary CTAs at top — DataHub pattern */
-.rd-v2-rail-ctas {
-  flex-shrink: 0;
-  display: flex;
-  gap: var(--rd-space-2);
-  padding: var(--rd-space-3) var(--rd-space-4);
-  border-bottom: 1px solid #263548;
-}
-
-.rd-v2-rail-ctas .rd-v2-btn.primary { flex: 1; justify-content: center; }
-.rd-v2-rail-ctas .rd-v2-btn { justify-content: center; }
 
 /* Collapsible sections */
 .rd-v2-rail-scroll {
@@ -2006,18 +1995,6 @@ button {
   background: #fffdf6;
 }
 
-.rd-v2-section-title {
-  margin: var(--rd-space-4) var(--rd-space-4) var(--rd-space-2);
-  flex: 0 0 auto;
-  font-size: var(--rd-text-xs);
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  color: var(--rd-muted);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
 /* ── 15. Resources — capacity dashboard ─────────────────────── */
 
 .rd-v2-res-inventory {
@@ -2306,76 +2283,6 @@ button {
   white-space: nowrap;
 }
 
-.rd-v2-empty-panel {
-  margin: 0 var(--rd-space-4) var(--rd-space-4);
-  flex: 0 0 auto;
-  padding: var(--rd-space-4) var(--rd-space-5);
-  border: 1px dashed #d2d8e2;
-  border-radius: 10px;
-  background: #ffffff;
-  color: var(--rd-muted);
-}
-
-.rd-v2-empty-panel strong {
-  display: block;
-  color: var(--rd-text);
-  font-size: var(--rd-text-sm);
-}
-
-.rd-v2-empty-panel p {
-  margin: var(--rd-space-2) 0 0;
-  font-size: var(--rd-text-xs);
-  line-height: 1.45;
-}
-
-.rd-v2-workbench-intro {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--rd-space-4);
-  align-items: start;
-  margin: 0 var(--rd-space-4) var(--rd-space-4);
-  flex: 0 0 auto;
-  padding: var(--rd-space-5) var(--rd-space-5);
-  border: 1px solid #dfe3ec;
-  border-radius: 12px;
-  background:
-    linear-gradient(135deg, rgba(14, 116, 144, 0.08) 0%, rgba(255, 255, 255, 0) 42%),
-    #fff;
-}
-
-.rd-v2-workbench-eyebrow {
-  display: block;
-  margin-bottom: var(--rd-space-2);
-  color: var(--rd-link);
-  font-size: var(--rd-text-label);
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.rd-v2-workbench-intro h2 {
-  margin: 0;
-  color: var(--rd-text);
-  font-size: var(--rd-text-2xl);
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
-
-.rd-v2-workbench-intro p {
-  max-width: 680px;
-  margin: var(--rd-space-2) 0 0;
-  color: var(--rd-body);
-  font-size: var(--rd-text-md);
-  line-height: 1.5;
-}
-
-.rd-v2-workbench-actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-start;
-  gap: var(--rd-space-2);
-}
-
 .rd-v2-settings-statement .rd-v2-settings-row,
 .rd-v2-settings-statement .rd-v2-settings-hint {
   margin: var(--rd-space-1) 0;
@@ -2433,55 +2340,9 @@ button {
 
 /* Source families table */
 
-.rd-v2-ledger-section {
-  padding: var(--rd-space-3) var(--rd-space-4) var(--rd-space-1);
-  font-size: var(--rd-text-label);
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--rd-muted);
-}
-
-.rd-v2-ledger-row {
-  padding: var(--rd-space-2) var(--rd-space-3);
-  font-size: var(--rd-text-sm);
-  display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(120px, 1.4fr) 56px;
-  gap: var(--rd-space-3);
-  align-items: center;
-  border-bottom: 1px solid var(--rd-border);
-  background: none;
-  border-left: none;
-  border-right: none;
-  border-top: none;
-  width: 100%;
-  text-align: left;
-  font-family: inherit;
-  cursor: default;
-  color: var(--rd-body);
-}
-
-.rd-v2-ledger-label { min-width: 0; }
-.rd-v2-ledger-mid { display: flex; justify-content: flex-end; min-width: 0; }
-.rd-v2-ledger-metric {
-  font-size: var(--rd-text-2xs);
-  color: var(--rd-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-  text-align: right;
-}
-
 /* Resources — legacy usage strip removed (capacity band replaces it) */
 
 @media (max-width: 1100px) {
-  .rd-v2-workbench-intro {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .rd-v2-workbench-actions {
-    justify-content: flex-start;
-  }
   .rd-v2-statement-row {
     grid-template-columns: minmax(130px, 1fr) minmax(90px, 0.7fr);
   }
@@ -2523,10 +2384,6 @@ button {
     grid-row: 1;
   }
 }
-
-.rd-v2-ledger-row[type="button"] { cursor: pointer; }
-.rd-v2-ledger-row.on { background: #e8f0fe; }
-.rd-v2-ledger-row:hover[type="button"] { background: var(--rd-canvas); }
 
 .rd-v2-res-log-title,
 .rd-v2-res-log-day {
@@ -2688,79 +2545,6 @@ button {
     grid-row: 1;
     max-width: 96px;
   }
-}
-
-.rd-v2-status-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 44px;
-  padding: 2px var(--rd-space-2);
-  border-radius: 10px;
-  font-size: var(--rd-text-label);
-  font-weight: 700;
-  text-transform: uppercase;
-}
-.rd-v2-status-badge.ok   { background: var(--rd-ready-bg); color: var(--rd-ready-fg); }
-.rd-v2-status-badge.warn { background: var(--rd-review-bg); color: var(--rd-review-fg); }
-.rd-v2-status-badge.fail { background: var(--rd-fail-bg); color: var(--rd-fail-fg); }
-.rd-v2-status-badge.miss { background: #eef1ee; color: var(--rd-muted); }
-
-.rd-v2-progress {
-  width: 100%;
-  max-width: 108px;
-  height: 6px;
-  background: #e8ebf1;
-  border-radius: 4px;
-  overflow: hidden;
-}
-.rd-v2-progress-fill {
-  display: block;
-  height: 100%;
-  background: var(--rd-accent);
-  border-radius: 4px;
-}
-.rd-v2-stat-card {
-  padding: var(--rd-space-3) var(--rd-space-3);
-  border: 1px solid var(--rd-border);
-  border-radius: 10px;
-  background: #ffffff;
-}
-.rd-v2-stat-card.ok   { border-color: #bbf7d0; background: #f0fdf4; }
-.rd-v2-stat-card.warn { border-color: #fde68a; background: #fffbeb; }
-.rd-v2-stat-card.fail { border-color: #fecaca; background: #fef2f2; }
-.rd-v2-stat-value {
-  display: block;
-  font-size: var(--rd-text-3xl);
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: var(--rd-text);
-  line-height: 1.1;
-}
-.rd-v2-stat-label {
-  display: block;
-  margin-top: 2px;
-  font-size: var(--rd-text-label);
-  font-weight: 600;
-  color: var(--rd-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.rd-v2-catalog-hd {
-  display: grid;
-  grid-template-columns: 72px 1fr 88px;
-  gap: var(--rd-space-3);
-  padding: var(--rd-space-2) var(--rd-space-3);
-  border-bottom: 1px solid var(--rd-border);
-  background: #ffffff;
-}
-.rd-v2-catalog-hd-cell {
-  font-size: var(--rd-text-label);
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--rd-muted);
 }
 
 .rd-v2-body-scroll > .rd-v2-toolbar.inline {
@@ -3319,9 +3103,6 @@ button {
 }
 .rd-v2-discover-composer.is-idle { max-width: 860px; }
 .rd-v2-discover-idle { display: grid; gap: var(--rd-space-5); padding: var(--rd-space-4) var(--rd-space-4) var(--rd-space-7); }
-.rd-v2-discover-idle-held { max-width: 860px; padding-top: var(--rd-space-1); }
-.rd-v2-discover-idle-held .rd-v2-discover-sources-toggle { margin: var(--rd-space-3) 0 var(--rd-space-1); }
-.rd-v2-discover-idle-held .rd-v2-home-section-head :is(h2, h3) { margin-top: var(--rd-space-1); }
 .rd-v2-discover-idle-intake {
   display: flex;
   align-items: center;
@@ -3431,11 +3212,6 @@ button {
 .rd-v2-discover-library-popover .rd-v2-catalog { margin: var(--rd-space-2) 0 0; }
 .rd-v2-discover-library-popover .rd-v2-discover-candidate {
   padding: var(--rd-space-3) var(--rd-space-3) !important;
-}
-.rd-v2-discover-idle-library-note {
-  margin-top: var(--rd-space-3);
-  color: var(--rd-muted);
-  font-size: var(--rd-text-2xs);
 }
 
 .rd-v2-evidence-brief.is-layered {
@@ -4010,20 +3786,6 @@ button {
   line-height: 1.2;
 }
 
-.rd-v2-eval-workspace .rd-v2-eval-evidence-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0;
-}
-
-@media (min-width: 900px) {
-  .rd-v2-eval-workspace .rd-v2-eval-evidence-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: var(--rd-space-3) var(--rd-space-4);
-    align-items: start;
-  }
-}
-
 .rd-v2-eval-workspace-shell > [data-testid="discover-eval-actions"] {
   display: flex;
   flex-wrap: wrap;
@@ -4319,18 +4081,6 @@ button {
 .rd-v2-discover-candidate[data-kind="licensed-manual"] .rd-v2-discover-possession,
 .rd-v2-discover-candidate[data-kind="external-unavailable"] .rd-v2-discover-possession {
   color: var(--rd-review-fg);
-}
-
-.rd-v2-discover-coverage {
-  min-width: 0;
-  overflow: hidden;
-  color: var(--rd-muted);
-  font-size: var(--rd-text-2xs);
-  font-weight: 500;
-  line-height: 1.4;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
 }
 
 .rd-v2-discover-sufficiency {
@@ -4784,22 +4534,6 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
   color: inherit;
 }
 
-.rd-v2-settings-card {
-  padding: var(--rd-space-4) var(--rd-space-4);
-  border: 1px solid var(--rd-border);
-  border-radius: 12px;
-  background: #ffffff;
-}
-
-.rd-v2-settings-card h3 {
-  font-size: var(--rd-text-label);
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--rd-muted);
-  margin: 0 0 var(--rd-space-3);
-}
-
 .rd-v2-settings-label {
   display: inline-flex;
   align-items: center;
@@ -4916,7 +4650,6 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 
 .rd-v2-rail-chrome,
 .rd-v2-rail-ehead,
-.rd-v2-rail-ctas,
 .rd-v2-rail-sticky,
 .rd-v2-rail .rd-v2-ask-head,
 .rd-v2-rail .rd-v2-ask-input {
@@ -5021,7 +4754,6 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 .rd-v2-provenance-block,
 .rd-v2-evidence-files,
 .rd-v2-evidence-map,
-.rd-v2-rail-ctas,
 .rd-v2-rail-sticky,
 .rd-v2-rail .rd-v2-ask-head,
 .rd-v2-rail .rd-v2-ask-input {
@@ -5250,10 +4982,6 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
     text-overflow: clip;
   }
 
-  .rd-v2-discover-coverage {
-    white-space: normal;
-  }
-
   .rd-v2-header {
     grid-column: 1;
     grid-row: 1;
@@ -5386,8 +5114,7 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
   }
 
   .rd-v2-discover-candidate-title,
-  .rd-v2-discover-possession,
-  .rd-v2-discover-coverage em {
+.rd-v2-discover-possession {
     white-space: normal;
   }
 
@@ -5415,7 +5142,6 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 }
 
 /* ── 24. Full-width shell — fills viewport at all sizes ────────── */
-
 
 /* --- Discover Explore | History (converged from FE↔BE donor) --- */
 .rd-v2-discover-modes {

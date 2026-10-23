@@ -105,7 +105,6 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-rail-fieldgrid .rd-v2-
   }
 }
 
-
 /* Discover capability convergence: evidence investigation workspace. */
 .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace {
   max-width: none;
@@ -124,14 +123,8 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-rail-fieldgrid .rd-v2-
 .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-assessment-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 74%, transparent); }
 .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-assessment-head h2 { max-width: 780px; letter-spacing: -0.01em; }
 .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-verdict { justify-content: center; font-size: var(--rd-text-2xs); }
-.rd-v2-discover-page .rd-v2-evidence-position-grid { display: grid; overflow: hidden; border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 80%, transparent); border-radius: 7px; background: rgba(255,255,255,.34); }
-.rd-v2-discover-page .rd-v2-evidence-position-grid > div { display: grid; align-content: start; min-width: 0; border-right: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 66%, transparent); }
-.rd-v2-discover-page .rd-v2-evidence-position-grid > div:last-child { border-right: 0; }
-.rd-v2-discover-page .rd-v2-evidence-position-grid span,
 .rd-v2-discover-page .rd-v2-evidence-capacity-grid span,
 .rd-v2-intent-capacity article span { color: var(--rd-muted); font: 700 11px/1.2 var(--rd-mono, ui-monospace, monospace); letter-spacing: 0.06em; text-transform: uppercase; }
-.rd-v2-discover-page .rd-v2-evidence-position-grid strong { color: var(--rd-text, #182033); }
-.rd-v2-discover-page .rd-v2-evidence-position-grid em { min-width: 0; color: var(--rd-muted, #5d6574); font-style: normal; overflow-wrap: anywhere; }
 .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-held,
 .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-gap,
 .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes,
@@ -160,11 +153,6 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-rail-fieldgrid .rd-v2-
 .rd-v2-intent-capacity article strong { color: var(--rd-text, #182033); }
 .rd-v2-intent-capacity article em { color: var(--rd-muted, #5d6574); font-style: normal; line-height: 1.3; }
 .rd-v2-intent-capacity > p { margin: 0; color: var(--rd-muted, #5d6574); line-height: 1.4; }
-@media (max-width: 1180px) {
-  .rd-v2-discover-page .rd-v2-evidence-position-grid > div:nth-child(2) { border-right: 0; }
-  .rd-v2-discover-page .rd-v2-evidence-position-grid > div:nth-child(-n + 2) { border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 66%, transparent); }
-}
-
 
 /* Discover capability convergence: mobile control reachability. */
 @media (max-width: 760px) {
@@ -200,7 +188,6 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-rail-fieldgrid .rd-v2-
   }
 }
 
-
 /* Discover visual compression: capability without workflow sprawl.
    The researcher's first scan is verdict -> evidence gap -> ways forward.
    Audit/provenance and held-record detail remain present but subordinate. */
@@ -211,7 +198,6 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-rail-fieldgrid .rd-v2-
 .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-assessment-head,
 .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-because,
 .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-library-answer,
-.rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-position-grid,
 .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-edit,
 .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes,
 .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-capacity,
@@ -223,12 +209,6 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-rail-fieldgrid .rd-v2-
 
 /* Requirement detail is already summarized by Edit brief. The decision strip
    therefore leads with held support, the unresolved gap, and sourcing state. */
-.rd-v2-discover-page .rd-v2-evidence-position-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-.rd-v2-discover-page .rd-v2-evidence-position-grid > div:first-child {
-  display: none;
-}
 
 .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-held {
   grid-column: 1;
@@ -309,21 +289,17 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-rail-fieldgrid .rd-v2-
 }
 
 @media (max-width: 640px) {
-  .rd-v2-discover-page .rd-v2-evidence-position-grid,
   .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes-list {
     grid-template-columns: 1fr;
   }
-  .rd-v2-discover-page .rd-v2-evidence-position-grid > div,
   .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes-list li {
     border-right: 0;
     border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 60%, transparent);
   }
-  .rd-v2-discover-page .rd-v2-evidence-position-grid > div:last-child,
   .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-routes-list li:last-child {
     border-bottom: 0;
   }
 }
-
 
 /* Discover 1440 investigation density hardening. */
 @media (min-width: 981px) and (max-width: 1500px) {
@@ -359,7 +335,6 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-rail-fieldgrid .rd-v2-
     line-height: 1.3;
   }
 }
-
 
 /* Discover procurement engineering summary: backend truth, not an ops dashboard. */
 .rd-v2-intent-engineering {
@@ -438,23 +413,6 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-rail-fieldgrid .rd-v2-
 }
 
 /* The summary is a status strip, not another explanatory section. */
-.rd-v2-discover-page .rd-v2-evidence-position-grid > div {
-  gap: 1px;
-  padding: var(--rd-space-2) var(--rd-space-2);
-}
-
-.rd-v2-discover-page .rd-v2-evidence-position-grid strong {
-  font-size: var(--rd-text-2xs);
-}
-
-.rd-v2-discover-page .rd-v2-evidence-position-grid em {
-  display: -webkit-box;
-  overflow: hidden;
-  font-size: var(--rd-text-2xs);
-  line-height: 1.2;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 1;
-}
 
 /* Edit brief remains immediately available but visually subordinate to the
    verdict. The details disclose the full requirement only when correction is
@@ -1246,7 +1204,6 @@ body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-scroll > .rd-v2-eval
 }
 
 body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-card,
-body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-evidence-grid,
 body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-inferred,
 body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-discover-probe-error,
 body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-tech,
@@ -1268,11 +1225,6 @@ body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-block:last-of-ty
 
 body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-chain {
   margin-block: var(--rd-space-1);
-}
-
-body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-evidence-grid {
-  gap: var(--rd-space-2);
-  margin: 0;
 }
 
 body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-eval-unknown,
@@ -1585,7 +1537,6 @@ body:has(.rd-v2-discover-page) .rd-v2-eval-rail .rd-v2-strategy-gaps {
 .rd-v2-discover-page .rd-v2-needs p { margin: 0; color: var(--rd-body); font-size: var(--rd-text-sm); line-height: 1.45; }
 .rd-v2-discover-page .rd-v2-needs p strong { display: inline-block; min-width: 3.5em; margin-right: var(--rd-space-2); color: var(--rd-text); font-weight: 600; }
 .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-needs { grid-column: 1 / -1; }
-.rd-v2-discover-page .rd-v2-needs p.rd-v2-needs-basis { color: var(--rd-muted); font-size: var(--rd-text-xs); }
 .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-detail-disclosure.is-workspace { grid-column: 1 / -1; }
 .rd-v2-discover-page .rd-v2-needs li { grid-template-columns: auto auto auto; column-gap: var(--rd-space-1); }
 .rd-v2-discover-page .rd-v2-needs li b { grid-row: auto; font-size: var(--rd-text-sm); }

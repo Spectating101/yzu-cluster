@@ -73,9 +73,7 @@
   padding: 0 0 var(--rd-space-2);
 }
 
-.s04-home-section > header small,
-.s04-home-entry-card > small,
-.s04-home-method-grid button > small {
+.s04-home-section > header small {
   display: block;
   color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
@@ -113,76 +111,14 @@
   font-weight: 600;
 }
 
-.s04-home-entry {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: var(--rd-space-3);
-}
-
-.s04-home-entry-card,
-.s04-home-thread,
-.s04-home-method-grid button {
+.s04-home-thread {
   font: inherit;
   text-align: left;
   cursor: pointer;
 }
 
-.s04-home-entry-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  min-height: 154px;
-  padding: var(--rd-space-4) var(--rd-space-4) var(--rd-space-4);
-  border: 1px solid transparent;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--rd-text);
-  box-shadow: none;
-  transition: border-color .16s ease, background .16s ease;
-}
-
-.s04-home-entry-card:hover:not(:disabled),
-.s04-home-thread:hover,
-.s04-home-method-grid button:hover:not(:disabled) {
+.s04-home-thread:hover {
   border-color: #b7c4d6;
-}
-
-.s04-home-entry-card.primary {
-  border-color: var(--rd-border2);
-  background: #ffffff;
-}
-
-.s04-home-entry-card > strong {
-  display: block;
-  margin-top: var(--rd-space-2);
-  color: var(--rd-text);
-  font-size: var(--rd-text-lg);
-  line-height: 1.25;
-}
-
-.s04-home-entry-card > span {
-  display: block;
-  margin-top: var(--rd-space-2);
-  color: var(--rd-muted);
-  font-size: var(--rd-text-2xs);
-  line-height: 1.5;
-}
-
-.s04-home-entry-card > em {
-  position: absolute;
-  right: 18px;
-  bottom: 15px;
-  color: var(--rd-link);
-  font-size: var(--rd-text-2xs);
-  font-style: normal;
-  font-weight: 700;
-}
-
-.s04-home-entry-card:disabled,
-.s04-home-method-grid button:disabled {
-  cursor: not-allowed;
-  opacity: .58;
 }
 
 .s04-home-runtime {
@@ -249,16 +185,14 @@
   font-weight: 500;
 }
 
-.s04-home-thread-grid,
-.s04-home-method-grid {
+.s04-home-thread-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 0;
   border-top: 1px solid var(--rd-border);
 }
 
-.s04-home-thread,
-.s04-home-method-grid button {
+.s04-home-thread {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
   gap: var(--rd-space-4);
@@ -276,12 +210,7 @@
   transition: background .16s ease;
 }
 
-.s04-home-method-grid button {
-  grid-template-columns: minmax(0, 1fr) auto;
-}
-
-.s04-home-thread:hover,
-.s04-home-method-grid button:hover:not(:disabled) {
+.s04-home-thread:hover {
   background: var(--rd-hover);
 }
 
@@ -325,16 +254,13 @@
   font-size: var(--rd-text-2xs);
 }
 
-.s04-home-thread > em,
-.s04-home-method-grid button > em {
+.s04-home-thread > em {
   color: var(--rd-link);
   font-size: var(--rd-text-2xs);
   font-style: normal;
   font-weight: 600;
   white-space: nowrap;
 }
-
-.s04-home-methods { scroll-margin-top: 16px; }
 
 .s04-home-section > .rd-v2-linkish { justify-self: start; }
 
@@ -349,10 +275,7 @@
   .s04-home-hero dl { grid-template-columns: repeat(2, 1fr); }
   .s04-home-hero dl > div:nth-child(3) { border-left: 0; border-top: 1px solid #e8ebf1; }
   .s04-home-hero dl > div:nth-child(4) { border-top: 1px solid #e8ebf1; }
-  .s04-home-entry,
-  .s04-home-thread-grid,
-  .s04-home-method-grid { grid-template-columns: 1fr; }
-  .s04-home-entry-card { min-height: 140px; }
+  .s04-home-thread-grid { grid-template-columns: 1fr; }
   .s04-home-runtime { align-items: flex-start; flex-direction: column; }
   .s04-home-section > header { align-items: flex-start; }
 }
@@ -2051,7 +1974,6 @@
     letter-spacing: 0.06em;
   }
 }
-
 
 /* Finalized Synthesis outputs expose the exact archived method without routing
  * through Ask. This is an evidence surface, so code remains readable and the

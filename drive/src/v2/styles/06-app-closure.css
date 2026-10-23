@@ -634,7 +634,6 @@
   box-shadow: inset 3px 0 0 #3f6f5c;
 }
 
-
 ::selection {
   background: rgba(63, 111, 92, 0.2);
   color: var(--rd-text);
@@ -911,7 +910,6 @@
 .rd-v2-reach-hero h2 { margin: 0 0 var(--rd-space-2); font-family: "IBM Plex Serif", Georgia, "Times New Roman", serif; font-size: var(--rd-text-2xl); font-weight: 600; color: var(--rd-text); }
 .rd-v2-reach-hero p { margin: 0; max-width: 72ch; color: var(--rd-muted); font-size: var(--rd-text-sm); line-height: 1.55; }
 .rd-v2-reach-hero .rd-v2-member-resources-actions { flex-shrink: 0; }
-.rd-v2-reach { display: grid; gap: var(--rd-space-3); padding: 0 var(--rd-space-5) var(--rd-space-5); }
 .rd-v2-reach-sources,
 .rd-v2-reach-abilities { min-width: 0; padding: var(--rd-space-4) var(--rd-space-4); }
 .rd-v2-reach-abilities { border-bottom: 1px solid var(--rd-border); }

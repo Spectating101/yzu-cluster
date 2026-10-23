@@ -42,11 +42,6 @@
     gap: var(--rd-space-3);
   }
 
-  .rd-v2-synthesis-page .s04-method-flow {
-    gap: var(--rd-space-3);
-    padding: var(--rd-space-4);
-  }
-
   /* Once a method is accepted, two independent truths are useful at once:
      execution/result authority and the evidence/method context supporting it.
      Pair those instead of stacking a narrow single-column feed. */
@@ -267,18 +262,6 @@
 
   /* New construction: two real working lanes instead of a dominant narrow
      form plus a timid auxiliary card. */
-  .rd-v2-synthesis-page .s04-new-entry {
-    width: 100%;
-    max-width: none;
-  }
-
-  .rd-v2-synthesis-page .s04-new-entry-head {
-    max-width: none;
-  }
-
-  .rd-v2-synthesis-page .s04-new-entry-head > div {
-    max-width: none;
-  }
 
   /* Recommendation: construction and decision consequences are useful at the
      same time. Do not serialize them down a single document column. */
@@ -635,15 +618,6 @@
   /* New construction: the methods lane is intentionally shorter when only a
      few reusable recipes exist. Do not turn that absence into a giant empty
      bordered card merely because the purpose lane is taller. */
-  .rd-v2-synthesis-page .s04-new-entry-grid {
-    align-items: start;
-  }
-
-  .rd-v2-synthesis-page .s04-new-entry-section,
-  .rd-v2-synthesis-page .s04-new-entry-methods {
-    min-height: 0;
-    align-self: start;
-  }
 
   /* A measured-evidence failure is a status object, not a loose line of text.
      Give it a quiet bounded surface so it reads as part of the sidecar stack. */
@@ -795,55 +769,6 @@
  */
 @media (min-width: 1680px) and (min-height: 900px) {
   /* New construction: use the centre as a working surface, not a tall form. */
-  #root .rd-v2-synthesis-page .s04-new-entry-grid {
-    grid-template-columns: minmax(0, 1.12fr) minmax(420px, .88fr);
-    gap: var(--rd-space-4);
-    align-items: stretch;
-  }
-
-  #root .rd-v2-synthesis-page .s04-new-entry-section {
-    min-height: 0;
-    align-self: stretch;
-  }
-
-  #root .rd-v2-synthesis-page .s04-new-entry-purpose {
-    display: grid;
-    grid-template-columns: minmax(0, 1.22fr) minmax(300px, .78fr);
-    column-gap: var(--rd-space-3);
-    row-gap: var(--rd-space-3);
-    align-content: start;
-  }
-
-  #root .rd-v2-synthesis-page .s04-new-entry-purpose > :is(small, h2, p:not(.s04-new-entry-boundary)) {
-    grid-column: 1 / -1;
-  }
-
-  #root .rd-v2-synthesis-page .s04-new-entry-purpose > textarea {
-    grid-column: 1;
-    min-height: 168px;
-    height: 100%;
-  }
-
-  #root .rd-v2-synthesis-page .s04-new-entry-purpose > .s04-new-entry-framing {
-    grid-column: 2;
-    align-self: stretch;
-    margin-block: 0;
-  }
-
-  #root .rd-v2-synthesis-page .s04-new-entry-purpose > :is(.s04-new-entry-boundary, footer) {
-    grid-column: 1 / -1;
-    margin-block: 0;
-  }
-
-  #root .rd-v2-synthesis-page .s04-new-entry-methods {
-    display: flex;
-    flex-direction: column;
-  }
-
-  #root .rd-v2-synthesis-page .s04-new-entry-methods .s04-new-entry-method-list {
-    margin-top: auto;
-    margin-bottom: auto;
-  }
 
   /* Full-workstation grammar.
    * The historical 1920 pass still serialized title -> Research Brief before
@@ -1159,12 +1084,6 @@
     > [data-testid="synthesis-proposal-state"] {
     display: flex;
     flex-direction: column;
-  }
-
-  #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction))
-    > [data-testid="synthesis-proposal-state"] > .s04-method-flow {
-    flex: 1 1 auto;
-    min-height: 190px;
   }
 
   #root .rd-v2-synthesis-page .s04-main:has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction))

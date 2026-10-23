@@ -95,37 +95,6 @@
 }
 
 /* ── Library coverage: calm evidence map, never a squeezed dashboard ─── */
-.rd-v2-discover-page .rd-v2-discover-coverage {
-  border: 1px solid var(--rd-border, #dbd4c5);
-}
-
-.rd-v2-discover-page .rd-v2-discover-coverage > header {
-  border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 82%, transparent);
-}
-
-.rd-v2-discover-page .rd-v2-discover-coverage-eyebrow {
-  color: var(--rd-muted);
-  font: 600 var(--rd-text-2xs)/1.2 var(--rd-font);
-}
-
-.rd-v2-discover-page .rd-v2-discover-coverage .rd-v2-catalog-list {
-  margin: 2px 0 0;
-  border-top: 0;
-}
-
-.rd-v2-discover-page .rd-v2-discover-coverage-folded,
-.rd-v2-discover-page .rd-v2-discover-coverage-gap {
-  margin: var(--rd-space-2) 0 0;
-  color: var(--rd-muted, #5d6574);
-  font-size: var(--rd-text-2xs);
-  line-height: 1.45;
-}
-
-.rd-v2-discover-page .rd-v2-discover-idle-library-note {
-  padding: 0 2px;
-  color: var(--rd-muted, #5d6574);
-  font-size: var(--rd-text-2xs);
-}
 
 .rd-v2-discover-page .rd-v2-discover-idle-intake {
   display: grid;
@@ -199,63 +168,6 @@
   gap: var(--rd-space-3);
   align-items: start;
   border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 64%, transparent);
-}
-
-.rd-v2-discover-page .rd-v2-discover-interpreting {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--rd-space-2) var(--rd-space-3);
-  min-width: 0;
-}
-
-.rd-v2-discover-page .rd-v2-discover-interpreting > .rd-v2-eyebrow {
-  margin-right: 2px;
-  color: var(--rd-muted);
-}
-
-.rd-v2-discover-page .rd-v2-discover-interpreting-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--rd-space-1);
-}
-
-.rd-v2-discover-page .rd-v2-discover-chip {
-  padding: var(--rd-space-1) var(--rd-space-2);
-  border: 1px solid color-mix(in srgb, var(--rd-active-border, #c5d2cb) 74%, transparent);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--rd-active-bg, #eef1ee) 76%, transparent);
-  color: var(--rd-active-fg, #1a3030);
-  font-size: var(--rd-text-2xs);
-}
-
-.rd-v2-discover-page .rd-v2-discover-refine {
-  flex-basis: 100%;
-  margin-top: 1px;
-}
-
-.rd-v2-discover-page .rd-v2-discover-refine summary {
-  width: fit-content;
-  color: var(--rd-body, #3e4759);
-  font-size: var(--rd-text-2xs);
-  font-weight: 600;
-}
-
-.rd-v2-discover-page .rd-v2-discover-refine-body {
-  display: grid;
-  gap: var(--rd-space-1);
-  max-width: 680px;
-  margin-top: var(--rd-space-2);
-  padding: var(--rd-space-3) var(--rd-space-3);
-  border-left: 2px solid var(--rd-active-border, #c5d2cb);
-  background: rgba(255,255,255,.34);
-}
-
-.rd-v2-discover-page .rd-v2-discover-refine-body p {
-  margin: 0;
-  color: var(--rd-muted, #5d6574);
-  font-size: var(--rd-text-2xs);
-  line-height: 1.45;
 }
 
 .rd-v2-discover-page .rd-v2-discover-frozen-controls {
@@ -741,143 +653,11 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose b {
   display: none;
 }
 
-.rd-v2-discover-page .rd-v2-discover-idle-held {
-  display: grid;
-  gap: var(--rd-space-3);
-  width: 100%;
-  max-width: none;
-  padding: 0;
-}
-
 /* Library position is a compact evidence-estate strip. It should support
    discovery, not displace discovery. */
-.rd-v2-discover-page .rd-v2-discover-coverage {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 0;
-  width: 100%;
-  padding: 0;
-  overflow: hidden;
-  white-space: normal;
-  border-radius: 8px;
-  background: color-mix(in srgb, var(--rd-surface, #fffdf6) 98%, #eef1ee 2%);
-  box-shadow: none;
-}
-
-.rd-v2-discover-page .rd-v2-discover-coverage > header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--rd-space-3);
-  min-height: 43px;
-  padding: var(--rd-space-2) var(--rd-space-3);
-}
-
-.rd-v2-discover-page .rd-v2-discover-coverage-heading {
-  display: flex;
-  align-items: baseline;
-  gap: var(--rd-space-2);
-  min-width: 0;
-}
-
-.rd-v2-discover-page .rd-v2-discover-coverage-heading strong {
-  color: var(--rd-text, #182033);
-  font-size: var(--rd-text-sm);
-}
-
-.rd-v2-discover-page .rd-v2-discover-coverage-heading > span:last-child {
-  color: var(--rd-muted, #5d6574);
-  font-size: var(--rd-text-2xs);
-}
-
-.rd-v2-discover-page .rd-v2-discover-coverage .rd-v2-discover-coverage-gap {
-  margin: 0;
-  color: var(--rd-review-fg);
-  font-size: var(--rd-text-2xs);
-  white-space: nowrap;
-}
-
-.rd-v2-discover-page .rd-v2-discover-coverage-shelves {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.rd-v2-discover-page .rd-v2-discover-coverage-shelves > li {
-  min-width: 0;
-  border-right: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 66%, transparent);
-}
-
-.rd-v2-discover-page .rd-v2-discover-coverage-shelves > li:last-child {
-  border-right: 0;
-}
-
-.rd-v2-discover-page .rd-v2-discover-coverage-shelves button {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-rows: auto auto;
-  gap: 2px var(--rd-space-2);
-  width: 100%;
-  min-height: 49px;
-  padding: var(--rd-space-2) var(--rd-space-3);
-  border: 0;
-  background: transparent;
-  text-align: left;
-}
-
-.rd-v2-discover-page .rd-v2-discover-coverage-shelves button:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--rd-hover, #eeeae0) 78%, transparent);
-}
-
-.rd-v2-discover-page .rd-v2-discover-coverage-shelves button > span {
-  min-width: 0;
-  overflow: hidden;
-  color: var(--rd-text, #182033);
-  font-size: var(--rd-text-2xs);
-  font-weight: 700;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.rd-v2-discover-page .rd-v2-discover-coverage-shelves button > strong {
-  grid-row: 1 / 3;
-  grid-column: 2;
-  align-self: center;
-  color: var(--rd-muted);
-  font: 700 14px/1 var(--rd-mono, ui-monospace, monospace);
-}
-
-.rd-v2-discover-page .rd-v2-discover-coverage-shelves button > em {
-  min-width: 0;
-  white-space: normal;
-  color: var(--rd-muted, #5d6574);
-  font-size: var(--rd-text-2xs);
-  font-style: normal;
-}
-
-.rd-v2-discover-page .rd-v2-discover-coverage-folded {
-  margin: 0;
-  padding: var(--rd-space-2) var(--rd-space-3) var(--rd-space-2);
-  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 58%, transparent);
-  font-size: var(--rd-text-2xs);
-}
 
 /* Source inventory is the body of the resting surface. Give it the horizontal
    room that workstation displays actually provide. */
-.rd-v2-discover-page .rd-v2-discover-idle-held > .rd-v2-home-section-head {
-  margin: 1px 0 -1px;
-}
-
-.rd-v2-discover-page .rd-v2-discover-idle-held > .rd-v2-home-section-head :is(h2, h3) {
-  margin-top: 2px;
-  font-size: var(--rd-text-sm);
-}
-
-.rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidates {
-  width: 100%;
-}
 
 .rd-v2-discover-page .rd-v2-discover-idle-intake {
   width: 100%;
@@ -913,20 +693,6 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose b {
 
 }
 
-@media (max-width: 1180px) {
-  .rd-v2-discover-page .rd-v2-discover-coverage-shelves {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .rd-v2-discover-page .rd-v2-discover-coverage-shelves > li:nth-child(2) {
-    border-right: 0;
-  }
-
-  .rd-v2-discover-page .rd-v2-discover-coverage-shelves > li:nth-child(-n + 2) {
-    border-bottom: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 66%, transparent);
-  }
-}
-
 @media (max-width: 760px) {
   .rd-v2-discover-page .rd-v2-discover-idle {
     padding: var(--rd-space-3) var(--rd-space-3) var(--rd-space-5);
@@ -938,20 +704,6 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose b {
 
   .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer > .rd-v2-btn {
     width: 100%;
-  }
-
-  .rd-v2-discover-page .rd-v2-discover-coverage > header,
-  .rd-v2-discover-page .rd-v2-discover-coverage-heading {
-    align-items: flex-start;
-  }
-
-  .rd-v2-discover-page .rd-v2-discover-coverage > header {
-    display: grid;
-    gap: var(--rd-space-1);
-  }
-
-  .rd-v2-discover-page .rd-v2-discover-coverage .rd-v2-discover-coverage-gap {
-    white-space: normal;
   }
 
   .rd-v2-discover-page .rd-v2-discover-idle-intake {
@@ -966,34 +718,6 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose b {
 
 /* ── discover-reconvergence-tight ── */
 /* Second-pass density tuning after rendered 1440/1920 inspection. */
-
-.rd-v2-discover-page .rd-v2-discover-idle-library-note {
-  display: none;
-}
-
-@media (min-width: 761px) and (max-width: 1679px) {
-  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidates > li {
-    min-height: 0;
-  }
-
-  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidate {
-    min-height: 0;
-    padding-top: var(--rd-space-3);
-    padding-bottom: var(--rd-space-6);
-  }
-
-  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidate-main {
-    gap: 3px;
-  }
-
-  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-evidence {
-    line-height: 1.3;
-  }
-
-  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-row-add {
-    bottom: 7px;
-  }
-}
 
 /* ── discover-flagship ── */
 /* Discover flagship pass — stronger workstation composition after visual review.
@@ -1058,14 +782,6 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose b {
 }
 
 /* A single Library family should not render as a mostly-empty dashboard row. */
-.rd-v2-discover-page .rd-v2-discover-coverage-shelves:has(> li:only-child) {
-  display: none;
-}
-
-.rd-v2-discover-page .rd-v2-discover-coverage:has(.rd-v2-discover-coverage-shelves > li:only-child) > header {
-  min-height: 48px;
-  border-bottom: 0;
-}
 
 /* Active search is one command/evidence strip, not a stack of cards. */
 .rd-v2-discover-page .rd-v2-discover-explore-workspace {
@@ -1192,49 +908,6 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
 
 /* The 1920 resting capture exposed a 3+1 orphan. Two wide evidence-ledger rows
    use the workstation better and preserve full source identity. */
-@media (min-width: 1680px) and (min-height: 900px) {
-  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidates {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0;
-  }
-
-  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidates > li:nth-child(odd) {
-    border-right: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 88%, transparent);
-  }
-
-  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidates > li:last-child,
-  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidates > li:nth-child(odd):nth-last-child(2) {
-    border-bottom: 0;
-  }
-
-  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidate {
-    grid-template-columns: 76px minmax(0, 1fr);
-    gap: var(--rd-space-3);
-    padding: var(--rd-space-3) var(--rd-space-3) var(--rd-space-3);
-  }
-
-  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidate-source {
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: flex-start;
-  }
-
-  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidate-heading {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: var(--rd-space-3);
-  }
-
-  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-possession {
-    max-width: 170px;
-    text-align: right;
-  }
-
-  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-evidence {
-    min-height: 0;
-  }
-}
 
 /* ── discover-flagship-investigation ── */
 /* Flagship investigation density — keep the evidence assessment authoritative
@@ -1253,21 +926,6 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
 
   .rd-v2-discover-page .rd-v2-evidence-brief.is-workspace .rd-v2-evidence-because {
     margin-block: -1px 0;
-    font-size: var(--rd-text-2xs);
-  }
-
-  .rd-v2-discover-page .rd-v2-evidence-position-grid > div {
-    min-height: 43px;
-    padding: var(--rd-space-2) var(--rd-space-2);
-  }
-
-  .rd-v2-discover-page .rd-v2-evidence-position-grid strong {
-    margin-top: 1px;
-    font-size: var(--rd-text-2xs);
-  }
-
-  .rd-v2-discover-page .rd-v2-evidence-position-grid em {
-    margin-top: 1px;
     font-size: var(--rd-text-2xs);
   }
 
@@ -1357,68 +1015,12 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
    let the result rows carry more structured evidence per scan. */
 
 /* Search composer now advertises the actual search/acquisition universe. */
-.rd-v2-discover-composer-scope {
-  grid-column: 1 / -1;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  margin-top: 1px;
-  padding-top: var(--rd-space-2);
-  border-top: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 54%, transparent);
-}
-.rd-v2-discover-composer-scope > span { display: inline-flex; align-items: center; gap: var(--rd-space-1); color: var(--rd-muted, #5d6574); font-size: var(--rd-text-2xs); }
-.rd-v2-discover-composer-scope > span::before { content: ""; width: 4px; height: 4px; border-radius: 50%; background: #7e9589; }
-.rd-v2-discover-composer-scope > span:last-child::before { background: #ae7d43; }
 
 /* The cockpit is a workstation aid, not a prerequisite for retrieval. Once the
    shell has to reserve meaningful width for navigation and the Detail/Ask rail,
    stacking this summary above search costs the entire first viewport. The centre
    already carries result territories and the normal filter/sort controls; restore
    those controls and keep the evidence list first. */
-
-.rd-v2-discover-assembly-state button {
-  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 82%, #263548 18%);
-  border-radius: 5px;
-  background: var(--rd-surface, #fffdf6);
-  color: var(--rd-text, #182033);
-  font-size: var(--rd-text-2xs);
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.rd-v2-discover-assembly {
-  display: grid;
-  grid-template-columns: 30px minmax(0, 1fr) minmax(150px, auto);
-  gap: var(--rd-space-3);
-  align-items: center;
-  border-left: 3px solid #7e9589;
-  background: color-mix(in srgb, #eef1ee 68%, var(--rd-surface, #fffdf6));
-}
-
-.rd-v2-discover-assembly-mark {
-  display: grid;
-  place-items: center;
-  border: 1px solid #9daf9f;
-  border-radius: 50%;
-  color: var(--rd-muted);
-  font: 700 13px/1 var(--rd-mono, ui-monospace, monospace);
-}
-
-.rd-v2-discover-assembly > div:nth-child(2) { min-width: 0; }
-.rd-v2-discover-assembly > div:nth-child(2) > span,
-.rd-v2-discover-assembly-state > span { color: var(--rd-muted); font: 700 11px/1.2 var(--rd-mono, ui-monospace, monospace); letter-spacing: 0.06em; text-transform: uppercase; }
-.rd-v2-discover-assembly > div:nth-child(2) > strong { display: block; margin-top: 2px; color: var(--rd-text, #182033); font-size: var(--rd-text-2xs); }
-.rd-v2-discover-assembly p { margin: 2px 0 0; color: var(--rd-muted, #5d6574); font-size: var(--rd-text-2xs); line-height: 1.35; }
-
-.rd-v2-discover-assembly-state {
-  display: grid;
-  justify-items: end;
-  gap: 3px;
-  text-align: right;
-}
-.rd-v2-discover-assembly-state b { color: var(--rd-muted); font-size: var(--rd-text-2xs); }
-.rd-v2-discover-assembly-state button { margin-top: 2px; padding: var(--rd-space-1) var(--rd-space-2); }
-.rd-v2-discover-assembly.is-checking { grid-template-columns: 30px minmax(0, 1fr); border-left-color: #ac9e77; background: color-mix(in srgb, #eeeae0 72%, var(--rd-surface, #fffdf6)); }
 
 /* Quiet the persistent cockpit. It is a control rail, not a second dashboard. */
 
@@ -1450,17 +1052,6 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
 .rd-v2-discover-ranked-results .rd-v2-discover-row-add {
   bottom: auto;
   font-size: var(--rd-text-2xs);
-}
-
-@media (max-width: 1080px) {
-  .rd-v2-discover-assembly {
-    grid-template-columns: 30px minmax(0, 1fr);
-  }
-  .rd-v2-discover-assembly-state {
-    grid-column: 2;
-    justify-items: start;
-    text-align: left;
-  }
 }
 
 /* ── discover-scale-polish ── */
@@ -1550,9 +1141,6 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
    Primary: query + candidate field. Secondary: filters / assessment. Tertiary: idle radar context. */
 
 /* Search scope is useful context, not a second navigation bar. */
-.rd-v2-discover-composer-scope {
-  gap: var(--rd-space-2);
-}
 
 /* Resting Discover: retain capability without making every capability equally loud. */
 
@@ -1568,17 +1156,6 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
 /* Search wider lives beside the candidate field; do not repeat the same CTA in the rail. */
 
 /* Assembly is the exceptional state, so it earns the strongest emphasis in the field. */
-.rd-v2-discover-assembly {
-  margin-top: 3px;
-  padding: var(--rd-space-2) var(--rd-space-2);
-  border-left-width: 2px;
-}
-
-.rd-v2-discover-assembly-mark {
-  width: 23px;
-  height: 23px;
-  font-size: var(--rd-text-xs);
-}
 
 /* Large result sets scan as a ledger. Preserve useful facts, cut repetitive chrome. */
 .rd-v2-discover-ranked-results .rd-v2-discover-candidate {
@@ -1661,10 +1238,6 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
 }
 
 @media (max-width: 1500px) {
-
-  .rd-v2-discover-composer-scope span:nth-child(n + 4) {
-    display: none;
-  }
 
   .rd-v2-discover-ranked-results .rd-v2-discover-offering-facts {
     gap: var(--rd-space-2);
@@ -1968,100 +1541,6 @@ body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(
   }
 }
 
-@media (min-width: 761px) {
-  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidate {
-    min-height: 0;
-    padding: var(--rd-space-3) var(--rd-space-3) var(--rd-space-3) var(--rd-space-3);
-  }
-
-  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidates li:has(.rd-v2-discover-row-add) button.row.rd-v2-discover-candidate {
-    padding-right: 132px;
-  }
-
-  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-row-add {
-    top: 50%;
-    transform: translateY(-50%);
-  }
-
-  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidate-main {
-    gap: 2px;
-  }
-
-  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidate-title {
-    font-size: var(--rd-text-2xs);
-    line-height: 1.25;
-  }
-
-  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-evidence {
-    display: -webkit-box;
-    overflow: hidden;
-    max-width: 100%;
-    font-size: var(--rd-text-2xs);
-    line-height: 1.3;
-    -webkit-box-orient: vertical;
-    white-space: normal;
-  }
-
-  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-offering-facts {
-    gap: var(--rd-space-2);
-    margin-top: 1px;
-    overflow: hidden;
-  }
-
-  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-offering-facts > span {
-    min-height: 0;
-    padding: 0;
-    border: 0;
-    background: transparent;
-  }
-
-  /* Refresh is detail-level context in the resting catalogue. */
-  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-offering-facts > span:nth-child(3) {
-    display: none;
-  }
-
-  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-offering-facts b {
-    font-size: var(--rd-text-2xs);
-  }
-
-  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-offering-facts em {
-    max-width: 170px;
-    overflow: hidden;
-    font-size: var(--rd-text-2xs);
-    text-overflow: ellipsis;
-  }
-
-  /* Library comparison is available after selection; don't repeat it across
-     every resting source tile. */
-  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-sufficiency {
-    display: none;
-  }
-
-  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-row-add {
-    right: 8px;
-    bottom: 7px;
-    min-height: 24px;
-    padding: 3px var(--rd-space-2);
-    font-size: var(--rd-text-2xs);
-  }
-
-  .rd-v2-discover-page .rd-v2-discover-idle-held li:hover .rd-v2-discover-row-add,
-  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-row-add:focus-visible {
-    opacity: 1;
-  }
-
-  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-pill {
-    opacity: .58;
-    font-size: var(--rd-text-2xs);
-  }
-}
-
-@media (min-width: 1680px) and (min-height: 900px) {
-  .rd-v2-discover-page .rd-v2-discover-idle-held .rd-v2-discover-candidate {
-    min-height: 90px;
-  }
-}
-
 /* ── discover-rail-balance ── */
 /* Wide-workstation rail balance.
    Discover keeps a meaningful contextual rail at 1920+ even before selection;
@@ -2219,7 +1698,6 @@ body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(
   font-size: var(--rd-text-xs);
   line-height: 1.4;
 }
-
 
 .rd-v2-discover-page .rd-v2-discover-composer textarea { resize: none; }
 

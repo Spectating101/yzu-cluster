@@ -625,12 +625,6 @@ summary:focus-visible {
   min-width: 0;
 }
 
-
-
-
-
-
-
 .rd-v2-res-activity-meter.warn {
   color: var(--rd-review-fg);
   font-weight: 700;
@@ -654,7 +648,6 @@ summary:focus-visible {
   overflow: visible;
   flex-shrink: 0;
 }
-
 
 .rd-v2-profile-memory {
   display: flex;
@@ -718,8 +711,7 @@ summary:focus-visible {
 }
 
 .rd-v2-source-ribbon,
-.rd-v2-pill,
-.rd-v2-status-badge {
+.rd-v2-pill {
   letter-spacing: 0.02em;
 }
 
@@ -1367,33 +1359,6 @@ summary:focus-visible {
 
 /* Discover resting state — shelf rows reuse Library's catalog row styling, so
    the two pages cannot render one taxonomy two ways. Only the frame is new. */
-.rd-v2-discover-coverage {
-  margin: var(--rd-space-3) 0 var(--rd-space-3);
-  border: 1px solid var(--rd-border, #dfe3ec);
-  border-radius: 12px;
-  background: #fff;
-  padding: var(--rd-space-3) var(--rd-space-3) var(--rd-space-3);
-}
-.rd-v2-discover-coverage > header {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--rd-space-3);
-  margin-bottom: var(--rd-space-2);
-}
-.rd-v2-discover-coverage-eyebrow {
-  font-family: var(--rd-font);
-  font-size: var(--rd-text-2xs);
-  font-weight: 600;
-  color: var(--rd-muted, #5d6574);
-}
-.rd-v2-discover-coverage-folded,
-.rd-v2-discover-coverage-gap {
-  font-size: var(--rd-text-2xs);
-  color: var(--rd-muted, #5d6574);
-}
-.rd-v2-discover-coverage-folded { margin: var(--rd-space-2) 0 0; }
-.rd-v2-discover-coverage-gap { margin: var(--rd-space-2) 0 0; color: var(--rd-review-fg); }
 
 /* A transport failure said in the reader's terms; the raw text stays reachable. */
 .s04-desk-error {
@@ -1527,68 +1492,6 @@ summary:focus-visible {
   color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
   line-height: 1.5;
-}
-.s04-method-flow {
-  display: grid;
-  grid-template-columns: minmax(0, 0.85fr) auto minmax(0, 1.25fr) auto minmax(0, 0.9fr);
-  align-items: center;
-  gap: var(--rd-space-2);
-  padding: var(--rd-space-4);
-  border: 1px solid #e8ebf1;
-  border-radius: 15px;
-  background-color: #ffffff;
-  background-image:
-    linear-gradient(#e8ebf1 1px, transparent 1px),
-    linear-gradient(90deg, #e8ebf1 1px, transparent 1px);
-  background-size: 24px 24px;
-}
-.s04-method-flow > b {
-  color: #94a3b8;
-  font-size: var(--rd-text-lg);
-}
-.s04-method-flow article {
-  min-width: 0;
-  padding: var(--rd-space-3);
-  border: 1px solid #dfe3ec;
-  border-radius: 12px;
-  background: #fff;
-  box-shadow: 0 6px 16px rgba(31, 43, 87, 0.045);
-}
-.s04-method-flow article.output {
-  border-color: #b8c8bf;
-  background: #ffffff;
-}
-.s04-method-flow article strong,
-.s04-method-flow article > span {
-  display: block;
-  overflow-wrap: anywhere;
-}
-.s04-method-flow article strong {
-  margin-top: var(--rd-space-1);
-  color: var(--rd-body);
-  font-size: var(--rd-text-2xs);
-}
-.s04-method-flow article > span {
-  margin-top: var(--rd-space-1);
-  color: var(--rd-muted);
-  font-size: var(--rd-text-2xs);
-}
-.s04-method-flow article > div {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--rd-space-1);
-  margin-top: var(--rd-space-2);
-}
-.s04-method-flow article > div span {
-  max-width: 100%;
-  padding: var(--rd-space-1) var(--rd-space-2);
-  overflow: hidden;
-  border-radius: 999px;
-  background: #e8ebf1;
-  color: var(--rd-muted);
-  font-size: var(--rd-text-2xs);
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 .s04-review-grid {
   display: grid;
@@ -1734,13 +1637,6 @@ summary:focus-visible {
   .s04-steps li + li {
     border-top: 0;
     border-left: 1px solid #e8ebf1;
-  }
-  .s04-method-flow {
-    grid-template-columns: 1fr;
-  }
-  .s04-method-flow > b {
-    transform: rotate(90deg);
-    text-align: center;
   }
   .s04-review-grid {
     grid-template-columns: 1fr;
@@ -2253,7 +2149,6 @@ summary:focus-visible {
   align-self: center;
 }
 
-
 /* Starters: list rows, not marketing cards */
 
 /* Discover Explore starter (freeze-shaped empty) */
@@ -2274,33 +2169,6 @@ summary:focus-visible {
   display: grid;
   gap: var(--rd-space-3);
   margin-bottom: var(--rd-space-3);
-}
-
-.rd-v2-discover-interpreting {
-  display: grid;
-  gap: var(--rd-space-2);
-}
-
-.rd-v2-discover-interpreting-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--rd-space-2);
-}
-
-.rd-v2-discover-chip {
-  display: inline-flex;
-  align-items: center;
-  padding: var(--rd-space-1) var(--rd-space-3);
-  border-radius: 999px;
-  border: 1px solid #dbe5f3;
-  background: #fffdf6;
-  font-size: var(--rd-text-xs);
-  color: var(--rd-body);
-}
-
-.rd-v2-discover-chip.muted {
-  color: var(--rd-muted);
-  background: transparent;
 }
 
 .rd-v2-discover-rank-foot {
@@ -2590,27 +2458,6 @@ summary:focus-visible {
 }
 
 /* Wireframe completion — Discover need / History 3-line / Resources capacity */
-.rd-v2-discover-refine {
-  margin-top: var(--rd-space-1);
-}
-.rd-v2-discover-refine summary {
-  cursor: pointer;
-  color: var(--rd-body);
-  font-size: var(--rd-text-sm);
-  font-weight: 600;
-}
-.rd-v2-discover-refine-body {
-  margin-top: var(--rd-space-2);
-  padding: var(--rd-space-3) var(--rd-space-3);
-  border: 1px solid #e8ebf1;
-  border-radius: 8px;
-  background: #ffffff;
-  display: grid;
-  gap: var(--rd-space-2);
-  font-size: var(--rd-text-sm);
-  color: var(--rd-body);
-}
-.rd-v2-discover-refine-body p { margin: 0; }
 .rd-v2-history-selected-mark {
   display: inline-block;
   margin-right: var(--rd-space-2);
@@ -2815,16 +2662,6 @@ summary:focus-visible {
   background: #fffdf6;
 }
 .rd-v2-res-method-stages li.pending { color: var(--rd-body); }
-.rd-v2-eval-confirm {
-  display: grid;
-  gap: var(--rd-space-2);
-  padding: var(--rd-space-3) var(--rd-space-3);
-  border: 1px solid #dfe3ec;
-  border-radius: 10px;
-  background: #ffffff;
-}
-.rd-v2-eval-confirm p { margin: 0; font-size: var(--rd-text-md); }
-.rd-v2-eval-confirm-actions { display: flex; gap: var(--rd-space-2); flex-wrap: wrap; }
 .rd-v2-library-rail-module-title { margin: 0 0 var(--rd-space-2); font-size: var(--rd-text-lg); }
 .rd-v2-library-verify-list {
   list-style: none;
@@ -3060,11 +2897,6 @@ summary:focus-visible {
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--rd-space-3);
-}
-
-.rd-v2-discover-query-tools .rd-v2-discover-interpreting {
-  flex: 1 1 auto;
-  min-width: 0;
 }
 
 .rd-v2-discover-query-tools .rd-v2-discover-filter-menu {
@@ -3497,14 +3329,6 @@ summary:focus-visible {
   gap: var(--rd-space-2);
 }
 
-.rd-v2-ask-card-foot {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--rd-space-2);
-  color: var(--rd-muted, #5d6574);
-  font-size: var(--rd-text-2xs);
-}
-
 /* ── Library palette convergence ─────────────────────────────────
    Library was built against the earlier blue/steel surface.  It belongs to
    the same research desk as Home, Resources, Discover, and Synthesis, so
@@ -3660,8 +3484,7 @@ summary:focus-visible {
 .rd-v2-discover-candidate,
 .rd-v2-catalog button.row,
 .rd-v2-history-row,
-.rd-v2-statement-row,
-.rd-v2-ledger-row {
+.rd-v2-statement-row {
   transition:
     background-color var(--rd-decor-duration-fade) var(--rd-decor-ease-standard),
     border-color var(--rd-decor-duration-fade) var(--rd-decor-ease-standard),
@@ -3717,29 +3540,6 @@ summary:focus-visible {
   outline-offset: 2px;
 }
 
-.rd-v2-tooltip {
-  z-index: 120;
-  width: max-content;
-  max-width: min(320px, calc(100vw - 24px));
-  padding: var(--rd-space-2) var(--rd-space-3);
-  border: 1px solid rgba(210, 216, 226, 0.95);
-  border-radius: 10px;
-  background: rgba(25, 31, 45, 0.97);
-  color: #ffffff;
-  box-shadow: 0 14px 38px rgba(15, 23, 42, 0.22);
-  font-size: var(--rd-text-2xs);
-  font-weight: 500;
-  line-height: 1.45;
-  text-align: left;
-  transform-origin: var(--radix-tooltip-content-transform-origin);
-  animation: rd-tooltip-enter var(--rd-decor-duration-small) var(--rd-decor-ease-enter) both;
-  user-select: none;
-}
-
-.rd-v2-tooltip-arrow {
-  fill: rgba(25, 31, 45, 0.97);
-}
-
 .rd-v2-status-pill {
   display: inline-flex;
   align-items: center;
@@ -3770,10 +3570,6 @@ summary:focus-visible {
 }
 
 @media (max-width: 720px) {
-  .rd-v2-tooltip {
-    max-width: min(280px, calc(100vw - 20px));
-    font-size: var(--rd-text-xs);
-  }
 
   .rd-v2-context-help {
     width: 22px;
@@ -3793,16 +3589,15 @@ summary:focus-visible {
   }
 
   .rd-v2-page,
-  .rd-v2-rail-pane,
-  .rd-v2-ask-rail,
-  .rd-v2-toast,
-  .rd-v2-tooltip,
-  .rd-v2-use-dataset-panel,
-  .rd-v2-library-action-menu,
-  .rd-v2-discover-filter-popover,
-  .rd-preview-scrim,
-  .rd-v2-library-inspector-scrim,
-  .rd-v2-library-overlay-scrim {
+.rd-v2-rail-pane,
+.rd-v2-ask-rail,
+.rd-v2-toast,
+.rd-v2-use-dataset-panel,
+.rd-v2-library-action-menu,
+.rd-v2-discover-filter-popover,
+.rd-preview-scrim,
+.rd-v2-library-inspector-scrim,
+.rd-v2-library-overlay-scrim {
     animation-name: none !important;
     transform: none !important;
   }
@@ -4180,10 +3975,9 @@ summary:focus-visible {
   }
 
   .rd-v2-catalog button.row:hover,
-  .rd-v2-discover-candidate:hover,
-  .rd-v2-history-row:hover,
-  .rd-v2-statement-row:hover,
-  .rd-v2-ledger-row:hover {
+.rd-v2-discover-candidate:hover,
+.rd-v2-history-row:hover,
+.rd-v2-statement-row:hover {
     border-color: rgba(112, 126, 177, 0.34);
     box-shadow: 0 4px 14px rgba(36, 46, 83, 0.055);
   }
@@ -4831,7 +4625,6 @@ body,
     gap: var(--rd-space-3);
   }
 
-  .rd-v2-discover-query-tools .rd-v2-discover-interpreting,
   .rd-v2-discover-query-tools .rd-v2-discover-filter-menu {
     width: 100%;
     min-width: 0;
@@ -4872,7 +4665,6 @@ body,
     padding-bottom: 132px;
   }
 }
-
 
 /* Library filters must wrap before the phone layout takes authority. */
 @media (min-width: 721px) and (max-width: 820px) {
