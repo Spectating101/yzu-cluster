@@ -1613,8 +1613,9 @@
   font-weight: 600;
 }
 
-.rd-v2-cap-lens {
+.rd-v2-cap-lens .rd-v2-cap-access {
   flex-wrap: nowrap;
+  flex-shrink: 0;
 }
 
 .rd-v2-cap-collection-picker {

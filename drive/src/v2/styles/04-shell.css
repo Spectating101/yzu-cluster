@@ -1555,6 +1555,7 @@
 
 .rd-v2-page-head-text {
   display: grid;
+  align-self: flex-start;
   gap: var(--rd-space-1);
   min-width: 0;
 }
@@ -1582,6 +1583,7 @@
 
 .rd-v2-page-head-actions {
   display: flex;
+  align-self: flex-end;
   flex-shrink: 0;
   align-items: center;
   gap: var(--rd-space-2);

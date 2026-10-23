@@ -534,7 +534,7 @@ export function buildRecentTrail({ jobs = [], datasets = [], limit = 3 } = {}) {
         summary: job.error || job.result?.summary || status,
         status,
         error: job.error,
-        meta: { summary: job.error || job.result?.summary, status },
+        meta: { summary: job.error || job.result?.summary, status, ops_traffic: job?.request?._ops_internal === true },
       };
       return !isHistoryNoise(event) && !isSystemVerificationTraffic(event);
     })
@@ -557,10 +557,11 @@ export function buildRecentTrail({ jobs = [], datasets = [], limit = 3 } = {}) {
   const fromJobs = [];
   for (const job of material) {
     const status = String(job.status || "").toLowerCase();
+    const build = String(job?.plan?.job_type || job?.job_type || "") === "synthesis_execute";
     let kind = "PROCUREMENT";
-    if (/registered|completed/.test(status)) kind = "COLLECTION COMPLETED";
-    else if (/failed/.test(status)) kind = "COLLECTION FAILED";
-    else if (/running|queued/.test(status)) kind = "REFRESH ADVANCED";
+    if (/registered|completed/.test(status)) kind = build ? "BUILD COMPLETED" : "COLLECTION COMPLETED";
+    else if (/failed/.test(status)) kind = build ? "BUILD FAILED" : "COLLECTION FAILED";
+    else if (/running|queued/.test(status)) kind = build ? "BUILD RUNNING" : "REFRESH ADVANCED";
     const title =
       job?.plan?.title ||
       job?.title ||

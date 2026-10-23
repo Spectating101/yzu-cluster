@@ -7,6 +7,7 @@ import {
   durableHistoryToEvents,
   normalizeDiscoverMode,
   reconcileDiscoverRegistryRows,
+  cleanDescription,
 } from "../src/v2/discoverAdapters.js";
 import { descriptiveLine } from "../src/v2/browseMeta.js";
 import { webHitsToRows } from "../src/v2/discoverActions.js";
@@ -235,4 +236,27 @@ test("cleanDescription strips tags without eating prose comparisons", () => {
   assert.equal(d("Temperature <10 degrees"), "Temperature <10 degrees");
   assert.equal(d("a &amp; b &lt;tag&gt;"), "a & b <tag>");
   assert.equal(d("<div class='x'>Nested <span>text</span></div>"), "Nested text");
+});
+
+test("catalogue text decodes named and numeric HTML entities", () => {
+  assert.equal(cleanDescription("En menos de un a&ntilde;o, Bolivia ha pasado"), "En menos de un año, Bolivia ha pasado");
+  assert.equal(cleanDescription("investigaci&oacute;n &amp; an&aacute;lisis"), "investigación & análisis");
+  assert.equal(cleanDescription("caf&#233; &#x2014; ok"), "café — ok");
+  assert.equal(cleanDescription("keeps &unknownentity; as written"), "keeps &unknownentity; as written");
+  assert.equal(cleanDescription("mktcap < 5B and volume > 1M"), "mktcap < 5B and volume > 1M");
+});
+
+test("search hits arrive with decoded titles and descriptions", () => {
+  const row = searchHitToCandidate({ title: "Volatilidad en Bitcoin: An&aacute;lisis", description: "Un a&ntilde;o", url: "https://zenodo.org/x" });
+  assert.equal(row.title, "Volatilidad en Bitcoin: Análisis");
+  assert.equal(row.description, "Un año");
+});
+
+test("web results collapse a paper listed under both its concept and version DOI", () => {
+  const rows = webHitsToRows({ sections: [{ rows: [
+    { title: "USDC Stablecoin Market Analysis 2022-2025", url: "https://zenodo.org/doi/10.5281/zenodo.17270012", kind: "web_hit" },
+    { title: "USDC Stablecoin Market Analysis 2022-2025 ", url: "https://zenodo.org/doi/10.5281/zenodo.17270013", kind: "web_hit" },
+    { title: "USDC Stablecoin Market Analysis 2022-2025", url: "https://www.example.org/usdc", kind: "web_hit" },
+  ] }] });
+  assert.deepEqual(rows.map((row) => row.url), ["https://zenodo.org/doi/10.5281/zenodo.17270012", "https://www.example.org/usdc"]);
 });

@@ -43,15 +43,26 @@ export function normalizeDiscoverMode(raw = "") {
  * "mktcap < 5B and volume > 1M" would collapse to "mktcap 1M", silently
  * changing what the description says.
  */
+const LATIN1_ENTITIES = "nbsp iexcl cent pound curren yen brvbar sect uml copy ordf laquo not shy reg macr deg plusmn sup2 sup3 acute micro para middot cedil sup1 ordm raquo frac14 frac12 frac34 iquest Agrave Aacute Acirc Atilde Auml Aring AElig Ccedil Egrave Eacute Ecirc Euml Igrave Iacute Icirc Iuml ETH Ntilde Ograve Oacute Ocirc Otilde Ouml times Oslash Ugrave Uacute Ucirc Uuml Yacute THORN szlig agrave aacute acirc atilde auml aring aelig ccedil egrave eacute ecirc euml igrave iacute icirc iuml eth ntilde ograve oacute ocirc otilde ouml divide oslash ugrave uacute ucirc uuml yacute thorn yuml".split(" ");
+const NAMED_ENTITIES = {
+  amp: "&", lt: "<", gt: ">", quot: '"', apos: "'",
+  ndash: "\u2013", mdash: "\u2014", lsquo: "\u2018", rsquo: "\u2019", ldquo: "\u201c", rdquo: "\u201d", hellip: "\u2026",
+  ...Object.fromEntries(LATIN1_ENTITIES.map((name, index) => [name, String.fromCharCode(160 + index)])),
+};
+
+export function decodeEntities(value) {
+  return String(value || "").replace(/&(#x[0-9a-f]+|#\d+|[a-z][a-z0-9]*);/gi, (match, body) => {
+    if (body[0] === "#") {
+      const code = body[1] === "x" || body[1] === "X" ? parseInt(body.slice(2), 16) : parseInt(body.slice(1), 10);
+      return Number.isFinite(code) && code > 0 && code <= 0x10ffff ? String.fromCodePoint(code) : match;
+    }
+    return Object.prototype.hasOwnProperty.call(NAMED_ENTITIES, body) ? NAMED_ENTITIES[body] : match;
+  });
+}
+
 export function cleanDescription(value) {
-  return String(value || "")
-    .replace(/<\/?[a-zA-Z][^<>]*>/g, " ")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&amp;/gi, "&")
-    .replace(/&lt;/gi, "<")
-    .replace(/&gt;/gi, ">")
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;/gi, "'")
+  return decodeEntities(String(value || "").replace(/<\/?[a-zA-Z][^<>]*>/g, " "))
+    .replace(/\u00a0/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -188,8 +199,9 @@ export function searchHitToCandidate(row = {}) {
     collect_via: unsupportedDoiRoute ? "" : route,
     ...(unsupportedDoiRoute ? { procureability_label: "Method not recorded", collectable: false } : {}),
     dataset_id: datasetId || row.dataset_id || "",
-    title: row.title || row.name || row.label || datasetId || url || "Untitled",
-    name: row.name || row.title || row.label || datasetId || "",
+    title: decodeEntities(row.title || row.name || row.label || datasetId || url || "Untitled"),
+    name: decodeEntities(row.name || row.title || row.label || datasetId || ""),
+    ...(row.description ? { description: cleanDescription(row.description) } : {}),
     url: url || row.url || "",
     candidate_key: candidateKey,
     source_id: row.source_id || "",

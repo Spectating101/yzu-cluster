@@ -1,5 +1,5 @@
 import { candidateKey, discoverCandidateUrl } from "./candidateKey.js";
-import { cleanCollectVia, cleanDescription } from "./discoverAdapters.js";
+import { cleanCollectVia, cleanDescription, decodeEntities } from "./discoverAdapters.js";
 
 export { discoverCandidateUrl } from "./candidateKey.js";
 
@@ -37,13 +37,36 @@ export function buildAddToLabDisplayText(target, probeResult, jobId = "") {
   return `${firstLine}\nInspect the source if needed, then prepare a safe collection plan.`;
 }
 
+function sameWorkKey(row) {
+  const title = String(row.title || "").toLowerCase().replace(/\s+/g, " ").trim();
+  let host = "";
+  try {
+    host = new URL(row.url).hostname.replace(/^www\./, "");
+  } catch {
+    host = "";
+  }
+  return title && host ? `${host}|${title}` : "";
+}
+
+function withoutRepeatedWorks(rows) {
+  const seen = new Set();
+  return rows.filter((row) => {
+    const key = sameWorkKey(row);
+    if (!key) return true;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 export function webHitsToRows(data) {
   const fromSections = (data.sections || []).flatMap((s) => s.rows || []);
   if (fromSections.length) {
-    return fromSections.map((hit) => {
+    return withoutRepeatedWorks(fromSections.map((hit) => {
       const url = hit.url || "";
       return {
         ...hit,
+        ...(hit.title ? { title: decodeEntities(hit.title) } : {}),
         collect_via: cleanCollectVia(hit.collect_via)[0] || "",
         description: cleanDescription(
           hit.description || hit.snippet || hit.content || hit.public_summary || "",
@@ -52,18 +75,18 @@ export function webHitsToRows(data) {
         candidate_key: hit.candidate_key || (url ? `url:${url}` : ""),
         url,
       };
-    });
+    }));
   }
-  return (data.results || []).map((hit) => {
+  return withoutRepeatedWorks((data.results || []).map((hit) => {
     const url = hit.url || "";
     return {
       kind: "web_hit",
-      title: hit.title || hit.url || "Web source",
+      title: decodeEntities(hit.title || hit.url || "Web source"),
       url,
       source: hit.source || "web",
       description: cleanDescription(hit.snippet || hit.content || ""),
       publisher: hit.source || "web",
       candidate_key: hit.candidate_key || (url ? `url:${url}` : ""),
     };
-  });
+  }));
 }

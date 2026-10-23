@@ -278,7 +278,7 @@ test("recent trail translates worker exceptions instead of exposing serialized j
       {
         id: "failed-figshare",
         status: "failed",
-        title: "Launch acceptance Figshare acquisition",
+        title: "Figshare acquisition",
         error: 'RuntimeError: remote collect exited 1: {"ok":false,"job_id":"discover-submit:abc","items":[{"status":404,"error":"HTTP 404"}]}',
         updated_at: "2026-09-09T17:32:52Z",
       },
@@ -361,4 +361,26 @@ test("pick up never offers a licensed dataset whose rows are locked for the view
   } finally {
     delete globalThis.localStorage;
   }
+});
+
+test("a Synthesis build in the trail is called a build, not a collection", () => {
+  const trail = buildRecentTrail({ jobs: [
+    { id: "s1", status: "completed", title: "Synthesis: weekly panel", plan: { job_type: "synthesis_execute" }, updated_at: "2026-10-20T00:00:00Z" },
+    { id: "s2", status: "failed", title: "Synthesis: other panel", plan: { job_type: "synthesis_execute" }, updated_at: "2026-10-19T00:00:00Z" },
+    { id: "c1", status: "completed", title: "Collect GDP", plan: { job_type: "http_manifest" }, updated_at: "2026-10-18T00:00:00Z" },
+  ] });
+  const kinds = Object.fromEntries(trail.map((item) => [item.id, item.kind]));
+  assert.equal(kinds.s1, "BUILD COMPLETED");
+  assert.equal(kinds.s2, "BUILD FAILED");
+  assert.equal(kinds.c1, "COLLECTION COMPLETED");
+});
+
+test("operator acceptance and canary runs stay out of a researcher's Home trail", () => {
+  const trail = buildRecentTrail({ jobs: [
+    { id: "a", status: "completed", title: "Ops canary member Discover Iris CSV", plan: { job_type: "http_manifest" }, updated_at: "2026-10-20T00:00:00Z" },
+    { id: "b", status: "completed", title: "Collect Launch acceptance GDP CSV 20260910c", plan: { job_type: "http_manifest" }, updated_at: "2026-10-19T00:00:00Z" },
+    { id: "c", status: "completed", title: "Weekly build", plan: { job_type: "synthesis_execute" }, request: { _ops_internal: true }, updated_at: "2026-10-18T00:00:00Z" },
+    { id: "d", status: "completed", title: "County unemployment 2019-2024", plan: { job_type: "http_manifest" }, updated_at: "2026-10-17T00:00:00Z" },
+  ] });
+  assert.deepEqual(trail.map((item) => item.id), ["d"]);
 });
