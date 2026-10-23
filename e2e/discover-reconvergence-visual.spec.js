@@ -224,8 +224,7 @@ test.describe("Discover reconvergence visual review", () => {
       const resultsBox = await page.getByTestId("discover-ranked-results").boundingBox();
       expect(countsBox).not.toBeNull();
       expect(resultsBox).not.toBeNull();
-      const firstResults = await page.locator(".rd-v2-discover-held-results, [data-testid=\"discover-ranked-results\"]").first().boundingBox();
-      expect(firstResults.y - (countsBox.y + countsBox.height)).toBeLessThan(120);
+      expect(resultsBox.y - (countsBox.y + countsBox.height)).toBeLessThan(120);
       await assertNoOverflow(page);
       await page.screenshot({ path: `${OUT}/discover-results-${viewport.name}.png`, fullPage: false });
     });

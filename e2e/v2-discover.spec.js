@@ -489,7 +489,7 @@ test.describe("v2 Discover tab", () => {
     // Held evidence remains immediately inspectable through the frozen bounded
     // control while the slower external route is still being discovered.
     await page.getByTestId("discover-library-evidence").locator("summary").click();
-    await expect(page.getByText("Issuer weekly fundamentals", { exact: true }).first()).toBeVisible();
+    await expect(page.getByText("Issuer weekly fundamentals", { exact: true })).toBeVisible();
     await captureWorkflow(page, "discover-progressive-1440x900");
     await page.setViewportSize({ width: 390, height: 844 });
     await captureWorkflow(page, "discover-progressive-390x844");

@@ -1506,9 +1506,6 @@ export function BrowsePage({
     };
   };
 
-  const centreKeys = new Set(centreRows.map((row) => candidateKey(row)));
-  const inlineHeld = resultGroups.held.filter((row) => !centreKeys.has(candidateKey(row)));
-
   const libraryMenuRef = useRef(null);
   const libraryEvidenceMenu = resultGroups.held.length ? (
     <details ref={libraryMenuRef} className="rd-v2-discover-library-evidence" data-testid="discover-library-evidence">
@@ -1855,23 +1852,6 @@ export function BrowsePage({
               ) : null}
 
             </section>
-
-            {stateFilter === "all" && inlineHeld.length ? (
-              <section className="rd-v2-discover-ranked-results rd-v2-discover-held-results" aria-label="Already in your Library" data-testid="discover-held-results">
-                <header className="rd-v2-discover-ranked-results-head">
-                  <strong>Already in your Library</strong>
-                  {resultGroups.held.length > 3 && onOpenLibraryResults ? (
-                    <button type="button" onClick={() => onOpenLibraryResults()}>See all {resultGroups.held.length}</button>
-                  ) : null}
-                </header>
-                <DiscoverCandidateList
-                  rows={inlineHeld.slice(0, 3).map(withCatalogFacts)}
-                  labIds={labIds}
-                  selectedId={selectedId}
-                  onSelectRow={onSelectRow}
-                />
-              </section>
-            ) : null}
 
             {centreRows.length ? (
               <section className="rd-v2-discover-ranked-results" aria-label="Ranked Discover results" data-testid="discover-ranked-results">

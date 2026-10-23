@@ -2220,8 +2220,6 @@ body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(
   line-height: 1.4;
 }
 
-.rd-v2-discover-page .rd-v2-discover-held-results .rd-v2-discover-ranked-results-head { display: flex; align-items: baseline; justify-content: space-between; }
-.rd-v2-discover-page .rd-v2-discover-held-results .rd-v2-discover-ranked-results-head button { border: 0; background: none; color: var(--rd-accent, #2f5d46); font: inherit; font-size: var(--rd-text-label); text-decoration: underline; cursor: pointer; padding: 0; }
 
 .rd-v2-discover-page .rd-v2-discover-composer textarea { resize: none; }
 
