@@ -4,6 +4,7 @@ import { DISCOVER_SUGGESTIONS } from "@/v2/deskSeed";
 import { handleEnterToRequestSubmit } from "@/v2/enterToSubmit";
 import { buildDiscoverDecisionCapacity } from "@/v2/discoverDecisionCapacity";
 import { assessmentLabel, assessmentStatusKey, judgedLibraryMatch, librarySupportSummary } from "./assessmentLabels.js";
+import { needBasis, needRows, needSummary } from "./assessmentNeeds.js";
 
 function text(value, fallback) {
   if (value == null || value === "") return fallback;
@@ -223,6 +224,7 @@ export function DiscoverEvidenceBrief({
     : text(assessment?.because, "Reasoning was not provided.");
   const establishedDimensions = dimensions.filter((item) => item.value && item.value !== "Unknown");
   const routeRows = Array.isArray(routeResult?.routes) ? routeResult.routes : [];
+  const needs = needRows(assessment, dimensions);
   const capacityRows = useMemo(
     () => buildDiscoverDecisionCapacity(resourcesRollup, deskHealth, { routes: routeRows }),
     [resourcesRollup, deskHealth, routeResult],
@@ -458,10 +460,17 @@ export function DiscoverEvidenceBrief({
       ) : (
         <div className="rd-v2-evidence-assessment" data-testid="discover-assessment-result">
           <header className="rd-v2-evidence-assessment-head">
-            <div>
-              <span className="rd-v2-eyebrow">Library coverage assessment</span>
-              <h2>{text(assessment.question, draft)}</h2>
-            </div>
+            {variant === "workspace" ? (
+              <div className="rd-v2-needs-head">
+                <h2>What your question needs</h2>
+                {needs.length ? <span>{needSummary(needs)}</span> : null}
+              </div>
+            ) : (
+              <div>
+                <span className="rd-v2-eyebrow">Library coverage assessment</span>
+                <h2>{text(assessment.question, draft)}</h2>
+              </div>
+            )}
             <span className={`rd-v2-evidence-verdict ${verdictTone}`} data-testid="discover-verdict">
               {verdictLabel}
             </span>
@@ -494,21 +503,40 @@ export function DiscoverEvidenceBrief({
           ) : null}
 
           {variant === "workspace" ? (
-            <section className="rd-v2-evidence-position-grid" aria-label="Library coverage summary">
-              <div><span>Requirement</span><strong>{establishedDimensions.length}/{dimensions.length || 0}</strong><em>dimensions established</em></div>
-              {briefNeeded || assistantUnavailable ? (
-                <div><span>Library matches</span><strong>{libraryMatchCount}</strong><em>coverage not yet checked</em></div>
-              ) : (
-                <div><span>Library support</span><strong>{support.value}</strong><em>{support.detail}</em></div>
-              )}
+            <section className="rd-v2-needs" aria-label="What your question needs" data-testid="discover-needs-band">
+              {needs.length ? (
+                <ul>
+                  {needs.map((row) => (
+                    <li key={row.key} className={`is-${row.tone}`} data-state={row.state}>
+                      <b aria-hidden="true">{row.mark}</b>
+                      <strong>{row.value}</strong>
+                      <span>{row.label.toLowerCase()} · {row.note}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+              {needs.length ? <p className="rd-v2-needs-basis">{needBasis(assessment)}</p> : null}
               {assistantUnavailable ? (
-                <div><span>Evidence gap</span><strong>Not checked</strong><em>The research assistant did not answer</em></div>
+                <p>The research assistant did not answer. The results below are still usable.</p>
               ) : briefNeeded ? (
-                <div><span>Evidence gap</span><strong>Brief needed</strong><em>State period, frequency, or instruments</em></div>
+                <p>Say what the data must cover (period, frequency or instruments) and the Library is checked against it.</p>
+              ) : assessment.gap ? (
+                <p className="rd-v2-needs-gap"><strong>Gap</strong>{text(assessment.gap.statement, "Gap recorded")}</p>
               ) : (
-                <div><span>Evidence gap</span><strong>{assessment.gap ? "Open" : "None reported"}</strong><em>{assessment.gap ? text(assessment.gap.statement, "Gap recorded") : "Assessment reported no remaining gap"}</em></div>
+                <p className="rd-v2-needs-gap"><strong>Gap</strong>None reported for what you asked.</p>
               )}
-              <div><span>Where to get it</span><strong>{routeLoading ? "Checking" : routeRows.length ? `${routeRows.length} documented` : "Not established"}</strong><em>{routeRows.length ? "source options for the recorded gap" : "no route claim without a backend comparison"}</em></div>
+              {assessment.gap && !assistantUnavailable && !briefNeeded ? (
+                <p className="rd-v2-needs-next">
+                  <strong>Next</strong>
+                  {routeLoading
+                    ? "Checking documented sources that could fill it…"
+                    : routeError
+                      ? "Not established. The documented-source check failed, so the gap remains unresolved."
+                      : routeRows.length
+                      ? `${routeRows.length} documented source${routeRows.length === 1 ? "" : "s"} could fill it. Review the collection strategy to choose one.`
+                      : "No documented source yet. Search wider, or describe the data in Ask."}
+                </p>
+              ) : null}
             </section>
           ) : null}
 

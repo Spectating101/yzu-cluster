@@ -133,7 +133,7 @@ test.describe("Discover visual convergence", () => {
     const workspace = page.locator(".rd-v2-evidence-brief.is-workspace");
     await expect(workspace).toBeVisible();
     await expect(workspace).toContainText("Partially covered");
-    await expect(workspace).toContainText("Library support");
+    await expect(workspace.getByTestId("discover-needs-band")).toBeVisible();
     await expect(workspace).toContainText("One precise gap");
     await expect(workspace).toContainText("MOPS governance disclosures");
     await expect(workspace).toContainText("Execution capacity");
