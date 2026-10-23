@@ -67,7 +67,5 @@ export const V2_SIDEBAR_FOOT_TABS = [
   { id: "settings",  label: "Settings",  Icon: SettingsIcon },
 ];
 
-export const V2_SIDEBAR_TABS = [...V2_SIDEBAR_PRIMARY_TABS, ...V2_SIDEBAR_FOOT_TABS];
-
 export { SYNTHESIS_NAV_DEFERRED };
 
