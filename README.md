@@ -10,7 +10,7 @@ Public and private are not fake versus real:
 - **Private** adopts that contract inside the real Research Drive control plane.
 - **Live hosts** prove the private implementation on Optiplex, Windows workers, and GDrive.
 
-Read [`docs/REPOSITORY_TOPOLOGY.md`](docs/REPOSITORY_TOPOLOGY.md) before changing repository boundaries or starting a new release branch.
+Read [`docs/RESEARCH_DRIVE_UI.md`](docs/RESEARCH_DRIVE_UI.md) before any UI work: it is the only UI authority and says where the current branch, desks and deploy path are.
 
 ## What this is
 
@@ -106,11 +106,9 @@ Rendered review uses the Playwright suites under `e2e/` and, when the private de
 
 ## Canon docs
 
-- [`docs/REPOSITORY_TOPOLOGY.md`](docs/REPOSITORY_TOPOLOGY.md) — repository and release authority
-- [`docs/UI_PRODUCT_AUTHORITY.md`](docs/UI_PRODUCT_AUTHORITY.md) — interface authority
-- [`docs/RESEARCH_DRIVE_RIGHT_RAIL_CONTRACT.md`](docs/RESEARCH_DRIVE_RIGHT_RAIL_CONTRACT.md) — Detail | Ask rail
-- [`docs/product/SYNTHESIS_S04_PRODUCT_SPEC.md`](docs/product/SYNTHESIS_S04_PRODUCT_SPEC.md) — Synthesis product model
+- [`docs/RESEARCH_DRIVE_UI.md`](docs/RESEARCH_DRIVE_UI.md) — the only UI authority (where things are, how to work, pages, rejected patterns, open questions)
 - [`docs/product/CLUSTER_RUNTIME_INTEROP_CONTRACT.md`](docs/product/CLUSTER_RUNTIME_INTEROP_CONTRACT.md) — public/private runtime contract
+- [`docs/archive/ui-2026/`](docs/archive/ui-2026/) — earlier authorities and freezes, history only
 
 ## Publishing discipline
 

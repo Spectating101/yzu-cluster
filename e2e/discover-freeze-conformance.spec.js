@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { MOCK_DISCOVER_HIT, mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 
-// DISCOVER_ADAPTIVE_FREEZE_2026-07-28 §12 lists what makes an implementation
+// docs/archive/ui-2026/DISCOVER_ADAPTIVE_FREEZE_2026-07-28 §12 lists what makes an implementation
 // conformant, and §13 lists what must not come back. Both were prose until now,
 // which is how a fourth chrome counter shipped without anyone noticing the
 // freeze binds the row to three.

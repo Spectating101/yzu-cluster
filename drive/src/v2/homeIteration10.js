@@ -1,5 +1,5 @@
 /**
- * Home Iteration 10 projection helpers — docs/HOME_FULL_SCALE_FREEZE_2026-07-16.md
+ * Home Iteration 10 projection helpers — docs/archive/ui-2026/HOME_FULL_SCALE_FREEZE_2026-07-16.md
  */
 
 import { storageFree, storageUsed } from "./storageFormat.js";

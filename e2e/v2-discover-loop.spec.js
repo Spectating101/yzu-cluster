@@ -3,7 +3,7 @@ import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 
 /**
  * Discover Explore | History gates for the main-converge tree.
- * Classification: docs/DISCOVER_E2E_AUTHORITY_AUDIT.md
+ * Classification: docs/RESEARCH_DRIVE_UI.md
  * Workstation content viewport 1920×961 (measured at 100% Chrome zoom).
  */
 test.describe("v2 Discover Explore|History (main converge)", () => {

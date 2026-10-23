@@ -1,4 +1,4 @@
-// DISCOVER_ADAPTIVE_FREEZE_2026-07-28 §3 binds this row to exactly three
+// docs/archive/ui-2026/DISCOVER_ADAPTIVE_FREEZE_2026-07-28 §3 binds this row to exactly three
 // counters: sources, in your Library, web results.
 //
 // The bug it was hiding was real — resultGroups sorts into four groups and the

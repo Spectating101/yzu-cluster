@@ -9,8 +9,8 @@ import {
 
 /**
  * Discover feature E2E (main composition + Explore|History converge).
- * Authority: docs/UI_PRODUCT_AUTHORITY.md
- * Classify via docs/DISCOVER_E2E_AUTHORITY_AUDIT.md before product fixes.
+ * Authority: docs/RESEARCH_DRIVE_UI.md
+ * Classify against docs/RESEARCH_DRIVE_UI.md before product fixes.
  */
 
 async function searchDiscover(page, query = "MOPS") {

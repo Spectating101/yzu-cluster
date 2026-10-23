@@ -1,5 +1,5 @@
 /** Integration indicators — subordinate trust chips & object estate crumbs.
- * Authority: UI_PRODUCT_AUTHORITY §14–15 (named tool activity, freshness, location).
+ * Authority: docs/RESEARCH_DRIVE_UI.md §4 and §9 (named tool activity, freshness, location).
  * Not an ops console: only surfaces faculty-relevant estate truth.
  */
 

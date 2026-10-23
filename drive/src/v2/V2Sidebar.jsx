@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { V2_SIDEBAR_FOOT_TABS, V2_SIDEBAR_PRIMARY_TABS } from "@/v2/nav-config.jsx";
 
 /**
- * Left nav — UI_PRODUCT_AUTHORITY + page freezes shell:
+ * Left nav — docs/RESEARCH_DRIVE_UI.md §4:
  * RESEARCH DRIVE nav · ACTIVE RESEARCH · RECENT · Profile/Settings (foot)
  */
 export function V2Sidebar({

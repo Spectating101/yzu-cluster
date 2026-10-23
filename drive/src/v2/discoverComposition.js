@@ -1,5 +1,5 @@
 /**
- * Discover adaptive Explore composition — DISCOVER_ADAPTIVE_FREEZE_2026-07-28.md
+ * Discover adaptive Explore composition — docs/archive/ui-2026/DISCOVER_ADAPTIVE_FREEZE_2026-07-28.md
  * One composer → immediate results → compact evidence chrome → contextual Ask.
  * Legacy groupDiscoverBrowseRows kept for tests / alternate buckets.
  */

@@ -1,5 +1,5 @@
 /**
- * Visual closure acceptance — RESEARCH_DRIVE_VISUAL_CLOSURE_FREEZE_2026-07-30.md section 5.
+ * Visual closure acceptance — docs/archive/ui-2026/RESEARCH_DRIVE_VISUAL_CLOSURE_FREEZE_2026-07-30.md section 5.
  *
  * Captures the journeys the Discover freeze spec does not already cover, and
  * asserts the VC-1..VC-8 corrections are present in the rendered result rather
