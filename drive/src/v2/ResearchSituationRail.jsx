@@ -3,7 +3,7 @@ import { canIUseDecision, libraryAssetPresentation, statusPillKind } from "@/v2/
 import { DISCOVER_TAB } from "@/v2/tabIdentity";
 import { plainIdentifiers } from "@/v2/plainText";
 import { synthesisJourneyStage } from "@/v2/synthesisLifecycle";
-import { assessmentGapText, assessmentLabel } from "./assessmentLabels.js";
+import { assessmentGapText, assessmentLabel, judgedLibraryMatch, librarySupportSummary } from "./assessmentLabels.js";
 
 function text(value) {
   if (value === null || value === undefined) return "";
@@ -83,12 +83,17 @@ function discoverSituation({ browseTarget, browseLifecycle, historyEvent, discov
     const result = discoverAssessment.result || discoverAssessment;
     const verdict = assessmentLabel(result, humanize(result.status));
     const gap = assessmentGapText(result);
+    const support = discoverAssessment.result ? librarySupportSummary(result) : null;
     return {
       status: verdict || "Coverage assessment",
-      facts: [text(discoverAssessment.question || result.question), gap],
-      next: gap
-        ? "Review the evidence gap and documented collection methods before requesting new data."
-        : "Check whether data you have is sufficient before searching more widely for sources.",
+      facts: [support ? `${support.value} ${support.detail}` : "Checking your Library against this question"],
+      next: !discoverAssessment.result
+        ? "Wait for the coverage check; the results are already usable."
+        : gap
+          ? "Review the collection strategy to fill the gap shown in the centre."
+          : judgedLibraryMatch(result)
+            ? "Open the matching dataset in your Library."
+            : "Refine the question or search wider.",
     };
   }
 

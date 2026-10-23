@@ -21,7 +21,7 @@ import { SynthesisThreadRailPanel } from "@/v2/SynthesisThreadRailPanel";
 import { SynthesisIdleRailPanel } from "@/v2/SynthesisIdleRailPanel";
 import { ResearchSituationRail } from "@/v2/ResearchSituationRail";
 import { DISCOVER_TAB } from "@/v2/tabIdentity";
-import { assessmentGapText, assessmentLabel, assessmentStatusKey, judgedLibraryMatch, librarySupportSummary } from "./assessmentLabels.js";
+
 
 function railSelectionHint(
   mainTab,
@@ -84,34 +84,11 @@ const MOBILE_RAIL_IDLE_HINTS = new Set([
   "Research Drive setup",
 ]);
 
-function DiscoverAssessmentRailSummary({ state, onClose }) {
-  const result = state?.result || null;
-  const pending = !result;
-  const status = pending
-    ? "Assessment in progress"
-    : assessmentLabel(result);
-  const gap = assessmentGapText(result);
-  const support = librarySupportSummary(result);
-  const match = judgedLibraryMatch(result);
-  const next = pending
-    ? "Wait for the check to finish."
-    : assessmentStatusKey(result) === "assistant_unavailable"
-      ? "Try the check again in the centre."
-      : result?.gap
-        ? "Review collection strategy to fill the gap."
-        : match
-          ? "Open the matching dataset in your Library."
-          : "Refine the question or search wider.";
+function DiscoverAssessmentRailSummary({ onClose }) {
+  if (!onClose) return null;
   return (
     <section className="rd-v2-discover-assessment-rail-summary" aria-label="Evidence assessment summary">
-      <span className="rd-v2-eyebrow">What your Library covers</span>
-      <strong>{status}</strong>
-      <p>{pending ? "Checking your Library against this question." : gap || "No remaining gap was reported."}</p>
-      <dl>
-        <div><dt>Library support</dt><dd>{pending ? "—" : `${support.value} ${support.detail}`}</dd></div>
-        <div><dt>Next step</dt><dd>{next}</dd></div>
-      </dl>
-      {onClose ? <button type="button" className="rd-v2-btn sm" onClick={onClose}>Hide assessment</button> : null}
+      <button type="button" className="rd-v2-btn sm" onClick={onClose}>Hide assessment</button>
     </section>
   );
 }
@@ -269,7 +246,7 @@ export function InspectorRail({
         onReviewRequest={onReviewHistoryRequest}
       />
     ) : discoverAssessment?.active ? (
-      <DiscoverAssessmentRailSummary state={discoverAssessment} onClose={onCloseDiscoverAssessment} />
+      <DiscoverAssessmentRailSummary onClose={onCloseDiscoverAssessment} />
     ) : discoverMode === "history" ? (
       <DiscoverHistoryRailPanel />
     ) : (
