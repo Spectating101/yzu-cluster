@@ -1,3 +1,4 @@
+import { shortDate } from "./shortDate.js";
 import { EmptyRailState } from "@/v2/EmptyRailState";
 import { historyEvidenceSummary, historyHoldingTruth } from "@/v2/discoverAdapters";
 import { RailDecisionSummary, RailEntityHeader, RailField, RailFieldGrid, RailFrame, RailStickyFooter } from "@/v2/RailFrame";
@@ -21,7 +22,7 @@ function updatedAt(event) {
   const date = new Date(value);
   return Number.isNaN(date.getTime())
     ? String(value)
-    : date.toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+    : shortDate(date, { time: true });
 }
 
 export function DiscoverHistoryRailPanel({ event, job, onAskAbout, onReviewRequest }) {

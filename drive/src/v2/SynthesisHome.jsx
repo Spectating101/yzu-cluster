@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { shortDate } from "./shortDate.js";
 import { handleEnterToSubmit } from "@/v2/enterToSubmit";
 import { GuestSynthesisShowcase } from "@/v2/GuestSynthesisShowcase";
 import { synthesisObjectiveDisplay } from "./uiVocabularyLabels.js";
@@ -34,7 +35,7 @@ function updatedLabel(thread) {
   if (!raw) return "Saved thread";
   const date = new Date(raw);
   if (Number.isNaN(date.getTime())) return "Saved thread";
-  return `Updated ${date.toLocaleDateString(undefined, { month: "short", day: "numeric" })}`;
+  return `Updated ${shortDate(date)}`;
 }
 
 function BuildRow({ thread, onOpen, onReuse, priority = false }) {

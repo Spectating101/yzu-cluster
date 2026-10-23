@@ -1,3 +1,4 @@
+import { shortDate } from "./shortDate.js";
 import { collectionRouteTitle } from "./collectRouteLabel.js";
 import { useEffect, useMemo, useState } from "react";
 import { Chip } from "@/v2/ui";
@@ -65,7 +66,7 @@ function eventTime(event) {
   if (!event?.ts) return "Time unavailable";
   const date = new Date(event.ts);
   if (Number.isNaN(date.getTime())) return String(event.ts);
-  return date.toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  return shortDate(date, { time: true });
 }
 
 function eventSummary(event) {

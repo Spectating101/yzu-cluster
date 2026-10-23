@@ -1494,7 +1494,7 @@ export function BrowsePage({
       <div className="rd-v2-discover-library-popover">
         <span className="rd-v2-eyebrow">Relevant Library evidence</span>
         <DiscoverCandidateList
-          rows={resultGroups.held.slice(0, 4)}
+          rows={resultGroups.held.slice(0, 12)}
           labIds={labIds}
           selectedId={selectedId}
           onSelectRow={(row) => {
