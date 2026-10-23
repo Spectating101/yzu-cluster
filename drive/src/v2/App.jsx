@@ -974,9 +974,9 @@ function DeskWorkspace({ onIdentityChanged }) {
     detailPinned: railDetailPinned,
     compact: smallScreen,
   });
-  const chooseRailTab = useCallback((next) => {
+  const chooseRailTab = useCallback((next, { byUser = false } = {}) => {
     setRailTab(next);
-    setRailDetailPinned(next === "detail");
+    if (byUser || next === "ask") setRailDetailPinned(byUser && next === "detail");
   }, []);
   useEffect(() => {
     setRailDetailPinned(false);
@@ -2524,6 +2524,7 @@ function DeskWorkspace({ onIdentityChanged }) {
           mainTab={tab}
           railTab={visibleRailTab}
           onRailTabChange={chooseRailTab}
+          hasSelection={railHasSelectionNow}
           dataset={detail}
           detailLoading={detailLoading}
           browseTarget={browseTarget}

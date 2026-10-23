@@ -1,6 +1,11 @@
 import { test, expect } from "@playwright/test";
 import { MOCK_DATASETS, mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 
+async function openCollections(page) {
+  const toggle = page.getByTestId("library-collections-toggle");
+  if (!(await toggle.evaluate((el) => el.parentElement.open))) await toggle.click();
+}
+
 test.describe("v2 Library evidence estate", () => {
   test.beforeEach(async ({ page }) => {
     await mockV2Api(page);
@@ -16,12 +21,14 @@ test.describe("v2 Library evidence estate", () => {
     await expect(estate).toHaveAttribute("aria-label", "Research evidence estate");
     await expect(page.getByTestId("library-auto-catalog")).toHaveCount(0);
     await expect(page.getByTestId("library-evidence-row").first()).toBeVisible();
+    await openCollections(page);
     await expect(page.getByTestId("library-collection-filter").first()).toBeVisible();
-    await expect(estate.getByText("Research collections", { exact: true })).toBeVisible();
+    await expect(page.getByTestId("library-collections-toggle")).toContainText("Collections");
     await expect(page.getByTestId("library-type-filter")).toHaveValue("all");
     await expect(page.locator("[data-testid^=library-access-][aria-pressed=true]")).toHaveCount(0);
     await expect(page.getByTestId("library-sort-filter")).toHaveValue("name");
-    await expect(page.getByTestId("research-situation")).toContainText("Library");
+    await expect(page.getByTestId("rail-pane-ask")).toHaveClass(/rd-v2-rail-pane-on/);
+    await page.getByTestId("research-situation").getByRole("tab", { name: "Detail" }).click();
     await expect(page.locator("aside.rd-v2-rail")).toContainText("In this library");
     await expect(page.locator("aside.rd-v2-rail .rd-v2-rail-ehead")).toHaveCount(0);
     await expect(page.locator("aside.rd-v2-rail")).toContainText("Add evidence");
@@ -242,7 +249,7 @@ test.describe("v2 Library navigation", () => {
     await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
 
-    await expect(page.locator(".rd-v2-header-meta-count")).toContainText("Library dataset");
+    await expect(page.locator(".rd-v2-page-state")).toContainText(/\d+ (of \d+ )?datasets?/);
     await expect(page.locator("aside.rd-v2-rail")).toContainText("1 known source not yet collected; find it in Discover");
     const outside = page.getByTestId("library-available-evidence");
     await expect(outside).toContainText("1 known record");
@@ -289,7 +296,9 @@ test.describe("v2 Library navigation", () => {
     await expect(page.locator(".rd-v2-toolbar-count")).toContainText("Organizing collections");
     await expect(page.getByText("ungrouped", { exact: true })).toHaveCount(0);
 
+    await openCollections(page);
     await expect(page.getByTestId("library-collection-filter").filter({ hasText: "Markets" })).toBeVisible();
+    await openCollections(page);
     await expect(page.getByTestId("library-collection-filter").filter({ hasText: "News" })).toBeVisible();
     await expect(page.locator(".rd-v2-toolbar-count")).not.toContainText("Organizing collections");
     await expect(page.getByText("ungrouped", { exact: true })).toHaveCount(0);
@@ -317,7 +326,8 @@ test.describe("v2 Library navigation", () => {
     await expect(page.locator("aside.rd-v2-rail")).toContainText("Pick up");
 
     await page.locator("aside.yzu-sidebar").getByRole("button", { name: "Library", exact: true }).click();
-    await expect(page.getByTestId("research-situation")).toContainText("Library");
+    await expect(page.getByTestId("rail-pane-ask")).toHaveClass(/rd-v2-rail-pane-on/);
+    await page.getByTestId("research-situation").getByRole("tab", { name: "Detail" }).click();
     await expect(page.locator("aside.rd-v2-rail")).toContainText("In this library");
     await expect(page.locator("aside.rd-v2-rail")).toContainText("Add evidence");
     await expect(page.locator("aside.rd-v2-rail")).not.toContainText("Upload here");
@@ -329,6 +339,7 @@ test.describe("v2 Library navigation", () => {
     await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
 
+    await openCollections(page);
     const collection = page.getByTestId("library-collection-filter").first();
     await collection.click();
     await expect(page).toHaveURL(/folder=/);

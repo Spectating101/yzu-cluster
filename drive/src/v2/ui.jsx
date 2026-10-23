@@ -1,19 +1,26 @@
 import { shortSourceLabel } from "./sourceLabel.js";
 /** Shared v2 page chrome — matches docs/design/references/desk-v2-1440.html */
 
-export function PageShell({ title, lead, headExtra, toolbar, footer, children, narrow = false, className = "", surfaceState }) {
+export function PageHead({ title, state, lead, actions }) {
+  return (
+    <header className="rd-v2-page-head">
+      <div className="rd-v2-page-head-text">
+        {title ? <h1>{title}</h1> : null}
+        {state ? <div className="rd-v2-page-state">{state}</div> : null}
+        {lead ? <p className="rd-v2-lead rd-v2-visually-hidden">{lead}</p> : null}
+      </div>
+      {actions ? <div className="rd-v2-page-head-actions">{actions}</div> : null}
+    </header>
+  );
+}
+
+export function PageShell({ title, state, lead, headExtra, toolbar, footer, children, narrow = false, className = "", surfaceState }) {
   return (
     <div
       className={`rd-v2-page${narrow ? " narrow" : ""}${className ? ` ${className}` : ""}`}
       data-surface-state={surfaceState || undefined}
     >
-      {(title || lead || headExtra) ? (
-        <header className="rd-v2-page-head">
-          {title ? <h1>{title}</h1> : null}
-          {lead ? <p className="rd-v2-lead rd-v2-visually-hidden">{lead}</p> : null}
-          {headExtra}
-        </header>
-      ) : null}
+      {(title || lead || headExtra) ? <PageHead title={title} state={state} lead={lead} actions={headExtra} /> : null}
       {toolbar ? <div className="rd-v2-toolbar">{toolbar}</div> : null}
       <div className="rd-v2-body-scroll">{children}</div>
       {footer ? <div className="rd-v2-scroll-foot">{footer}</div> : null}

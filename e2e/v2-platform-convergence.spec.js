@@ -2,6 +2,11 @@ import { mkdirSync } from "node:fs";
 import { test, expect } from "@playwright/test";
 import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 
+async function openCollections(page) {
+  const toggle = page.getByTestId("library-collections-toggle");
+  if (!(await toggle.evaluate((el) => el.parentElement.open))) await toggle.click();
+}
+
 const OUT = "artifacts/platform-convergence";
 
 async function capture(page, name) {
@@ -352,6 +357,7 @@ test.describe("converged platform shell", () => {
     await page.getByRole("button", { name: "Library", exact: true }).click();
     await expect(page.getByTestId("library-evidence-estate")).toBeVisible();
 
+    await openCollections(page);
     const collection = page.getByTestId("library-collection-filter").first();
     await collection.click();
     await expect(page).toHaveURL(/folder=/);
@@ -404,7 +410,7 @@ test.describe("converged platform shell", () => {
     await page.getByRole("button", { name: "Search", exact: true }).click();
     await expect(page.getByTestId("discover-result-summary")).toBeVisible();
     await expect(page.getByLabel("Discover next actions")).toContainText(/declared route|Search wider/i);
-    await expect(page.getByTestId("research-situation")).toContainText("Discover");
+    await expect(page.locator(".rd-v2-page-head h1").first()).toHaveText("Discover");
     await expect(page.getByTestId("research-situation")).not.toContainText("In this collection");
     await expect(page.locator("body")).not.toContainText("public_http");
     await expect(page.locator("body")).not.toContainText("materialized_instant");
@@ -417,14 +423,14 @@ test.describe("converged platform shell", () => {
     await expect(page).toHaveURL(/tab=synthesis/);
     await expect(page.getByTestId("synthesis-studio")).toContainText("Asia daily news");
     await expect(page.getByTestId("synthesis-evidence-state")).toContainText("gdelt_asia_daily_country_panel");
-    await expect(page.getByTestId("research-situation")).toContainText("Synthesis");
+    await expect(page).toHaveURL(/tab=synthesis/);
     await expect(page.getByTestId("research-situation")).not.toContainText("In this collection");
     await capture(page, "10-discover-to-synthesis-desktop");
 
     await page.locator("aside.yzu-sidebar").getByRole("button", { name: "Resources", exact: true }).click();
     await expect(page.locator("main.yzu-main").getByRole("heading", { name: "Resources", exact: true })).toBeVisible();
     await expect(page.getByRole("region", { name: "Sources overview" })).toBeVisible();
-    await expect(page.getByTestId("research-situation")).toContainText("Resources");
+    await expect(page.locator(".rd-v2-page-head h1").first()).toHaveText("Resources");
     const rail = page.getByRole("complementary", { name: "Inspector" });
     await expect(rail).toContainText("Library capacity");
     await expect(rail).not.toContainText("Asia daily news");

@@ -3416,7 +3416,6 @@
 
   #root .rd-v2-synthesis-page .s04-rail-gates li {
     display: grid !important;
-    grid-template-columns: minmax(0, 1fr) auto !important;
     gap: var(--rd-space-2) !important;
     align-items: center !important;
     min-height: 24px !important;
@@ -3561,7 +3560,6 @@
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-gates li {
     display: grid;
-    grid-template-columns: minmax(90px, .78fr) minmax(0, 1.22fr);
     gap: var(--rd-space-3);
     align-items: center;
     min-height: 27px;
@@ -3991,7 +3989,6 @@
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-gates li {
     display: grid;
-    grid-template-columns: minmax(82px, .78fr) minmax(0, 1.22fr);
     gap: var(--rd-space-3) !important;
     align-items: center;
     min-height: 27px;

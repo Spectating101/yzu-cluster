@@ -31,10 +31,6 @@
   padding-top: var(--rd-space-3);
 }
 
-.rd-v2-home-page .rd-v2-page-head {
-  padding-bottom: 2px;
-}
-
 .rd-v2-home-page .rd-v2-lead {
   max-width: 680px;
 }
@@ -575,10 +571,6 @@
 /* --------------------------------------------------------------------------
    PROFILE — research identity + memory, with current direction as the anchor
    -------------------------------------------------------------------------- */
-
-.rd-v2-profile-page .rd-v2-page-head {
-  padding-bottom: 0;
-}
 
 .rd-v2-profile-identity {
   position: relative;
@@ -1545,4 +1537,52 @@
   padding: var(--rd-space-5) var(--rd-space-5);
   color: var(--rd-muted);
   font-size: var(--rd-text-sm);
+}
+
+.rd-v2-page-head {
+  box-sizing: border-box;
+  display: flex;
+  flex-shrink: 0;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--rd-space-4);
+  max-width: 1120px;
+  min-height: 72px;
+  margin: 0 0 var(--rd-space-4);
+  padding: var(--rd-space-2) var(--rd-main-pad-x) var(--rd-space-3) 2px;
+  border-bottom: 1px solid var(--rd-c-line);
+}
+
+.rd-v2-page-head-text {
+  display: grid;
+  gap: var(--rd-space-1);
+  min-width: 0;
+}
+
+.rd-v2-page-head h1 {
+  margin: 0;
+  color: var(--rd-c-text);
+  font-size: var(--rd-text-3xl);
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+}
+
+.rd-v2-page-state {
+  min-height: 1.5em;
+  color: var(--rd-c-text-3);
+  font-size: var(--rd-text-sm);
+  line-height: 1.5;
+}
+
+.rd-v2-page-state .rd-v2-toolbar-count {
+  color: inherit;
+  font: inherit;
+}
+
+.rd-v2-page-head-actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--rd-space-2);
 }

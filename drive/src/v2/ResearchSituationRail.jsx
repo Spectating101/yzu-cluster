@@ -30,16 +30,6 @@ function sourceLabel(row = {}) {
   );
 }
 
-function surfaceLabel(mainTab) {
-  if (mainTab === DISCOVER_TAB) return "Discover";
-  if (mainTab === "library") return "Library";
-  if (mainTab === "synthesis") return "Synthesis";
-  if (mainTab === "resources") return "Resources";
-  if (mainTab === "profile") return "Profile";
-  if (mainTab === "settings") return "Research Drive setup";
-  return "Research Drive";
-}
-
 function synthesisPhaseLabel(thread) {
   const stage = synthesisJourneyStage(thread);
   // "Method" is the researcher-facing name for Specification. Every later
@@ -275,6 +265,7 @@ export function ResearchSituationRail({
   resourcesDecisionCount = 0,
   askAvailable = true,
   onMemberSignIn,
+  hasSelection = true,
 }) {
   const draftSynthesisEntry =
     mainTab === "synthesis" &&
@@ -311,7 +302,7 @@ export function ResearchSituationRail({
           role="tab"
           aria-selected={railTab === "detail"}
           className={railTab === "detail" ? "on" : ""}
-          onClick={() => onRailTabChange("detail")}
+          onClick={() => onRailTabChange("detail", { byUser: true })}
         >
           Detail
         </button>
@@ -320,23 +311,26 @@ export function ResearchSituationRail({
           role="tab"
           aria-selected={railTab === "ask"}
           className={railTab === "ask" ? "on" : ""}
-          onClick={() => onRailTabChange("ask")}
+          onClick={() => onRailTabChange("ask", { byUser: true })}
           data-testid={askAvailable ? "rail-ask-tab" : "rail-ask-sign-in"}
         >
           {askAvailable ? "Ask" : "Ask · sign in"}
         </button>
       </div>
-      <div className="rd-v2-situation-topline">
-        <span>{surfaceLabel(mainTab)}</span>
-        <span className={`rd-v2-situation-state state-${situation.statusKind || "neutral"}`}>{situation.status}</span>
-      </div>
-      <h2 title={selectionHint}>{selectionHint}</h2>
-      {facts.length ? (
-        <div className="rd-v2-situation-facts" role="group" aria-label="Context facts">
-          {facts.map((fact) => <span key={fact}>{fact}</span>)}
-        </div>
+      {hasSelection || railTab !== "ask" ? (
+        <>
+          <h2 title={selectionHint}>{selectionHint}</h2>
+          <div className="rd-v2-situation-topline">
+            <span className={`rd-v2-situation-state state-${situation.statusKind || "neutral"}`}>{situation.status}</span>
+          </div>
+          {facts.length ? (
+            <div className="rd-v2-situation-facts" role="group" aria-label="Context facts">
+              {facts.map((fact) => <span key={fact}>{fact}</span>)}
+            </div>
+          ) : null}
+          {situation.next ? <p className="rd-v2-situation-next">{situation.next}</p> : null}
+        </>
       ) : null}
-      {situation.next ? <p className="rd-v2-situation-next">{situation.next}</p> : null}
       {!askAvailable && railTab === "ask" && onMemberSignIn ? (
         <button type="button" className="rd-v2-situation-sign-in" onClick={onMemberSignIn}>
           Sign in to continue

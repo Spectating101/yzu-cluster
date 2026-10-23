@@ -2,6 +2,11 @@ import { mkdirSync, readFileSync } from "node:fs";
 import { test, expect } from "@playwright/test";
 import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 
+async function openCollections(page) {
+  const toggle = page.getByTestId("library-collections-toggle");
+  if (!(await toggle.evaluate((el) => el.parentElement.open))) await toggle.click();
+}
+
 // The shipped fixture carries three datasets, which makes Library and Discover
 // look emptier than the desk ever is. These rows are the real registry, so the
 // tour shows current UI code against the identities it actually serves.
@@ -206,6 +211,7 @@ test.describe("Desk tour", () => {
     await waitForShell(page);
     await page.waitForTimeout(700);
     const dir = page.getByTestId("library-directory");
+    await openCollections(page);
     await page.getByRole("button", { name: "Open Derived directory" }).first().click();
     await page.waitForTimeout(900);
     await resetScroll(page);

@@ -41,7 +41,6 @@ test.describe("Research Drive release visual contract", () => {
 
     await expect(header.getByText("Research Drive", { exact: true })).toBeVisible();
     await expect(header.getByLabel("Active research context")).toBeVisible();
-    await expect(header.getByTestId("header-page-label")).toHaveText("HOME");
     await expect(sidebar.getByRole("button")).toHaveCount(7);
     await expect(main).toBeVisible();
     await expect(rail.getByRole("tab", { name: "Detail" })).toBeVisible();

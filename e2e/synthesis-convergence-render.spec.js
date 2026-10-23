@@ -279,7 +279,7 @@ test("captures Synthesis home, thread work, and new-entry navigation", async ({ 
   await expect(home).toContainText("Issuer liquidity weekly panel");
   await expect(home).toContainText("Event-study panel");
   await expect(page.getByRole("button", { name: /Synthesis workspace All builds/ })).toHaveAttribute("aria-current", "page");
-  await expect(page.getByTestId("research-situation").locator(".rd-v2-situation-state")).toHaveText("Workspace");
+  await expect(page.getByTestId("rail-pane-ask")).toHaveClass(/rd-v2-rail-pane-on/);
   await capture(page, "00-home-multi-workflow-1440x1000");
 
   await threadItem(page, "Historical stablecoin attention").click();
@@ -318,7 +318,7 @@ test("captures Synthesis home, thread work, and new-entry navigation", async ({ 
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.getByRole("button", { name: /Synthesis workspace/ }).click();
   await expect(home).toBeVisible();
-  await expect(page.getByTestId("research-situation").locator(".rd-v2-situation-state")).toHaveText("Workspace");
+  await expect(page.getByTestId("rail-pane-ask")).toHaveClass(/rd-v2-rail-pane-on/);
   await capture(page, "05-returned-home-1440x1000");
 
   await threadItem(page, "Historical stablecoin attention").click();

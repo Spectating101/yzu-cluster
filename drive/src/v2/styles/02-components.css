@@ -278,18 +278,6 @@ summary:focus-visible {
   padding: var(--rd-space-4) 0 0 var(--rd-main-pad-x);
 }
 
-.rd-v2-page-head {
-  padding: 0 var(--rd-main-pad-x) 0 2px;
-}
-
-.rd-v2-page-head h1 {
-  margin: 0;
-  font-size: var(--rd-text-3xl);
-  font-weight: 700;
-  line-height: 1.12;
-  letter-spacing: -0.01em;
-}
-
 .rd-v2-lead {
   margin: 0;
   color: var(--rd-muted);
@@ -383,9 +371,6 @@ summary:focus-visible {
 }
 
 /* ── Library — quality floor ─────────────────────────────────── */
-.rd-v2-library-page .rd-v2-page-head {
-  padding-bottom: var(--rd-space-3);
-}
 
 .rd-v2-library-page .rd-v2-body-scroll {
   margin-bottom: 0;
@@ -792,10 +777,6 @@ summary:focus-visible {
     height: 100%;
     min-height: 0;
     padding: var(--rd-space-3) 0 0 var(--rd-space-3);
-  }
-
-  .rd-v2-page-head {
-    padding: 0 var(--rd-space-3) var(--rd-space-3) 0;
   }
 
   .rd-v2-toolbar {
@@ -1276,7 +1257,6 @@ summary:focus-visible {
 /* ── premium-synthesis ── */
 /* Synthesis S-04 — intent-first AI research construction. */
 .rd-v2-synthesis-page{padding-right: var(--rd-main-pad-x)}
-.rd-v2-synthesis-page .rd-v2-page-head{padding-right: 0}
 .rd-v2-synthesis-page .rd-v2-body-scroll{padding: 0;overflow:auto}
 .s04-shell{min-height:100%;display:grid;grid-template-columns:216px minmax(0,1fr) 280px;color:var(--rd-text)}
 .s04-threads{min-width:0}
@@ -1741,13 +1721,6 @@ summary:focus-visible {
 }
 
 /* Main page rhythm. */
-.rd-v2-page-head {
-  max-width: 1120px;
-}
-
-.rd-v2-page-head h1 {
-  color: var(--rd-release-ink);
-}
 
 .rd-v2-lead {
   max-width: 760px;
@@ -1943,9 +1916,6 @@ summary:focus-visible {
 }
 
 @media (max-width: 640px) {
-  .rd-v2-page-head h1 {
-    font-size: var(--rd-text-3xl);
-  }
 
   .rd-v2-profile-identity,
   .rd-v2-profile-section,
@@ -4339,10 +4309,6 @@ body,
     --rd-main-pad-y: 12px;
   }
 
-  .rd-v2-page-head {
-    padding-bottom: var(--rd-space-3);
-  }
-
   .rd-v2-home-page.rd-v2-home-i10 {
     gap: var(--rd-space-3);
   }
@@ -4399,10 +4365,6 @@ body,
   .rd-v2-page,
   .rd-v2-body-scroll {
     min-width: 0;
-  }
-
-  .rd-v2-page-head h1 {
-    font-size: var(--rd-text-3xl);
   }
 
   .rd-v2-lead {

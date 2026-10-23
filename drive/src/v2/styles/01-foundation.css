@@ -664,18 +664,8 @@ button {
   padding-right: 0;
 }
 
-.rd-v2-library-page .rd-v2-page-head,
 .rd-v2-library-page .rd-v2-toolbar {
   margin-right: var(--rd-main-pad-x);
-}
-
-.rd-v2-page-head {
-  flex-shrink: 0;
-  margin-bottom: var(--rd-space-3);
-}
-
-.rd-v2-library-page .rd-v2-page-head h1 {
-  margin-bottom: var(--rd-space-1);
 }
 
 .rd-v2-library-page .rd-v2-crumb {
@@ -762,18 +752,6 @@ button {
   font-size: var(--rd-text-xs);
   font-weight: 600;
   border-radius: 16px;
-}
-
-.rd-v2-library-page > .rd-v2-page-head {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  column-gap: var(--rd-space-4);
-  align-items: center;
-}
-
-.rd-v2-library-page > .rd-v2-page-head > h1,
-.rd-v2-library-page > .rd-v2-page-head > .rd-v2-lead {
-  grid-column: 1;
 }
 
 .rd-v2-library-headline {
@@ -1114,14 +1092,6 @@ button {
   border-right: 1px solid var(--rd-border);
   background: var(--rd-surface);
   border-radius: 0;
-}
-
-.rd-v2-home-page .rd-v2-page-head {
-  margin-bottom: var(--rd-space-3);
-}
-
-.rd-v2-home-page .rd-v2-page-head h1 {
-  margin-bottom: 2px;
 }
 
 .rd-v2-home-page .rd-v2-lead {
@@ -2574,7 +2544,6 @@ button {
 
 .rd-v2-discover-candidates button.row.rd-v2-discover-candidate {
   grid-template-areas: "source main";
-  grid-template-columns: 96px minmax(0, 1fr);
   align-items: start;
   gap: clamp(12px, 1.4vw, 20px);
   min-height: 0;
@@ -4026,8 +3995,6 @@ button {
 
 .rd-v2-discover-candidate-source {
   grid-area: source;
-  display: flex;
-  flex-direction: column;
   align-items: flex-start;
   gap: var(--rd-space-2);
   align-self: start;
@@ -4347,16 +4314,6 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 
 /* ── 20. Profile & Settings pages ───────────────────────────────── */
 /* One flat composition: shared row rhythm, quiet actions, no box-in-box. */
-
-.rd-v2-profile-page .rd-v2-page-head {
-  margin-bottom: var(--rd-space-2);
-}
-
-.rd-v2-profile-page .rd-v2-page-head h1 {
-  font-size: var(--rd-text-3xl);
-  margin: 0 0 2px;
-  line-height: 1.15;
-}
 
 .rd-v2-profile-page .rd-v2-lead {
   margin: 0;

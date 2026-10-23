@@ -417,7 +417,7 @@ export function HomePage({
     <PageShell
       className="rd-v2-home-page rd-v2-home-i10"
       title="Home"
-      lead={isGuest ? "Start here" : homePosture.lead}
+      state={isGuest ? "Start here" : homePosture.lead}
       footer={null}
       surfaceState={surfaceState}
     >

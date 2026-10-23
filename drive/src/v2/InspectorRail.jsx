@@ -219,6 +219,7 @@ export function InspectorRail({
   onSubmitLibraryProcure,
   askPanel,
   askAvailable = true,
+  hasSelection = true,
   memberAccessCodeAvailable = false,
   memberProviderSignInAvailable = false,
   onMemberSignIn,
@@ -476,6 +477,7 @@ export function InspectorRail({
           resourcesDecisionCount={resourcesDecisionCount}
           askAvailable={askAvailable}
           onMemberSignIn={onMemberSignIn}
+          hasSelection={hasSelection}
         />
         <div
           className={`rd-v2-rail-pane${railTab === "detail" ? " rd-v2-rail-pane-on" : ""}`}

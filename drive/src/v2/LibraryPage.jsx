@@ -159,6 +159,7 @@ function toolbarCountLabel({ searchActive, isRoot, folderCount, datasetCount, vi
     const parts = [];
     if (datasetCount) parts.push(`${datasetCount} dataset${datasetCount === 1 ? "" : "s"}`);
     if (folderCount) parts.push(`${folderCount} collection${folderCount === 1 ? "" : "s"}`);
+    if (!parts.length && !visibleCount) return "No datasets yet";
     return parts.join(" · ") || `${visibleCount} row${visibleCount === 1 ? "" : "s"}`;
   }
   const parts = [];
@@ -617,6 +618,21 @@ export function LibraryPage({
       <PageShell
         className="rd-v2-library-page"
         title="Library"
+        state={
+          <span className="rd-v2-toolbar-count">
+            {navigationLoading && !searchActive
+              ? "Organizing collections…"
+              : loading && !vaultDatasets.length ? "Loading Library…" : toolbarCountLabel({
+              searchActive,
+              isRoot,
+              folderCount,
+              datasetCount: browseDatasetCount,
+              visibleCount: isRoot ? estateRows.length : visibleRows.length,
+              focusedCount: activeLens === "all" ? 0 : estateRows.length,
+            })}
+            {lensControl?.note ? <span className="rd-v2-cap-lens-note" data-testid="library-lens-note">{` · ${lensControl.note}`}</span> : null}
+          </span>
+        }
         lead={allHeldDatasets.length
           ? `${allHeldDatasets.length.toLocaleString("en-US")} datasets, with where each came from and whether it is ready to query.`
           : "Everything you hold, where it came from, and whether it is ready to query."}
@@ -730,19 +746,6 @@ export function LibraryPage({
                 </label>
               ) : null}
             </div>
-            <span className="rd-v2-toolbar-spacer" />
-            <span className="rd-v2-toolbar-count">
-              {navigationLoading && !searchActive
-                ? "Organizing collections…"
-                : loading && !vaultDatasets.length ? "Loading Library…" : toolbarCountLabel({
-                searchActive,
-                isRoot,
-                folderCount,
-                datasetCount: browseDatasetCount,
-                visibleCount: isRoot ? estateRows.length : visibleRows.length,
-                focusedCount: activeLens === "all" ? 0 : estateRows.length,
-              })}
-            </span>
           </>
         }
         surfaceState={surfaceState}

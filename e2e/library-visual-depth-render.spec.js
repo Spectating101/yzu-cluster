@@ -2,6 +2,11 @@ import { test, expect } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 
+async function openCollections(page) {
+  const toggle = page.getByTestId("library-collections-toggle");
+  if (!(await toggle.evaluate((el) => el.parentElement.open))) await toggle.click();
+}
+
 const OUT = "artifacts/library-renders";
 
 const LIBRARY_DATASETS = {
@@ -237,6 +242,7 @@ test("render Library depth states on desktop", async ({ page }) => {
   await page.screenshot({ path: `${OUT}/10-connected-source-1440.png`, fullPage: false });
 
   await backToRoot(page);
+  await openCollections(page);
   await page.getByTestId("library-collection-filter").filter({ hasText: "Research panels" }).click();
   await expect(page.getByTestId("library-directory")).toBeVisible();
   await expect(page.locator(".rd-v2-library-pathbar")).toContainText("Research panels");

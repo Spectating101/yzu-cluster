@@ -2,6 +2,11 @@ import { mkdirSync } from "node:fs";
 import { test, expect } from "@playwright/test";
 import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 
+async function openCollections(page) {
+  const toggle = page.getByTestId("library-collections-toggle");
+  if (!(await toggle.evaluate((el) => el.parentElement.open))) await toggle.click();
+}
+
 const OUT = "artifacts/library-folder-workflow";
 
 const DATASETS = {
@@ -178,13 +183,17 @@ test("Library physical folder workflow remains distinct from Research Collection
   await setup(page);
 
   // 1. Library root owns research retrieval/context, with Folders as an explicit alternate lens.
-  await expect(page.getByText("Research collections", { exact: true })).toBeVisible();
+  await expect(page.getByTestId("library-collections-toggle")).toContainText("Collections");
+  await openCollections(page);
   await expect(page.getByTestId("library-collection-filter").filter({ hasText: "Research panels" })).toBeVisible();
+  await openCollections(page);
   await expect(page.getByTestId("library-collection-filter").filter({ hasText: "Research evidence" })).toBeVisible();
+  await openCollections(page);
   await expect(page.getByTestId("library-folders-root")).toBeVisible();
   await page.screenshot({ path: `${OUT}/01-library-root-1440.png`, fullPage: false });
 
   // 2. Browse folders must switch to real recorded paths, not professor taxonomy.
+  await openCollections(page);
   await page.getByTestId("library-folders-root").click();
   await expect(page.getByTestId("library-directory")).toBeVisible();
   await expect(page.getByRole("navigation", { name: "Breadcrumb" })).toContainText("Library");
@@ -266,6 +275,7 @@ test("Library physical folder workflow remains distinct from Research Collection
 test("physical folders remain usable on mobile", async ({ page }) => {
   mkdirSync(OUT, { recursive: true });
   await setup(page, { width: 390, height: 844 });
+  await openCollections(page);
   await page.getByTestId("library-folders-root").click();
   await expect(folderRow(page, "Research panels")).toBeVisible();
   await page.screenshot({ path: `${OUT}/10-folders-root-mobile.png`, fullPage: false });

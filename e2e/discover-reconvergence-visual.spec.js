@@ -220,7 +220,7 @@ test.describe("Discover reconvergence visual review", () => {
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
       await openDiscover(page);
       await runSearch(page);
-      const countsBox = await page.locator(".rd-v2-discover-frozen-counts").boundingBox();
+      const countsBox = await page.getByTestId("discover-result-summary").boundingBox();
       const resultsBox = await page.getByTestId("discover-ranked-results").boundingBox();
       expect(countsBox).not.toBeNull();
       expect(resultsBox).not.toBeNull();

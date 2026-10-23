@@ -3360,3 +3360,62 @@ ol.s04-diagram-col > li:not(:last-child)::after { content: "↓"; display: block
 
 .rd-v2-synthesis-page .s04-measurement-status .s04-measurement-facts > li.is-severe { color: var(--rd-c-danger); border-color: color-mix(in srgb, var(--rd-c-danger) 44%, var(--rd-c-surface)); background: var(--rd-c-danger-soft); }
 .rd-v2-synthesis-page .s04-measurement-status .s04-measurement-facts > li.is-severe :is(b, span) { color: var(--rd-c-danger); }
+
+.s04-rail-needs {
+  display: grid;
+  gap: var(--rd-space-1);
+  margin: 0 0 var(--rd-space-3);
+  padding: var(--rd-space-3);
+  border-left: 3px solid var(--rd-c-warn);
+  border-radius: 0 8px 8px 0;
+  background: var(--rd-c-warn-soft);
+}
+
+.s04-rail-needs p {
+  margin: 0;
+  color: var(--rd-c-text-2);
+  font-size: var(--rd-text-sm);
+  line-height: 1.45;
+}
+
+.s04-rail-needs .s04-rail-needs-status {
+  color: var(--rd-c-text-3);
+  font-size: var(--rd-text-xs);
+  font-weight: 600;
+}
+
+.s04-rail-needs .s04-rail-needs-decision {
+  color: var(--rd-c-text);
+  font-weight: 600;
+}
+
+.s04-rail-needs p > span {
+  margin-right: var(--rd-space-2);
+  color: var(--rd-c-warn);
+  font-weight: 700;
+}
+
+.s04-rail-needs .s04-rail-needs-next > span,
+.s04-rail-needs .s04-rail-needs-risk > span {
+  color: var(--rd-c-text-3);
+}
+
+.s04-rail-gates li {
+  grid-template-columns: 16px minmax(0, 1fr) auto;
+  align-items: baseline;
+}
+
+.s04-rail-gates li > i {
+  color: var(--rd-c-text-4);
+  font-style: normal;
+  font-weight: 700;
+}
+
+.s04-rail-gates li.is-ready > i {
+  color: var(--rd-c-link);
+}
+
+.s04-rail-gates li.is-blocked > i,
+.s04-rail-gates li.is-blocked > strong {
+  color: var(--rd-c-warn);
+}

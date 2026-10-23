@@ -962,7 +962,6 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-rail-fieldgrid .rd-v2-
 }
 
 .rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) button.row.rd-v2-discover-candidate {
-  grid-template-columns: 96px minmax(0, 1fr);
   gap: var(--rd-space-3);
   min-height: 0;
   padding: var(--rd-space-3) var(--rd-space-3) var(--rd-space-3);

@@ -1612,3 +1612,97 @@
   color: var(--rd-body);
   font-weight: 600;
 }
+
+.rd-v2-cap-lens {
+  flex-wrap: nowrap;
+}
+
+.rd-v2-cap-collection-picker {
+  position: relative;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.rd-v2-cap-collection-picker > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rd-space-2);
+  min-height: 30px;
+  padding: 0 var(--rd-space-3);
+  border: 1px solid var(--rd-c-line);
+  border-radius: 999px;
+  background: var(--rd-c-surface);
+  color: var(--rd-c-text-2);
+  font-size: var(--rd-text-xs);
+  font-weight: 600;
+  list-style: none;
+  cursor: pointer;
+}
+
+.rd-v2-cap-collection-picker > summary::-webkit-details-marker {
+  display: none;
+}
+
+.rd-v2-cap-collection-picker > summary::after {
+  content: "▾";
+  color: var(--rd-c-text-3);
+}
+
+.rd-v2-cap-collection-picker > summary b {
+  color: var(--rd-c-text-3);
+  font-weight: 600;
+}
+
+.rd-v2-cap-collection-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(200px, 1fr));
+  gap: 2px;
+  width: max-content;
+  max-width: 520px;
+  padding: var(--rd-space-2);
+  border: 1px solid var(--rd-c-line);
+  border-radius: 10px;
+  background: var(--rd-c-surface);
+  box-shadow: 0 12px 32px color-mix(in srgb, var(--rd-c-ink) 14%, transparent);
+}
+
+.rd-v2-cap-collection-menu .rd-v2-cap-collection {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--rd-space-3);
+  padding: var(--rd-space-2) var(--rd-space-3);
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--rd-c-text);
+  font-size: var(--rd-text-sm);
+  text-align: left;
+  cursor: pointer;
+}
+
+.rd-v2-cap-collection-menu .rd-v2-cap-collection:hover {
+  background: var(--rd-c-mist);
+}
+
+.rd-v2-cap-collection-menu .rd-v2-cap-collection b {
+  color: var(--rd-c-text-3);
+  font-weight: 600;
+}
+
+.rd-v2-cap-collection-menu .rd-v2-cap-folders-root {
+  grid-column: 1 / -1;
+  border-top: 1px solid var(--rd-c-line);
+  border-radius: 0 0 6px 6px;
+  color: var(--rd-c-link);
+}
+
+.rd-v2-page-state .rd-v2-cap-lens-note {
+  margin: 0;
+  color: inherit;
+  font-size: inherit;
+}

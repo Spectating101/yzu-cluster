@@ -2,6 +2,11 @@ import { mkdirSync } from "node:fs";
 import { test, expect } from "@playwright/test";
 import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 
+async function openCollections(page) {
+  const toggle = page.getByTestId("library-collections-toggle");
+  if (!(await toggle.evaluate((el) => el.parentElement.open))) await toggle.click();
+}
+
 const OUT = "artifacts/library-location-disabled";
 
 test("Folders keeps disconnected external locations in the compact Location dropdown", async ({ page }) => {
@@ -10,6 +15,7 @@ test("Folders keeps disconnected external locations in the compact Location drop
   await mockV2Api(page);
   await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
   await waitForShell(page);
+  await openCollections(page);
   await page.getByTestId("library-folders-root").click();
   await expect(page.getByTestId("library-directory")).toBeVisible();
 

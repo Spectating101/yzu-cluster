@@ -154,22 +154,27 @@ function OpeningThreadRail({ thread, onAsk }) {
   return (
     <div data-testid="synthesis-opening-rail">
       <RailFrame>
-        <RailDecisionSummary
-          status={assist.status}
-          primary={assist.decision}
-          risk={assist.risk}
-          next={assist.next}
-          labels={{ primary: "Needs you" }}
-        />
         <div className="rd-v2-rail-scroll">
+          {assist.status || assist.decision || assist.next ? (
+            <section className="s04-rail-needs" aria-label="Decision summary">
+              {assist.status ? <p className="s04-rail-needs-status">{assist.status}</p> : null}
+              {assist.decision ? <p className="s04-rail-needs-decision"><span>Needs you</span>{assist.decision}</p> : null}
+              {assist.risk ? <p className="s04-rail-needs-risk"><span>Risk</span>{assist.risk}</p> : null}
+              {assist.next ? <p className="s04-rail-needs-next"><span>Next</span>{assist.next}</p> : null}
+            </section>
+          ) : null}
           <section className="s04-rail-gates" aria-label="Synthesis readiness ledger">
-            <header><span>Readiness ledger</span><strong>{gates.filter((gate) => gate[2]).length}/{gates.length}</strong></header>
+            <header><span>Readiness</span><strong>{gates.filter((gate) => gate[2]).length}/{gates.length}</strong></header>
             <ul>
-              {gates.map(([label, value, ready]) => (
-                <li key={label} className={ready ? "is-ready" : value.includes("needed") ? "is-blocked" : ""}>
-                  <span>{label}</span><strong>{value}</strong>
-                </li>
-              ))}
+              {gates.map(([label, value, ready]) => {
+                const blocked = !ready && /needed/i.test(value);
+                return (
+                  <li key={label} className={ready ? "is-ready" : blocked ? "is-blocked" : ""}>
+                    <i aria-hidden="true">{ready ? "✓" : blocked ? "✗" : "·"}</i>
+                    <span>{label}</span><strong>{value}</strong>
+                  </li>
+                );
+              })}
             </ul>
           </section>
 

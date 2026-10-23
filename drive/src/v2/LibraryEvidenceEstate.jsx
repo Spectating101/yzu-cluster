@@ -1,7 +1,7 @@
 import { addedOn } from "@/v2/datasetDates";
 import { plainGrain } from "./plainText.js";
 import { LockMark } from "@/v2/Lock";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { LIBRARY_FOLDERS_ROOT } from "@/driveTree";
 import { displayName, libraryAssetPresentation } from "@/v2/datasetMeta";
 import { libraryVerification } from "@/v2/libraryVerification";
@@ -145,7 +145,24 @@ export function LibraryEvidenceEstate({
   const ledgerClass = `rd-v2-cap-ledger ${showVerify ? "with-verify" : "without-verify"} show-kind`;
   const query = String(searchQuery || "").trim();
   const [visibleLimit, setVisibleLimit] = useState(PAGE_SIZE);
-  const [collectionsOpen, setCollectionsOpen] = useState(() => (typeof window === "undefined" ? true : window.innerHeight >= 1000));
+  const [collectionsOpen, setCollectionsOpen] = useState(false);
+  const pickerRef = useRef(null);
+
+  useEffect(() => {
+    if (!collectionsOpen) return undefined;
+    const closeOutside = (event) => {
+      if (!pickerRef.current?.contains(event.target)) setCollectionsOpen(false);
+    };
+    const closeOnEscape = (event) => {
+      if (event.key === "Escape") setCollectionsOpen(false);
+    };
+    document.addEventListener("pointerdown", closeOutside);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeOutside);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [collectionsOpen]);
 
   // A new search is a new semantic scope, so begin it from the first page.
   useEffect(() => {
@@ -169,26 +186,18 @@ export function LibraryEvidenceEstate({
   const filteredSearchMiss = Boolean(query && searchMatchCount > 0 && !visibleAssets.length);
   const trueSearchMiss = Boolean(query && searchMatchCount === 0);
 
-  return (
-    <section className="rd-v2-cap-estate" data-testid="library-evidence-estate" aria-label="Research evidence estate">
-      {collections.length || collectionsLoading ? (
-        <div className="rd-v2-cap-collections" role="group" aria-label="Research collections and folder storage">
-          <span className="rd-v2-cap-collections-label">
-            Research collections
-            {collections.length > 6 ? (
-              <button
-                type="button"
-                className="rd-v2-cap-collections-toggle"
-                data-testid="library-collections-toggle"
-                aria-expanded={collectionsOpen}
-                onClick={() => setCollectionsOpen((open) => !open)}
-              >
-                {collectionsOpen ? "Show fewer" : `Show all ${collections.length}`}
-              </button>
-            ) : null}
-          </span>
-          {collections.length ? (
-            <div className={`rd-v2-cap-collection-list${collectionsOpen ? "" : " is-single-row"}`}>
+  const collectionPicker = collections.length ? (
+    <details
+      ref={pickerRef}
+      className="rd-v2-cap-collection-picker"
+      open={collectionsOpen}
+      onToggle={(event) => setCollectionsOpen(event.currentTarget.open)}
+    >
+      <summary data-testid="library-collections-toggle">
+        <span>Collections</span>
+        <b>{collections.length}</b>
+      </summary>
+      <div className="rd-v2-cap-collection-menu" role="group" aria-label="Research collections and folder storage">
               {collections.map((collection) => {
                 const name = collectionName(collection);
                 return (
@@ -219,18 +228,19 @@ export function LibraryEvidenceEstate({
                 <span aria-hidden="true">→</span>
               </button>
               ) : null}
-            </div>
-          ) : (
-            <span className="rd-v2-cap-collections-loading" role="status" data-testid="library-collections-loading">
-              Organizing collections…
-            </span>
-          )}
-        </div>
-      ) : null}
+      </div>
+    </details>
+  ) : collectionsLoading ? (
+    <span className="rd-v2-cap-collections-loading" role="status" data-testid="library-collections-loading">
+      Organizing collections…
+    </span>
+  ) : null;
 
+  return (
+    <section className="rd-v2-cap-estate" data-testid="library-evidence-estate" aria-label="Research evidence estate">
       {banner}
 
-      {lens || access ? (
+      {lens || access || collectionPicker ? (
         <div className="rd-v2-cap-lens" data-testid="library-lens">
           {lens ? (
           <div className="rd-v2-cap-lens-options" role="group" aria-label="Choose which datasets to list">
@@ -267,7 +277,7 @@ export function LibraryEvidenceEstate({
               ))}
             </div>
           ) : null}
-          {lens?.note ? <p className="rd-v2-cap-lens-note" data-testid="library-lens-note">{lens.note}</p> : null}
+          {collectionPicker}
         </div>
       ) : null}
 

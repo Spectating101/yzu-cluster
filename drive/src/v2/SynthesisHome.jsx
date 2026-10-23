@@ -4,6 +4,7 @@ import { handleEnterToSubmit } from "@/v2/enterToSubmit";
 import { GuestSynthesisShowcase } from "@/v2/GuestSynthesisShowcase";
 import { synthesisObjectiveDisplay } from "./uiVocabularyLabels.js";
 import { DeskError } from "@/v2/DeskError";
+import { PageHead } from "@/v2/ui";
 import {
   partitionSynthesisWorkspace,
   synthesisWorkspaceActionLabel,
@@ -124,14 +125,14 @@ export function SynthesisHome({
 
   return (
     <section className="s04-home" data-testid="synthesis-home-state">
-      <header className="s04-home-hero">
-        <h1>Synthesis</h1>
-        {status.length ? (
-          <p className="s04-home-status" aria-label="Synthesis workspace status">
+      <PageHead
+        title="Synthesis"
+        state={status.length ? (
+          <span className="s04-home-status" aria-label="Synthesis workspace status">
             {status.map(([label, tone]) => <span key={label} className={tone}>{label}</span>)}
-          </p>
+          </span>
         ) : null}
-      </header>
+      />
 
       <section className="s04-compose" data-testid="synthesis-intent-state" aria-label="New build">
         <label htmlFor="synthesis-objective">What dataset do you need, and what is it for?</label>

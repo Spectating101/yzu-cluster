@@ -12,16 +12,6 @@ function freshnessLabel(refreshedAt) {
   return `${min}m ago`;
 }
 
-const PAGE_LABELS = {
-  home: "HOME",
-  library: "LIBRARY",
-  browse: "DISCOVER",
-  synthesis: "SYNTHESIS",
-  resources: "RESOURCES",
-  profile: "PROFILE",
-  settings: "SETTINGS",
-};
-
 export function V2DeskHeader({
   onBrandClick,
   onRetry,
@@ -36,7 +26,6 @@ export function V2DeskHeader({
   dryRunProtected: _dryRunProtected = true,
   integrationChips = [],
   activeResearchTitle = "No research focus set",
-  currentPage = "home",
   onAccountNavigate,
   onDeskStatusNavigate,
   onMemberSignIn,
@@ -66,7 +55,6 @@ export function V2DeskHeader({
     fresh ? `Updated ${fresh}` : null,
     onDeskStatusNavigate ? "Open Resources" : null,
   ].filter(Boolean).join(" · ");
-  const pageLabel = PAGE_LABELS[currentPage] || String(currentPage || "").toUpperCase();
   const isGuest = principal?.role === "public_guest";
 
   useEffect(() => {
@@ -107,13 +95,10 @@ export function V2DeskHeader({
             title={`${activeResearchTitle} · Edit in Profile`}
             onClick={() => onAccountNavigate?.("profile")}
           >
-            <span>{activeResearchTitle}</span>
+            <span>{/^No research focus/i.test(activeResearchTitle) ? "Focus: none set" : `Focus: ${activeResearchTitle}`}</span>
             <em aria-hidden>▾</em>
           </button>
         )}
-        <span className="rd-v2-header-page" data-testid="header-page-label">
-          {pageLabel}
-        </span>
       </div>
 
       <div className="rd-v2-header-meta">
@@ -133,12 +118,11 @@ export function V2DeskHeader({
             </span>
           )}
         </div>
-        <span className="rd-v2-header-meta-count" title={metaText}>
-          {dataLoading && !usingSeed ? (
-            metaText
-          ) : pendingVisible ? (
-            <>
-              {`${countText} · `}
+        {(dataLoading && !usingSeed) || usingSeed || pendingVisible ? (
+          <span className="rd-v2-header-meta-count" title={metaText}>
+            {dataLoading && !usingSeed ? (
+              metaText
+            ) : pendingVisible ? (
               <button
                 type="button"
                 className="rd-v2-header-pending-link"
@@ -147,11 +131,11 @@ export function V2DeskHeader({
               >
                 {workCount} pending
               </button>
-            </>
-          ) : (
-            metaText
-          )}
-        </span>
+            ) : (
+              metaText
+            )}
+          </span>
+        ) : null}
         {usingSeed && onRetry ? (
           <button type="button" className="rd-v2-header-retry" onClick={onRetry}>
             Retry

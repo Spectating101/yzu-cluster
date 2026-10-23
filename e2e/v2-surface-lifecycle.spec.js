@@ -54,10 +54,10 @@ test.describe("primary surface lifecycle contract", () => {
 
   test("the Library estate paints before the slower aggregate health probe", async ({ page }) => {
     await mockV2Api(page, { healthDelayMs: 2_000, jobsBody: { jobs: [] } });
-    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
 
-    await expect(page.locator(".rd-v2-header-meta-count")).toContainText("3 Library datasets", {
+    await expect(page.locator(".rd-v2-page-state")).toContainText(/\b3 datasets\b/, {
       timeout: 1_500,
     });
     await expect(page.getByTestId("desk-integration-strip")).toBeVisible();
@@ -69,7 +69,10 @@ test.describe("primary surface lifecycle contract", () => {
     await waitForShell(page);
 
     await expect(surface(page)).toHaveAttribute("data-surface-state", "empty");
-    await expect(page.locator(".rd-v2-header-meta-count")).toContainText("0 Library datasets");
+    await page.goto("/?tab=library", { waitUntil: "domcontentloaded" });
+    await waitForShell(page);
+    await expect(page.locator(".rd-v2-page-state")).not.toContainText(/Loading|Organizing/);
+    await expect(page.locator(".rd-v2-page-state")).toContainText("No datasets yet");
     await expect(page.getByText(/Demo preview|OFFLINE/i)).toHaveCount(0);
     await expect(page.getByTestId("desk-error")).toHaveCount(0);
   });

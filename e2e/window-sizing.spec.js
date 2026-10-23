@@ -63,21 +63,14 @@ test("a person who folded the panel keeps it folded when they select something",
   await expect(page.locator(".rd-v2-shell")).toHaveClass(/rail-folded/);
 });
 
-test("collections show as one row on a short window and all of them on a tall one", async ({ page }) => {
-  await open(page, { width: 1280, height: 720 });
-  const list = page.locator(".rd-v2-cap-collection-list");
-  await expect(list).toHaveClass(/is-single-row/);
-  await page.getByTestId("library-collections-toggle").click();
-  await expect(list).not.toHaveClass(/is-single-row/);
-});
-
-test("collections stay on one row until the window is tall enough to spare the height", async ({ page }) => {
-  await open(page, { width: 1440, height: 900 });
-  await expect(page.locator(".rd-v2-cap-collection-list")).toHaveClass(/is-single-row/);
-});
-
-test("collections are fully shown on a tall window", async ({ page }) => {
-  await open(page, { width: 1920, height: 1080 });
-  await expect(page.locator(".rd-v2-cap-collection-list")).not.toHaveClass(/is-single-row/);
-  await expect(page.getByTestId("library-collections-toggle")).toHaveText(/Show fewer/);
+test("collections open from one picker that lists every collection at any window size", async ({ page }) => {
+  for (const viewport of [{ width: 1280, height: 720 }, { width: 1920, height: 1080 }]) {
+    await open(page, viewport);
+    const toggle = page.getByTestId("library-collections-toggle");
+    await expect(toggle).toBeVisible();
+    const total = Number((await toggle.locator("b").innerText()).trim());
+    await toggle.click();
+    await expect(page.getByTestId("library-collection-filter")).toHaveCount(total);
+    await expect(page.getByTestId("library-collection-filter").last()).toBeInViewport();
+  }
 });

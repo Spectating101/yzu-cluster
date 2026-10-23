@@ -1561,10 +1561,40 @@ export function BrowsePage({
     );
   }
 
+  const resultCounts = q ? (
+  <div className="rd-v2-discover-frozen-counts" role="group" aria-label="Discover result territories" data-testid="discover-result-counts">
+    {merged.length || !loading || wideningInProgress
+      ? discoverTerritories(resultGroups).map((territory) =>
+        // A page reload can begin a query before /datasets has
+        // answered. That is unmeasured, not zero held evidence.
+        territory.id === "held" && !resultGroups.held.length && (catalogLoading || lookupProgress.library === "checking") ? (
+          <span key={territory.id}>Checking your Library…</span>
+        // The freeze makes Library evidence an opener, not a label:
+        // it reveals a bounded preview plus Compare coverage and Open
+        // Library results. The popover existed and was never mounted.
+        ) : territory.id === "held" && libraryEvidenceMenu ? (
+          <span key={territory.id}>{libraryEvidenceMenu}</span>
+        ) : (
+          <span key={territory.id}>{territoryText(territory.id, territory.count)}</span>
+        ),
+      )
+      : null}
+    {loading && !wideningInProgress ? (
+      <DiscoverLookupProgress progress={lookupProgress} hasResults={merged.length > 0} />
+    ) : null}
+    {loading && wideningInProgress ? (
+      <span className="rd-v2-discover-counts-loading" role="status">
+        Searching wider sources…
+      </span>
+    ) : null}
+  </div>
+  ) : null;
+
   return (
     <PageShell
       className="rd-v2-discover-page"
       title="Discover"
+      state={resultCounts}
       lead={q ? "Check what your Library already holds, and where to get what it doesn't" : undefined}
       headExtra={modeTabs}
       toolbar={demoMode ? <Chip warn>Demo preview · static sample</Chip> : null}
@@ -1668,6 +1698,7 @@ export function BrowsePage({
               aria-label="Discover explore"
               data-testid="discover-result-summary"
             >
+              <div className="rd-v2-discover-query-row">
               <header className="rd-v2-discover-explore-need">
                 <DiscoverQueryComposer
                   value={queryDraft}
@@ -1694,31 +1725,6 @@ export function BrowsePage({
                   ) : null}
                 </div>
               </div>
-              <div className="rd-v2-discover-frozen-counts" role="group" aria-label="Discover result territories">
-                {merged.length || !loading || wideningInProgress
-                  ? discoverTerritories(resultGroups).map((territory) =>
-                    // A page reload can begin a query before /datasets has
-                    // answered. That is unmeasured, not zero held evidence.
-                    territory.id === "held" && !resultGroups.held.length && (catalogLoading || lookupProgress.library === "checking") ? (
-                      <span key={territory.id}>Checking your Library…</span>
-                    // The freeze makes Library evidence an opener, not a label:
-                    // it reveals a bounded preview plus Compare coverage and Open
-                    // Library results. The popover existed and was never mounted.
-                    ) : territory.id === "held" && libraryEvidenceMenu ? (
-                      <span key={territory.id}>{libraryEvidenceMenu}</span>
-                    ) : (
-                      <span key={territory.id}>{territoryText(territory.id, territory.count)}</span>
-                    ),
-                  )
-                  : null}
-                {loading && !wideningInProgress ? (
-                  <DiscoverLookupProgress progress={lookupProgress} hasResults={merged.length > 0} />
-                ) : null}
-                {loading && wideningInProgress ? (
-                  <span className="rd-v2-discover-counts-loading" role="status">
-                    Searching wider sources…
-                  </span>
-                ) : null}
               </div>
               <div
                 className="rd-v2-discover-result-actions"

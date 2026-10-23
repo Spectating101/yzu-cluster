@@ -44,11 +44,13 @@ Research Drive is a research-evidence procurement and Library workbench: a resea
 ## 4. Shell and right panel
 
 - Grammar on every page: left navigation · centre = the object being worked on · right panel = Detail | Ask about the selected object.
-- The right panel is a bounded decision instrument: 2–3 identity lines, one judgement, the current decision, at most five facts, one disclosure, one primary and up to two secondary actions. Never a vertical report, never a data table, never a copy of the centre.
+- The right panel should be full rather than sparse (owner, 2026-10-24): it carries what only it can show for the selection (readiness checklist, inputs, provenance, diagnostics), led by identity and the current decision in a few lines. It never repeats the centre, never shows a page echo (the page name lives in the page head), and never holds a data table or row sample.
 - The right panel is always present, like an assistant beside the work (owner, 2026-10-23). With nothing selected it opens on Ask, scoped to the page; selecting an object switches it to Detail. A Detail the researcher chose stays until they leave the page. Guests, who cannot use Ask, keep Detail. Never an explainer or report in the empty state (`drive/src/v2/railDefaultTab.js`).
 - Row data and samples belong in Preview (the centre overlay), not the right panel.
 - A Home resume point opens the real object's own Detail, never a generic Home inspector, and only with data Home actually has (Home's thread list lacks measurements; reusing the full Synthesis panel there printed false "no risk" claims).
 - Ask is scoped to the selected object and never leaks context across objects.
+
+- Page head (owner, 2026-10-24): every page uses `PageHead` (title, one state line, actions on the right, fixed height, rule below); the top bar carries only Focus, status and account.
 
 ## 5. Pages as they are now (live on 8775, ui d0f63a65 + backend bb4abb7d)
 

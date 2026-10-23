@@ -202,7 +202,6 @@ test.describe("v2 parity @ desk-v2-1440", () => {
     });
 
     await page.getByTestId("research-situation").getByRole("tab", { name: "Ask" }).click();
-    await expect(page.getByTestId("research-situation")).toContainText("Resources");
     await page.getByTestId("ask-composer").fill("What surface am I using?");
     await page.getByRole("button", { name: "Send" }).click();
     await expect(page.getByText("Resources is the current operational surface.")).toBeVisible();
