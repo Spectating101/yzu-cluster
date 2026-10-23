@@ -69,6 +69,7 @@ test.describe("v2 Resources tab", () => {
 
   test("right rail starts with Library capacity context", async ({ page }) => {
     const rail = page.getByRole("complementary", { name: "Inspector" });
+    await rail.getByRole("tab", { name: "Detail" }).click();
     await expect(page.getByTestId("research-situation")).toContainText("Resources");
     await expect(rail).toContainText("Library capacity");
     await expect(rail).toContainText("Current capacity");
@@ -112,6 +113,7 @@ test.describe("v2 Resources tab", () => {
   });
 
   test("Open activity switches the Resources overview to Usage", async ({ page }) => {
+    await page.getByRole("complementary", { name: "Inspector" }).getByRole("tab", { name: "Detail" }).click();
     await page.locator("aside").getByRole("button", { name: "Open activity" }).click();
     await expect(page.getByRole("button", { name: "Usage", exact: true })).toHaveClass(/on/);
     await expect(page.getByRole("heading", { name: "Run log" })).toBeVisible();

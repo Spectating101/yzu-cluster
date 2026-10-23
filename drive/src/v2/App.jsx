@@ -84,6 +84,7 @@ import {
   selectionRailTab,
   startupTab,
 } from "@/v2/settingsStore";
+import { railHasSelection, shownRailTab } from "@/v2/railDefaultTab";
 import {
   buildAddToLabDisplayText,
   buildAddToLabPrompt,
@@ -279,6 +280,7 @@ function DeskWorkspace({ onIdentityChanged }) {
   const [previewMode, setPreviewMode] = useState("lab");
   const [previewTarget, setPreviewTarget] = useState(null);
   const [railTab, setRailTab] = useState("detail");
+  const [railDetailPinned, setRailDetailPinned] = useState(false);
   const railFoldExplicit = useRef(false);
   const [smallScreen, setSmallScreen] = useState(() => window.innerWidth <= 760);
   useEffect(() => {
@@ -953,18 +955,45 @@ function DeskWorkspace({ onIdentityChanged }) {
       : { loading: false, result: null, error: "" };
 
 
+  const railHasSelectionNow = railHasSelection({
+    tab,
+    dataset: detail,
+    activeObject,
+    browseTarget,
+    historyEvent: selectedHistoryEvent,
+    discoverIntentRecord,
+    discoverAssessment,
+    discoverMode,
+    discoverRestingSummary,
+    resourceRow: canViewOperations ? resourceRow : null,
+  });
+  const visibleRailTab = shownRailTab({
+    railTab,
+    hasSelection: railHasSelectionNow,
+    canAsk: canUseAsk,
+    detailPinned: railDetailPinned,
+    compact: smallScreen,
+  });
+  const chooseRailTab = useCallback((next) => {
+    setRailTab(next);
+    setRailDetailPinned(next === "detail");
+  }, []);
+  useEffect(() => {
+    setRailDetailPinned(false);
+  }, [tab]);
+
   const railContext = useMemo(
     () =>
       buildRailContext({
         tab,
-        mode: railTab,
+        mode: visibleRailTab,
         dataset: detail,
         activeObject,
         searchQuery: pageSearchQuery,
         folderId,
         profileEmail: profile?.email || loadUserEmail(),
       }),
-    [tab, railTab, detail, activeObject, pageSearchQuery, folderId, profile],
+    [tab, visibleRailTab, detail, activeObject, pageSearchQuery, folderId, profile],
   );
 
   const askDataset = useMemo(
@@ -2493,8 +2522,8 @@ function DeskWorkspace({ onIdentityChanged }) {
           folded={desktopRailFolded}
           onUnfold={() => foldRail(false)}
           mainTab={tab}
-          railTab={railTab}
-          onRailTabChange={setRailTab}
+          railTab={visibleRailTab}
+          onRailTabChange={chooseRailTab}
           dataset={detail}
           detailLoading={detailLoading}
           browseTarget={browseTarget}
@@ -2566,7 +2595,7 @@ function DeskWorkspace({ onIdentityChanged }) {
               onApproveJob={canApproveJobs ? handleApproveJob : undefined}
               onToast={showToast}
               railContext={railContext}
-              warmEnabled={railTab === "ask"}
+              warmEnabled={visibleRailTab === "ask"}
               onOpenDataset={(row) => openLibraryDataset(catalog.find((d) => d.dataset_id === row?.dataset_id) || row)}
             /> : null
           }

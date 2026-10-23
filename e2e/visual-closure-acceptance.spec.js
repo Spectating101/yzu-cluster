@@ -68,6 +68,7 @@ test("Discover idle — first-use examples, no oversized empty route block", asy
 test("Synthesis new — durable-object start and bounded empty rail", async ({ page }) => {
   await open(page, "/?tab=synthesis");
   const rail = page.getByRole("complementary", { name: "Inspector" });
+  await rail.getByRole("tab", { name: "Detail" }).click();
   await expect(rail.getByRole("heading", { name: "No build selected" })).toBeVisible();
   for (const step of ["Describe it", "Choose data", "Approve", "Get the dataset"]) {
     await expect(page.getByTestId("rail-pane-detail").getByText(step, { exact: true })).toBeVisible();

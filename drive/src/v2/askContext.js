@@ -45,7 +45,7 @@ export function askDatasetForSurface({
         kind: "discover_history",
       };
     }
-    return browseTarget || (scopedObject?.kind === "discover_investigation" ? scopedObject : null) || titled("Discover");
+    return browseTarget || (scopedObject?.kind === "discover_investigation" ? scopedObject : null) || titled("Discover", { surface: true });
   }
   if (tab === "home") {
     if (scopedObject?.kind === "home_attention") {
@@ -70,7 +70,7 @@ export function askDatasetForSurface({
           thread_id: scopedObject.id,
           session_id: scopedObject.thread?.session_id || "",
         })
-      : titled("Synthesis studio", { kind: "synthesis_thread" });
+      : titled("Synthesis studio", { kind: "synthesis_thread", surface: true });
   }
   if (tab === "profile") {
     return titled(

@@ -306,6 +306,7 @@ test.describe("converged platform shell", () => {
 
     await openAccountDestination(page, "Profile");
     await expect(page.locator("main.yzu-main").getByRole("heading", { name: "Profile", exact: true })).toBeVisible();
+    await page.getByRole("complementary", { name: "Inspector" }).getByRole("tab", { name: "Detail" }).click();
     await expect(page.getByTestId("profile-detail-rail")).toBeVisible();
     await capture(page, "04-profile-memory-desktop");
 

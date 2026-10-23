@@ -75,6 +75,7 @@ test.describe("Profile freeze showcase", () => {
     await expect(page.getByTestId("profile-know")).toHaveCount(0);
     await expect(page.getByTestId("profile-offer")).toHaveCount(0);
 
+    await page.getByRole("complementary", { name: "Inspector" }).getByRole("tab", { name: "Detail" }).click();
     const detail = page.getByTestId("profile-detail-rail");
     await expect(detail).toBeVisible();
     await expect(detail.getByText("Scholar")).toBeVisible();
@@ -112,6 +113,7 @@ test.describe("Profile freeze showcase", () => {
     await page.goto("/?tab=profile", { waitUntil: "domcontentloaded" });
     await expect(page.locator(".rd-v2-profile-name")).toHaveText("Text Bait, No Domain Tag", { timeout: 20_000 });
 
+    await page.getByRole("complementary", { name: "Inspector" }).getByRole("tab", { name: "Detail" }).click();
     const detail = page.getByTestId("profile-detail-rail");
     await expect(detail).toBeVisible();
     await expect(detail).not.toContainText("FinTech through-line");
@@ -140,6 +142,7 @@ test.describe("Profile freeze showcase", () => {
     await page.goto("/?tab=profile", { waitUntil: "domcontentloaded" });
     await expect(page.locator(".rd-v2-profile-name")).toHaveText("Tag Only, No Text Bait", { timeout: 20_000 });
 
+    await page.getByRole("complementary", { name: "Inspector" }).getByRole("tab", { name: "Detail" }).click();
     const detail = page.getByTestId("profile-detail-rail");
     await expect(detail).toBeVisible();
     await expect(detail).toContainText("FinTech through-line");

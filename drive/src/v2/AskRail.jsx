@@ -132,6 +132,7 @@ export function AskRail({
   const isLibrary = mainTab === "library";
   const isDiscoverHistory = isDiscover && dataset?.kind === "discover_history";
   const isDiscoverInvestigation = isDiscover && dataset?.kind === "discover_investigation";
+  const pageOnly = Boolean(dataset?.surface);
   const isSynthesis = mainTab === "synthesis";
   const profileContext = dataset?.title || "Profile";
   const synthesisContext = dataset?.thread_id === "__new__"
@@ -153,7 +154,7 @@ export function AskRail({
       ? "Build this version"
       : "Approve this execution request"
     : undefined;
-  const discoverTitle = dataset?.title || dataset?.dataset_id || "";
+  const discoverTitle = pageOnly ? "" : dataset?.title || dataset?.dataset_id || "";
   const railTitle = isProfile
     ? "Ask"
     : isSettings
@@ -163,9 +164,11 @@ export function AskRail({
       : isDiscoverInvestigation
         ? "Ask · your question"
       : isDiscover
-        ? "Ask · selected source"
+        ? discoverTitle ? "Ask · selected source" : "Ask · Discover"
         : isSynthesis
-          ? synthesisStageLabel
+          ? pageOnly
+            ? "Ask · Synthesis"
+            : synthesisStageLabel
             ? `Ask · ${synthesisStageLabel}`
             : "Ask · synthesis thread"
           : isLibrary
@@ -179,7 +182,7 @@ export function AskRail({
         ? `About this request: ${discoverTitle}`
         : isDiscover && discoverTitle
           ? `About: ${discoverTitle}`
-          : isSynthesis
+          : isSynthesis && !pageOnly
             ? `About: ${synthesisContext}`
             : isLibrary
               ? searchQuery
@@ -434,7 +437,7 @@ export function AskRail({
                 ))}
               </div>
             </div>
-          ) : isSynthesis ? (
+          ) : isSynthesis && !pageOnly ? (
             <div className="rd-v2-ask-placeholder" data-testid="synthesis-ask-guidance">
               <p>
                 {synthesisDecision
@@ -489,7 +492,7 @@ export function AskRail({
                   ? "Questions here are about this search."
                   : "Questions here are about the selected source."}
               </p>
-            ) : isSynthesis ? (
+            ) : isSynthesis && !pageOnly ? (
               <p className="rd-v2-ask-context-notice" data-testid="ask-context-notice">
                 New messages use this Synthesis thread{ synthesisStageLabel ? ` at ${synthesisStageLabel}` : "" } and its current accepted state.
               </p>
@@ -546,7 +549,7 @@ export function AskRail({
               ? "Correct the research memory or ask how it is used…"
               : isSettings
                 ? "Ask about Research Drive behavior, access, or approvals…"
-              : isSynthesis
+              : isSynthesis && !pageOnly
                 ? synthesisDecision
                   ? `Ask about ${synthesisDecision.toLowerCase()}…`
                   : "Correct the interpretation, add a constraint, or ask…"

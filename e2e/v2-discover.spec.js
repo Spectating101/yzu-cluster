@@ -68,6 +68,8 @@ test.describe("v2 Discover tab", () => {
     await expect(page.getByRole("heading", { name: "Start with these" })).toBeVisible();
     await expect(cards.first()).toBeVisible();
     await expect(page.getByTestId("discover-resting-summary")).toHaveCount(0);
+    await expect(page.getByTestId("rail-pane-ask")).toHaveClass(/rd-v2-rail-pane-on/);
+    await page.getByRole("complementary", { name: "Inspector" }).getByRole("tab", { name: "Detail" }).click();
     await expect(page.getByRole("status")).toContainText("No candidate selected");
     await cards.first().click();
     await expect(page.locator(".rd-v2-discover-start-card.selected")).toHaveCount(1);
