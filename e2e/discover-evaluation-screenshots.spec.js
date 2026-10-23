@@ -78,7 +78,7 @@ test.describe("Discover evaluation screenshots", () => {
     await waitForShell(page);
     // Type without Enter so Ask does not auto-start a Find-datasets thread yet.
     await searchDiscover(page, "evaluation");
-    await expect(page.locator(".rd-v2-discover-candidate")).toHaveCount(4);
+    await expect(page.locator(".rd-v2-discover-candidate")).toHaveCount(5);
 
     // 1. external before probe
     await page.locator(".rd-v2-discover-candidate", { hasText: "Bare public CSV index" }).click();

@@ -1,4 +1,6 @@
 import { LockMark, lockTitle } from "@/v2/Lock";
+import { rowsLabel, spanOf, spanText } from "./libraryGlance.js";
+import { listDescription } from "./listDescription.js";
 import { uiVocabularyLabel } from "./uiVocabularyLabels.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { instantLibraryMatches } from "@/v2/discoverInstantMatches";
@@ -262,7 +264,10 @@ function DiscoverCandidateRow({
     : "";
   const restatesTitle = evidenceLine.toLowerCase().replace(/[.\s]+$/, "") === candidateTitle(row).toLowerCase().replace(/[.\s]+$/, "");
   const fitLine = partialFitLine(row);
-  const coverage = coverageLine(row);
+  const heldSpan = taxonomy.key.startsWith("local-") ? spanOf(row) : null;
+  const heldGlance = heldSpan ? [rowsLabel(heldSpan.rows), spanText(heldSpan)].filter(Boolean).join(" · ") : "";
+  const heldPurpose = heldSpan && !evidenceLine ? listDescription(row?.one_line || row?.meaning || "") : "";
+  const coverage = heldGlance || coverageLine(row);
   const showCoverage = coverage && coverage !== "Coverage not described";
   const offeringFacts = [
     ["Fit", row?.place_fit ? row.place_fit.charAt(0).toUpperCase() + row.place_fit.slice(1) : null],
@@ -304,7 +309,7 @@ function DiscoverCandidateRow({
             <em className="rd-v2-discover-possession">{taxonomyLine}</em>
           </span>
           {fitLine ? <span className="rd-v2-discover-evidence" data-testid="discover-partial-fit">{fitLine}</span> : null}
-          {evidenceLine && !restatesTitle ? <span className="rd-v2-discover-evidence">{evidenceLine}</span> : null}
+          {evidenceLine && !restatesTitle ? <span className="rd-v2-discover-evidence">{evidenceLine}</span> : heldPurpose ? <span className="rd-v2-discover-evidence">{heldPurpose}</span> : null}
           {showCoverage ? <span className="rd-v2-discover-coverage-line" data-testid="discover-coverage-line">{coverage}</span> : null}
           <span className="rd-v2-discover-offering-facts" role="group" aria-label="Offering facts" hidden={!selected}>
             {offeringFacts.map(([label, value]) => (
@@ -1487,6 +1492,23 @@ export function BrowsePage({
     </details>
   );
 
+  const catalogById = useMemo(() => new Map((catalog || []).map((item) => [item?.dataset_id, item])), [catalog]);
+  const withCatalogFacts = (row) => {
+    const held = catalogById.get(row?.dataset_id || row?.id);
+    if (!held) return row;
+    return {
+      ...row,
+      glance: row.glance || held.glance,
+      row_count: row.row_count ?? held.row_count,
+      description: row.description || held.description,
+      one_line: row.one_line || held.one_line,
+      meaning: row.meaning || held.meaning,
+    };
+  };
+
+  const centreKeys = new Set(centreRows.map((row) => candidateKey(row)));
+  const inlineHeld = resultGroups.held.filter((row) => !centreKeys.has(candidateKey(row)));
+
   const libraryMenuRef = useRef(null);
   const libraryEvidenceMenu = resultGroups.held.length ? (
     <details ref={libraryMenuRef} className="rd-v2-discover-library-evidence" data-testid="discover-library-evidence">
@@ -1494,7 +1516,7 @@ export function BrowsePage({
       <div className="rd-v2-discover-library-popover">
         <span className="rd-v2-eyebrow">Relevant Library evidence</span>
         <DiscoverCandidateList
-          rows={resultGroups.held.slice(0, 12)}
+          rows={resultGroups.held.slice(0, 12).map(withCatalogFacts)}
           labIds={labIds}
           selectedId={selectedId}
           onSelectRow={(row) => {
@@ -1833,6 +1855,23 @@ export function BrowsePage({
               ) : null}
 
             </section>
+
+            {stateFilter === "all" && inlineHeld.length ? (
+              <section className="rd-v2-discover-ranked-results rd-v2-discover-held-results" aria-label="Already in your Library" data-testid="discover-held-results">
+                <header className="rd-v2-discover-ranked-results-head">
+                  <strong>Already in your Library</strong>
+                  {resultGroups.held.length > 3 && onOpenLibraryResults ? (
+                    <button type="button" onClick={() => onOpenLibraryResults()}>See all {resultGroups.held.length}</button>
+                  ) : null}
+                </header>
+                <DiscoverCandidateList
+                  rows={inlineHeld.slice(0, 3).map(withCatalogFacts)}
+                  labIds={labIds}
+                  selectedId={selectedId}
+                  onSelectRow={onSelectRow}
+                />
+              </section>
+            ) : null}
 
             {centreRows.length ? (
               <section className="rd-v2-discover-ranked-results" aria-label="Ranked Discover results" data-testid="discover-ranked-results">

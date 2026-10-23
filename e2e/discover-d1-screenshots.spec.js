@@ -83,8 +83,8 @@ test.describe("Discover D1 screenshots", () => {
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
     await searchDiscover(page, "taxonomy");
-    await expect(page.locator(".rd-v2-catalog button.row.rd-v2-discover-candidate")).toHaveCount(4);
-    await expect(page.locator('.rd-v2-catalog button.row[data-kind="local-query-ready"]')).toHaveCount(1);
+    await expect(page.locator(".rd-v2-catalog button.row.rd-v2-discover-candidate")).toHaveCount(6);
+    await expect(page.locator('.rd-v2-catalog button.row[data-kind="local-query-ready"]')).toHaveCount(2);
     await expect(page.locator('.rd-v2-catalog button.row[data-kind="licensed-manual"]')).toHaveCount(1);
     await shot(page, "desktop-1440x900-mixed-taxonomy");
 
@@ -107,7 +107,7 @@ test.describe("Discover D1 screenshots", () => {
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
     await searchDiscover(page, "taxonomy");
-    await expect(page.locator(".rd-v2-catalog button.row.rd-v2-discover-candidate")).toHaveCount(4);
+    await expect(page.locator(".rd-v2-catalog button.row.rd-v2-discover-candidate")).toHaveCount(6);
     await shot(page, "tablet-900x1200-mixed-taxonomy");
   });
 
@@ -117,7 +117,7 @@ test.describe("Discover D1 screenshots", () => {
     await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
     await waitForShell(page);
     await searchDiscover(page, "taxonomy");
-    await expect(page.locator(".rd-v2-catalog button.row.rd-v2-discover-candidate")).toHaveCount(4);
+    await expect(page.locator(".rd-v2-catalog button.row.rd-v2-discover-candidate")).toHaveCount(6);
     await shot(page, "mobile-390x1200-mixed-scanning");
   });
 });

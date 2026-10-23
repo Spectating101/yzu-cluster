@@ -17,6 +17,7 @@ import { plainRoute } from "@/v2/plainText";
 import { datasetDownloadHref } from "@/v2/askDownloadLink";
 import { requestDeskSignIn } from "@/v2/deskPermissions";
 import { licensedRowsLocked } from "@/v2/licensedAccess";
+import { DataGlance } from "./DataGlance.jsx";
 
 export function decisionFor(dataset) {
   return canIUseDecision(dataset);
@@ -277,6 +278,8 @@ export function LibraryDatasetRailPanel({ dataset, catalog = [], previewOpen = f
       ) : null}
 
       <div className="rd-v2-rail-scroll rd-v2-library-inspector-scroll">
+        {previewOpen ? null : <DataGlance dataset={dataset} />}
+
         <DecisionBasis
           state={state}
           verification={verification}
