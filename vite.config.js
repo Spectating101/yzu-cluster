@@ -1,6 +1,5 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
@@ -45,7 +44,7 @@ const pagesBase = process.env.YZU_PAGES === "true" ? "/yzu-cluster/" : "/";
 
 export default defineConfig({
   base: pagesBase,
-  plugins: [react(), tailwindcss()],
+  plugins: [react()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./drive/src"),
