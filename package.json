@@ -16,8 +16,7 @@
     "check:layout": "node scripts/check-layout-authority.mjs",
     "serve:candidate": "python3 scripts/serve_candidate.py",
     "test:candidate-release": "bash scripts/candidate-release-gate.sh",
-    "desk:audit:deployed": "node scripts/audit_deployed_desk.mjs",
-    "desk:capture": "bash scripts/capture_desk_screenshots.sh"
+    "desk:audit:deployed": "node scripts/audit_deployed_desk.mjs"
   },
   "dependencies": {
     "@radix-ui/react-tooltip": "^1.2.10",

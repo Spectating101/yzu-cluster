@@ -8,6 +8,7 @@ const FIXTURE = readFileSync(
   "utf8",
 );
 
+test.skip(!process.env.YZU_LIVE_BACKEND, "needs a candidate build served against a live backend: npm run test:candidate-release");
 test.use({ viewport: { width: 1920, height: 961 } });
 
 test("new catalog reconciliation wins over a stale query-ready receipt everywhere", async ({ page }) => {

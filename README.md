@@ -16,7 +16,7 @@ what has been rejected and what is still open.
 | `drive/src/v2/styles/01..11-*.css` | Stylesheets, imported in order from `main.jsx` |
 | `drive/config/` | Demo catalogue, desk source list and Synthesis profiles bundled into the app |
 | `e2e/` | Playwright specs; `e2e/fixtures/v2MockApi.js` is the mocked desk API |
-| `scripts/` | Desk audits, the candidate proxy, the release gate and the CSS tools (`css-who`, `css-snap`, …) |
+| `scripts/` | Desk audits, the candidate proxy and release gate (`npm run test:candidate-release`), and the CSS tools (`css-who`, `css-snap`, …) |
 | `public/` | Static pages served beside the app (storage notice and privacy) |
 | `docs/` | The UI authority, the layout-geometry contract, the pilot protocol, findings; `docs/archive/` is history |
 
@@ -39,6 +39,9 @@ npm run test:python    # candidate proxy refuses writes by default
 ```
 
 `repo-check` runs the same gate from `.local-check` (`--tier fast` or `full`).
+Specs that need a real backend (`boot-recovery`, `history-reconciliation-truth`,
+`live-backend-readonly`) skip unless `YZU_LIVE_BACKEND=1`; `npm run test:candidate-release`
+builds, serves the build read-only against the live API and runs them.
 Generated screenshots and reports go to `artifacts/`, which is not tracked.
 
 ## Deploy

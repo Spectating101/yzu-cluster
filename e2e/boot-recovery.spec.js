@@ -13,14 +13,15 @@ import { expect, test } from "@playwright/test";
  *   python3 scripts/serve_candidate.py --port 8790 --dir <build>
  *   YZU_DESK_URL=http://127.0.0.1:8790 npm run test:boot-recovery
  */
+test.skip(!process.env.YZU_LIVE_BACKEND, "needs a candidate build served against a live backend: npm run test:candidate-release");
 test.use({ viewport: { width: 1920, height: 961 } });
 test.describe.configure({ mode: "serial" });
 
 // Absence of "Organizing" is also true before the surface has rendered at all,
-// so wait for the shelf count the estate actually publishes.
-const shelvesReady = (page) =>
+// so wait for the dataset count the estate actually publishes.
+const estateReady = (page) =>
   page.waitForFunction(
-    () => /\d+\s+(?:shel(?:f|ves)|collections?)/i.test((document.querySelector("main") || document.body).innerText || ""),
+    () => /\d+\s+(?:of\s+\d+\s+)?datasets?\b/i.test((document.querySelector("main") || document.body).innerText || ""),
     null,
     { timeout: 60_000 },
   );
@@ -30,12 +31,12 @@ test("the library estate does not wait on aggregate health", async ({ page }) =>
   await page.route("**/health*", () => {});
   const started = Date.now();
   await page.goto("/?tab=library");
-  await shelvesReady(page);
+  await estateReady(page);
   const elapsed = Date.now() - started;
   const shown = await page.evaluate(
     () => (document.querySelector("main") || document.body).innerText || "",
   );
-  expect(shown).toMatch(/\d+\s+(?:shel(?:f|ves)|collections?)/i);
+  expect(shown).toMatch(/\d+\s+(?:of\s+\d+\s+)?datasets?\b/i);
   expect(elapsed, `estate took ${elapsed}ms with health hung`).toBeLessThan(20_000);
 });
 
@@ -43,7 +44,7 @@ test("the library estate does not wait on the resources rollup", async ({ page }
   await page.route("**/library/desk/resources*", () => {});
   const started = Date.now();
   await page.goto("/?tab=library");
-  await shelvesReady(page);
+  await estateReady(page);
   expect(Date.now() - started).toBeLessThan(20_000);
 });
 

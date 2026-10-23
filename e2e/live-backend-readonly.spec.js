@@ -24,6 +24,7 @@ async function search(page, query) {
 }
 
 test.describe("candidate UI against the real backend", () => {
+  test.skip(!process.env.YZU_LIVE_BACKEND, "needs a candidate build served against a live backend: npm run test:candidate-release");
   test.use({ viewport: { width: 1920, height: 961 } });
 
   test("a live weak Library match continues into a specific external route", async ({ page }) => {

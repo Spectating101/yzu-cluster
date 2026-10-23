@@ -56,18 +56,17 @@ if [[ "${ready}" != "1" ]]; then
 fi
 
 echo "candidate-release: browser contract at ${candidate_url}"
-YZU_DESK_URL="${candidate_url}" npx playwright test \
+YZU_LIVE_BACKEND=1 YZU_DESK_URL="${candidate_url}" npx playwright test \
   e2e/app-mounts.spec.js \
   e2e/boot-recovery.spec.js \
   e2e/history-lifecycle-states.spec.js \
   e2e/history-reconciliation-truth.spec.js \
-  e2e/mobile-history-selection.spec.js \
   e2e/v2-surface-lifecycle.spec.js \
   e2e/synthesis-execution-states.spec.js \
   e2e/discover-weak-match.spec.js \
   e2e/live-backend-readonly.spec.js
 
-YZU_DESK_URL="${candidate_url}" npx playwright test \
+YZU_LIVE_BACKEND=1 YZU_DESK_URL="${candidate_url}" npx playwright test \
   e2e/v2-discover.spec.js \
   e2e/v2-library.spec.js \
   e2e/v2-synthesis.spec.js \

@@ -14,7 +14,7 @@ owner's agreement, before changing the UI.
 | Code | `drive/src/v2/` (`BrowsePage.jsx` = Discover, `SynthesisPage.jsx`, `App.jsx`), styles in `drive/src/v2/styles/01..11-*.css` |
 | Desks | `./scripts/desk status` in `Molina-Optiplex` is the authority. 8775 = preview (free to deploy), 8774 = rc3 public (`rc3.easycamp.tech`, deploy only when the owner says "promote"), 8765 = previous |
 | Deploy | `./scripts/desk build --ui <sha8> --backend <sha8> --for candidate-memory-next`, then `./scripts/desk deploy candidate-memory-next <release> --yes` |
-| Tests | `node --test drive/src/v2/*.test.js`; `npx playwright test` (four specs fail whenever `127.0.0.1:8765` is down: boot-recovery:28, history-reconciliation-truth:13, live-backend-readonly:29 and :44). Flaky under load: discover-lifecycle-screenshots:44, synthesis-authority-workflow:205, synthesis-revisit-evidence:123 — rerun alone |
+| Tests | `npm test` (unit); `npm run test:e2e` (mocked API; the three live-backend specs skip unless `YZU_LIVE_BACKEND=1`); `npm run test:candidate-release` runs them against the live API; `repo-check` is the local gate. Flaky under load: discover-lifecycle-screenshots:44, synthesis-authority-workflow:205, synthesis-revisit-evidence:123 — rerun alone |
 | Page budgets | `e2e/fixtures/page-budgets.json`, enforced by `e2e/page-budgets.spec.js`; limits only go down |
 
 ## 2. How to work (rules that exist because they were broken)

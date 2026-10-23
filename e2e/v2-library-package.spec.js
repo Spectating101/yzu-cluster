@@ -126,17 +126,4 @@ test.describe("Library research packages", () => {
     await assertContained(page);
     await page.screenshot({ path: "artifacts/library-package/package-review-768.png" });
   });
-
-  test("package review stays contained on phone geometry", async ({ page }) => {
-    test.skip(true, "mobile is not a target for the desk");
-    await page.setViewportSize({ width: 390, height: 844 });
-    await openLibrarySearch(page, "Asia");
-    await page.getByTestId("library-evidence-row").first().click();
-    await page.getByRole("button", { name: "Export with provenance" }).click();
-    const panel = page.getByTestId("library-package-panel");
-    await expect(panel).toBeVisible();
-    await expect(panel.getByRole("button", { name: "Prepare package" })).toBeVisible();
-    await assertContained(page);
-    await page.screenshot({ path: "artifacts/library-package/package-review-390.png" });
-  });
 });
