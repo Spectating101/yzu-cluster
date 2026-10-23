@@ -4,7 +4,7 @@ import { mockV2Api, waitForShell, searchDiscover } from "./fixtures/v2MockApi.js
 import path from "node:path";
 import fs from "node:fs";
 
-const OUT = "docs/screenshots-review/discover-sufficiency";
+const OUT = "artifacts/screenshots-review/discover-sufficiency";
 fs.mkdirSync(OUT, { recursive: true });
 
 const LAB_READY = {

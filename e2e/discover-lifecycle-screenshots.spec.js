@@ -4,7 +4,7 @@ import { MOCK_DISCOVER_HIT, mockV2Api, waitForShell, searchDiscover } from "./fi
 import path from "node:path";
 import fs from "node:fs";
 
-const OUT = "docs/screenshots-review/discover-lifecycle";
+const OUT = "artifacts/screenshots-review/discover-lifecycle";
 fs.mkdirSync(OUT, { recursive: true });
 // This fixture's source identity is explicit and must bind exactly; no title matching.
 const KEY = "dataset:mops_financial_statements_ext";

@@ -6,8 +6,8 @@
  *   npm run test:professor-demo
  *
  * Outputs (for ChatGPT / advisor review):
- *   docs/status/generated/professor_demo_report.json
- *   docs/status/generated/professor_demo_report.md
+ *   artifacts/generated/professor_demo_report.json
+ *   artifacts/generated/professor_demo_report.md
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -22,8 +22,8 @@ const KNOWN_DATASET = process.env.DEMO_KNOWN_DATASET || "gdelt_asia_daily_countr
 const KNOWN_DATASET_FOLDER = process.env.DEMO_KNOWN_DATASET_FOLDER || "news_events/news.gdelt-asia";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const OUT_JSON = path.join(ROOT, "docs/status/generated/professor_demo_report.json");
-const OUT_MD = path.join(ROOT, "docs/status/generated/professor_demo_report.md");
+const OUT_JSON = path.join(ROOT, "artifacts/generated/professor_demo_report.json");
+const OUT_MD = path.join(ROOT, "artifacts/generated/professor_demo_report.md");
 
 let apiLive = false;
 let datasetCount = 0;
@@ -408,7 +408,7 @@ test.afterAll(async () => {
   lines.push("");
   lines.push("```text");
   lines.push("Review this professor procurement demo evidence for Research Drive v2.");
-  lines.push("Repo: Spectating101/yzu-cluster · Screenshots: docs/screenshots-review/");
+  lines.push("Repo: Spectating101/yzu-cluster · Screenshots: artifacts/screenshots-review/");
   lines.push("Judge whether the workflow is credible end-to-end:");
   lines.push("search missing data → Library check → Discover probe → Resources safety → queue procurement → find registered result.");
   lines.push("```");

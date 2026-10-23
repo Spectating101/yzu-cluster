@@ -12,7 +12,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { MOCK_DISCOVER_HIT, mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 
-const OUT = path.resolve("docs/status/generated/visual-closure-2026-07-30");
+const OUT = path.resolve("artifacts/generated/visual-closure-2026-07-30");
 const DESKTOP = { width: 1440, height: 900 };
 const MOBILE = { width: 390, height: 844 };
 

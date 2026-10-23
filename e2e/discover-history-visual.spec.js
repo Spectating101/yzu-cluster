@@ -3,7 +3,7 @@ import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 import path from "node:path";
 import fs from "node:fs";
 
-const OUT = "docs/screenshots-review/discover-history";
+const OUT = "artifacts/screenshots-review/discover-history";
 fs.mkdirSync(OUT, { recursive: true });
 
 const HISTORY = {

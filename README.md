@@ -1,121 +1,54 @@
-# YZU Cluster — Research Drive
+# Research Drive — desk UI
 
-Public GitHub home for the **YZU Research Drive** product: researcher-facing UI, design canon, visual-review evidence, interoperability contracts, and a dependency-free executable reference runtime.
+The frontend of Research Drive, the YZU research-evidence procurement and Library
+workbench. The backend, its HTTP API and the dataset registry live in
+`Spectating101/research-drive-private`.
 
-This repository is **not the deployed lab control plane**. The production API, MCP, orchestrator, workers, scrapers, registry writes, host configuration, and `data_lake/` live in the private repository `Spectating101/research-drive-private`.
+Read [`docs/RESEARCH_DRIVE_UI.md`](docs/RESEARCH_DRIVE_UI.md) before any UI work. It is
+the only UI authority: where the code and desks are, how to work, each page's job,
+what has been rejected and what is still open.
 
-Public and private are not fake versus real:
+## Layout
 
-- **Public** publishes the interface and executable behavioral contract.
-- **Private** adopts that contract inside the real Research Drive control plane.
-- **Live hosts** prove the private implementation on Optiplex, Windows workers, and GDrive.
-
-Read [`docs/RESEARCH_DRIVE_UI.md`](docs/RESEARCH_DRIVE_UI.md) before any UI work: it is the only UI authority and says where the current branch, desks and deploy path are.
-
-## What this is
-
-| Promise | What professors get |
-|---------|---------------------|
-| **Organized lab data** | Library catalog mapped to vault partitions |
-| **Procurement assistant** | Composer + MCP — search, query, collect, register |
-| **Research-asset construction** | Synthesis turns research intent into validated, reusable assets |
-
-**Not** alpha trading and not SolarPunk — those are separate products.
-
-## Public authorities
-
-| Path | Role |
+| Path | What |
 |---|---|
-| `drive/src/v2/` | Research Drive interface |
-| `e2e/` | Browser and rendered-state contracts |
-| `docs/product/` | Public product and interoperability contracts |
-| `scripts/yzu_cluster/` | Executable dependency-free reference runtime |
-| `tests/test_yzu_interop_*.py` | Reference runtime behavioral tests |
+| `drive/src/v2/` | The app: `main.jsx` entry, `App.jsx` shell, one `*Page.jsx` per destination, pure helpers with `*.test.js` beside them |
+| `drive/src/v2/styles/01..11-*.css` | Stylesheets, imported in order from `main.jsx` |
+| `drive/config/` | Demo catalogue, desk source list and Synthesis profiles bundled into the app |
+| `e2e/` | Playwright specs; `e2e/fixtures/v2MockApi.js` is the mocked desk API |
+| `scripts/` | Desk audits, the candidate proxy, the release gate and the CSS tools (`css-who`, `css-snap`, …) |
+| `public/` | Static pages served beside the app (storage notice and privacy) |
+| `docs/` | The UI authority, the layout-geometry contract, the pilot protocol, findings; `docs/archive/` is history |
 
-The public reference runtime is intentionally framework-neutral. It does not contain the private host, archive, credential, or production-data environment.
-
-## Live surfaces
-
-| Surface | URL |
-|---------|-----|
-| **GitHub Pages** — static UI + demo seed | https://spectating101.github.io/yzu-cluster/ |
-| **Full desk** — private API + chat + workers | Run from the private Research Drive checkout |
-
-Static Pages shows the v2 shell and offline/demo data. Composer chat and live registry require the private API.
-
-## RC2 accepted release
-
-Research Drive RC2 is live-accepted with the implementation pins below:
-
-| Surface | Accepted SHA |
-|---|---|
-| Public product | `b40ff0945f5e1957f0100742185e2a78b06dd498` |
-| Private runtime | `07cb7b885454aef32f3e2351da8733794fe9c17b` |
-
-The release truth anchor is `procured_src_b0a7ba3817a5`: it is **Registered**, queryable through the accepted runtime authority, and deliberately **not** represented as Query ready.
-
-- [RC2 release notes](docs/releases/RESEARCH_DRIVE_RC2.md)
-- [RC2 operator quickstart](docs/releases/RC2_OPERATOR_QUICKSTART.md)
-- [Machine-readable RC2 manifest](release/research-drive-rc2.json)
-
-Run the independent clean-checkout release gate locally:
+## Run
 
 ```bash
 npm ci
-npx playwright install chromium --with-deps
-npm run release:verify
-npm run release:test
-npm run release:package
+npm run dev            # Vite on 127.0.0.1:5178, API proxied to YZU_API_URL (default 127.0.0.1:8765)
 ```
 
-## Run locally
-
-### Frontend and public fixtures
+## Check
 
 ```bash
-npm install
-npm run dev
-# proxy → :8765 when a private API is available
+npm test               # unit tests (node --test)
+npm run test:mount     # every destination mounts without an uncaught error
+npm run test:e2e       # full Playwright suite against the mocked API
+npm run check:names    # undefined JSX/JS identifiers (vite does not catch these)
+npm run check:layout   # stylesheet order and page-scroll rules
+npm run test:python    # candidate proxy refuses writes by default
 ```
 
-### Full desk
+`repo-check` runs the same gate from `.local-check` (`--tier fast` or `full`).
+Generated screenshots and reports go to `artifacts/`, which is not tracked.
 
-From the private `research-drive-private`/Sharpe-Renaissance checkout:
+## Deploy
+
+Desks are built from commits with the desk CLI in `Molina-Optiplex`:
 
 ```bash
-bash drive/scripts/run_yzu_cluster.sh
-# UI → http://127.0.0.1:5178
-# API → http://127.0.0.1:8765
+./scripts/desk status
+./scripts/desk build --ui <sha8> --backend <sha8> --for candidate-memory-next
+./scripts/desk deploy candidate-memory-next <release> --yes
 ```
 
-Do not infer that a Python facade in this public history is the deployed backend. A public module that imports absent private packages is transitional and not a runnable authority.
-
-## Validation
-
-```bash
-npm run build
-npm run test:runtime-contract
-python -m unittest discover -s tests -p "test_yzu_interop_*.py" -v
-npm run release:verify
-npm run release:test
-```
-
-Rendered review uses the Playwright suites under `e2e/` and, when the private desk is available, the live integration capture scripts.
-
-`npm run release:package` creates a deterministic public static distribution, file inventory, and SHA-256 checksums under `artifacts/`. It never packages the private control plane, secrets, registry data, or collected datasets.
-
-## Canon docs
-
-- [`docs/RESEARCH_DRIVE_UI.md`](docs/RESEARCH_DRIVE_UI.md) — the only UI authority (where things are, how to work, pages, rejected patterns, open questions)
-- [`docs/product/CLUSTER_RUNTIME_INTEROP_CONTRACT.md`](docs/product/CLUSTER_RUNTIME_INTEROP_CONTRACT.md) — public/private runtime contract
-- [`docs/archive/ui-2026/`](docs/archive/ui-2026/) — earlier authorities and freezes, history only
-
-## Publishing discipline
-
-The public repository may receive UI, public docs, fixtures, screenshots, E2E coverage, and reference-contract code. It must not receive credentials, host inventory, databases, local datasets, GDrive configuration, or the production control plane.
-
-Historical and superseded PR branches remain available for archaeology, but only one cumulative public release PR should remain active.
-
-## Share line
-
-> Research Drive is a lab data desk for YZU: organized vault catalog, live query registry, and a Composer-backed procurement loop — search what we have, collect what we don't, construct defensible research assets, and register them for next time.
+8775 is the preview desk. rc3 (8774) changes only when the owner says "promote".

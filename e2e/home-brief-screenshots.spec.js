@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 
-const OUT = "docs/screenshots-review/home-brief";
+const OUT = "artifacts/screenshots-review/home-brief";
 
 async function setup(page, viewport) {
   await page.setViewportSize(viewport);

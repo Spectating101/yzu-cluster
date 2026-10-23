@@ -8,7 +8,7 @@ import { fileURLToPath } from "url";
 import { mockV2Api } from "./fixtures/v2MockApi.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const OUT = path.resolve(__dirname, "../docs/status/generated/profile-freeze-showcase.png");
+const OUT = path.resolve(__dirname, "../artifacts/generated/profile-freeze-showcase.png");
 
 const PROFILE = {
   found: true,

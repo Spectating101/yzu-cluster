@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import { mockV2Api, waitForShell } from "./fixtures/v2MockApi.js";
 
-const OUT = "docs/screenshots-review/library-estate";
+const OUT = "artifacts/screenshots-review/library-estate";
 
 const ESTATE_DATASETS = {
   datasets: [

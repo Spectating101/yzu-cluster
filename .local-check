@@ -1,0 +1,7 @@
+# Local gate for the Research Drive desk UI (GitHub Actions is billing-blocked). Run: repo-check [--tier fast|full]
+# format: name | fast|full | command
+names | fast | npm run -s check:names
+unit | fast | node --test drive/src/v2/*.test.js drive/tests/*.test.mjs
+layout | fast | npm run -s check:layout
+proxy-safety | full | uvx pytest -q tests
+mount-and-budgets | full | mkdir -p .tmp-pw && TMPDIR=$PWD/.tmp-pw YZU_DESK_URL=http://127.0.0.1:5192 YZU_DESK_PORT=5192 npx playwright test e2e/app-mounts.spec.js e2e/page-budgets.spec.js

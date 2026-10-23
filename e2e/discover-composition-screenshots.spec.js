@@ -7,7 +7,7 @@ import { MOCK_DISCOVER_HIT, mockV2Api, waitForShell, searchDiscover } from "./fi
 import path from "node:path";
 import fs from "node:fs";
 
-const OUT = "docs/screenshots-review/discover-composition";
+const OUT = "artifacts/screenshots-review/discover-composition";
 fs.mkdirSync(OUT, { recursive: true });
 
 async function shot(page, label) {

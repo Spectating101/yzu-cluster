@@ -18,7 +18,7 @@ any desk serves. Check what a desk serves with `./scripts/desk status` in
 ## If you are a hosted agent without the desk
 
 You have the repo only: no desk API, no session token, no datasets. The unit suite
-(`node --test drive/src/v2/*.test.js`) is your feedback loop; Playwright specs that
+(`npm test`) is your feedback loop; Playwright specs that
 talk to the desk are host-only. Do not report UI behaviour as verified when only
 the unit suite ran.
 
@@ -26,5 +26,5 @@ the unit suite ran.
 
 1. Never push to `main`, never force-push, never run a release or promote script.
 2. Commit only files you changed; checkouts can carry unrelated dirty files.
-3. `dist/` and `releases/` are build output — never commit them.
+3. `dist/`, `releases/` and `artifacts/` are build or test output — never commit them.
 4. Follow the existing test style in a file.

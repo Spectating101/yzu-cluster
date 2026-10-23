@@ -19,16 +19,14 @@ const ROOT = fs.existsSync(path.join(__dirname, "..", "drive", "src", "v2", "mai
   : fs.existsSync(path.join(__dirname, "..", "..", "drive", "src", "v2", "main.jsx"))
     ? path.resolve(__dirname, "../..")
     : path.resolve(__dirname, "..");
-const OUT_DIR = path.join(ROOT, "docs", "screenshots-review");
-const ZIP_PATH = path.join(ROOT, "research-drive-screenshots.zip");
-const PACKET_ZIP_PATH = path.join(ROOT, "research-drive-chatgpt-packet.zip");
+const OUT_DIR = path.join(ROOT, "artifacts", "screenshots-review");
+const ZIP_PATH = path.join(ROOT, "artifacts", "research-drive-screenshots.zip");
+const PACKET_ZIP_PATH = path.join(ROOT, "artifacts", "research-drive-chatgpt-packet.zip");
 
 const PACKET_DOCS = [
-  "docs/DISCOVER_ACQUISITION.md",
-  "docs/status/generated/CHATGPT_REVIEW_PACKET.md",
-  "docs/status/generated/professor_demo_report.md",
-  "docs/status/generated/professor_demo_report.json",
-  "docs/PROFESSOR_DEMO_SCRIPT.md",
+  "artifacts/generated/CHATGPT_REVIEW_PACKET.md",
+  "artifacts/generated/professor_demo_report.md",
+  "artifacts/generated/professor_demo_report.json",
 ];
 
 const BASE_URL = (process.env.YZU_DESK_URL || "http://127.0.0.1:5179").replace(/\/$/, "");
@@ -556,14 +554,14 @@ function buildPacketZips(manifest) {
     if (fs.existsSync(target)) fs.unlinkSync(target);
   }
 
-  const zipArgs = ["-r", ZIP_PATH, "docs/screenshots-review"];
+  const zipArgs = ["-r", ZIP_PATH, "artifacts/screenshots-review"];
   const zip = spawnSync("zip", zipArgs, { cwd: ROOT, encoding: "utf8" });
   if (zip.status !== 0) {
     console.error(zip.stderr || zip.stdout);
     process.exit(1);
   }
 
-  const packetEntries = ["docs/screenshots-review", ...PACKET_DOCS.filter((rel) => fs.existsSync(path.join(ROOT, rel)))];
+  const packetEntries = ["artifacts/screenshots-review", ...PACKET_DOCS.filter((rel) => fs.existsSync(path.join(ROOT, rel)))];
   const packetZip = spawnSync("zip", ["-r", PACKET_ZIP_PATH, ...packetEntries], {
     cwd: ROOT,
     encoding: "utf8",
@@ -582,15 +580,15 @@ async function main() {
     captured_at: new Date().toISOString(),
     base_url: BASE_URL,
     github_repo: "Spectating101/yzu-cluster",
-    github_screenshots_path: "docs/screenshots-review/",
+    github_screenshots_path: "artifacts/screenshots-review/",
     git_head: "pending",
     viewports: VIEWPORTS,
     routes: ROUTES.map((r) => ({ slug: r.slug, path: r.path, label: r.label })),
     files: [],
     require_live: process.env.YZU_REQUIRE_LIVE === "1",
     notes: [
-      "Screenshots committed under docs/screenshots-review/ for ChatGPT + GitHub connector review.",
-      "Zip at repo root: research-drive-screenshots.zip (screenshots only)",
+      "Screenshots written to artifacts/screenshots-review/ (untracked).",
+      "Zip: artifacts/research-drive-screenshots.zip (screenshots only)",
       "Full ChatGPT packet: research-drive-chatgpt-packet.zip (screenshots + markdown evidence)",
       "Set YZU_REQUIRE_LIVE=1 to fail capture unless header shows Live registry (API on :8765).",
     ],

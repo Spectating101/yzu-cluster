@@ -12,7 +12,7 @@ import {
 import path from "node:path";
 import fs from "node:fs";
 
-const OUT = "docs/screenshots-review/discover-d0";
+const OUT = "artifacts/screenshots-review/discover-d0";
 fs.mkdirSync(OUT, { recursive: true });
 
 async function shot(page, label) {

@@ -7,7 +7,7 @@ import {
   waitForShell,
 } from "./fixtures/v2MockApi.js";
 
-const OUT = path.resolve("docs/status/generated/discover-freeze-2026-07-28");
+const OUT = path.resolve("artifacts/generated/discover-freeze-2026-07-28");
 const QUESTION = "What data can I use to study stablecoin de-pegs?";
 const GROUNDED_REPLY =
   "Use dated de-peg events as the spine, then join daily exchange-level price and volume. "

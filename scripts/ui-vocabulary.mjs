@@ -106,7 +106,7 @@ const entries = [...inventory.values()].sort((a, b) =>
 const rows = entries.map(entry => [
   entry.term, entry.kind, entry.count, [...entry.files].sort().slice(0, 3).join(' | '),
 ].map(csv).join(','));
-const output = path.join(root, 'docs/status/generated/ui-vocabulary.csv');
+const output = path.join(root, 'artifacts/generated/ui-vocabulary.csv');
 await mkdir(path.dirname(output), { recursive: true });
 await writeFile(output, ['term,kind,count,files', ...rows].join('\n') + '\n');
 console.log(`Total unique terms: ${new Set(entries.map(entry => entry.term)).size}`);

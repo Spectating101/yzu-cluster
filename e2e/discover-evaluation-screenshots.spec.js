@@ -7,7 +7,7 @@ import { mockV2Api, waitForShell, searchDiscover } from "./fixtures/v2MockApi.js
 import path from "node:path";
 import fs from "node:fs";
 
-const OUT = "docs/screenshots-review/discover-evaluation";
+const OUT = "artifacts/screenshots-review/discover-evaluation";
 fs.mkdirSync(OUT, { recursive: true });
 
 async function shot(page, label) {
