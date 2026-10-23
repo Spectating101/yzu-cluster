@@ -476,7 +476,7 @@ export function DiscoverEvidenceBrief({
             </span>
             {onClose ? <button type="button" className="rd-v2-evidence-close" onClick={onClose}>Hide assessment</button> : null}
           </header>
-          <p className="rd-v2-evidence-because">{because}</p>
+          {variant === "workspace" ? null : <p className="rd-v2-evidence-because">{because}</p>}
           {assistantUnavailable ? (
             <button
               type="button"
@@ -507,24 +507,22 @@ export function DiscoverEvidenceBrief({
               {needs.length ? (
                 <ul>
                   {needs.map((row) => (
-                    <li key={row.key} className={`is-${row.tone}`} data-state={row.state}>
+                    <li key={row.key} className={`is-${row.tone}`} data-state={row.state} title={`${row.label}: ${row.note}`}>
                       <b aria-hidden="true">{row.mark}</b>
                       <strong>{row.value}</strong>
-                      <span>{row.label.toLowerCase()} · {row.note}</span>
+                      <span>{row.label.split(" / ")[0].toLowerCase()}</span>
+                      <em className="rd-v2-visually-hidden">{row.note}</em>
                     </li>
                   ))}
                 </ul>
               ) : null}
-              {needs.length ? <p className="rd-v2-needs-basis">{needBasis(assessment)}</p> : null}
               {assistantUnavailable ? (
                 <p>The research assistant did not answer. The results below are still usable.</p>
               ) : briefNeeded ? (
                 <p>Say what the data must cover (period, frequency or instruments) and the Library is checked against it.</p>
               ) : assessment.gap ? (
                 <p className="rd-v2-needs-gap"><strong>Gap</strong>{text(assessment.gap.statement, "Gap recorded")}</p>
-              ) : (
-                <p className="rd-v2-needs-gap"><strong>Gap</strong>None reported for what you asked.</p>
-              )}
+              ) : null}
               {assessment.gap && !assistantUnavailable && !briefNeeded ? (
                 <p className="rd-v2-needs-next">
                   <strong>Next</strong>
@@ -533,7 +531,7 @@ export function DiscoverEvidenceBrief({
                     : routeError
                       ? "Not established. The documented-source check failed, so the gap remains unresolved."
                       : routeRows.length
-                      ? `${routeRows.length} documented source${routeRows.length === 1 ? "" : "s"} could fill it. Review the collection strategy to choose one.`
+                      ? `${routeRows.length} documented source${routeRows.length === 1 ? "" : "s"} could fill it.`
                       : "No documented source yet. Search wider, or describe the data in Ask."}
                 </p>
               ) : null}
@@ -545,13 +543,19 @@ export function DiscoverEvidenceBrief({
             open={variant === "workspace" ? undefined : true}
           >
             <summary>
-              <span>Assessment details</span>
+              <span>Details</span>
               <em>
                 {briefNeeded ? `${libraryMatchCount} Library matches` : `${heldEvidence.length} checked`} · {briefNeeded ? "brief needed" : assessment.gap ? "1 gap" : "no gap"} · {routeLoading
                   ? "checking routes"
                   : `${routeRows.length} documented route${routeRows.length === 1 ? "" : "s"}`}
               </em>
             </summary>
+          {variant === "workspace" ? (
+            <div className="rd-v2-evidence-workspace-why">
+              <p>{because}</p>
+              {needs.length ? <p className="muted">{needBasis(assessment)}</p> : null}
+            </div>
+          ) : null}
           {(variant === "layered" || variant === "workspace") ? (
             <details className="rd-v2-evidence-edit">
               <summary>
