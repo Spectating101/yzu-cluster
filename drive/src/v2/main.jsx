@@ -1,4 +1,5 @@
 import { createRoot } from "react-dom/client";
+import "./styles/00-tokens.css";
 import "./styles/01-foundation.css";
 import "./styles/02-components.css";
 import "./styles/03-discover-workspace.css";

@@ -33,9 +33,9 @@
 .rd-access-screen .rd-v2-access-lockup { margin-bottom: var(--rd-space-5); }
 .rd-access-screen h1 { margin: 0 0 var(--rd-space-2); color: var(--rd-text); font-size: 26px; font-weight: 700; line-height: 1.15; letter-spacing: -0.01em; }
 .rd-access-screen .rd-access-lead { margin: 0 0 var(--rd-space-4); color: var(--rd-muted); font-size: var(--rd-text-sm); line-height: 1.55; }
-.rd-access-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: var(--rd-space-1); margin: 0 0 var(--rd-space-5); padding: var(--rd-space-1); border: 1px solid #e2ddd2; border-radius: 10px; background: #f4f1e8; }
+.rd-access-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: var(--rd-space-1); margin: 0 0 var(--rd-space-5); padding: var(--rd-space-1); border: 1px solid color-mix(in srgb, var(--rd-c-canvas) 94%, var(--rd-c-ink)); border-radius: 10px; background: var(--rd-c-canvas); }
 .rd-access-tabs button { min-height: 34px; border: 0; border-radius: 7px; background: transparent; color: var(--rd-muted); font: inherit; font-size: var(--rd-text-sm); font-weight: 600; cursor: pointer; }
-.rd-access-tabs button[aria-selected="true"] { background: #fffdf6; color: var(--rd-text); box-shadow: 0 1px 3px rgba(16, 24, 32, 0.12); }
+.rd-access-tabs button[aria-selected="true"] { background: var(--rd-c-paper); color: var(--rd-text); box-shadow: 0 1px 3px rgba(16, 24, 32, 0.12); }
 .rd-access-form { display: grid; gap: var(--rd-space-3); }
 .rd-access-form label { display: grid; gap: var(--rd-space-2); color: var(--rd-body); font-size: var(--rd-text-xs); font-weight: 600; }
 .rd-access-form .rd-v2-input { width: 100%; min-height: 40px; font-size: var(--rd-text-sm); }

@@ -22,7 +22,7 @@
 .rd-v2-discover-page .rd-v2-discover-idle .rd-v2-discover-composer textarea {
   resize: none;
   border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 82%, #7389a0 18%);
-  background: #ffffff;
+  background: var(--rd-c-on-ink);
   color: var(--rd-text, #182033);
   line-height: 1.45;
 }
@@ -114,7 +114,7 @@
   padding: 0 var(--rd-space-3);
   border: 1px solid var(--rd-border, #dbd4c5);
   border-radius: 6px;
-  background: rgba(255,255,255,.48);
+  background: color-mix(in srgb, var(--rd-c-on-ink) 48%, transparent);
 }
 
 .rd-v2-discover-page .rd-v2-discover-idle-intake button {
@@ -144,7 +144,7 @@
   padding: var(--rd-space-3) var(--rd-space-3);
   border-radius: 7px;
   border: 1px solid var(--rd-border, #dbd4c5);
-  background: #ffffff;
+  background: var(--rd-c-on-ink);
   color: var(--rd-text, #182033);
   font-size: var(--rd-text-sm);
 }
@@ -180,9 +180,9 @@
   align-items: center;
   height: 30px;
   padding: 0 var(--rd-space-3);
-  border: 1px solid rgb(219, 212, 197);
+  border: 1px solid var(--rd-c-line);
   border-radius: 8px;
-  background: rgb(255, 253, 246);
+  background: var(--rd-c-paper);
   color: var(--rd-body);
   font: inherit;
   font-size: var(--rd-text-xs);
@@ -248,7 +248,7 @@
   padding: var(--rd-space-3);
   border-radius: 10px;
   border: 1px solid var(--rd-border2, #d2ccc0);
-  background: #ffffff;
+  background: var(--rd-c-on-ink);
   box-shadow: 0 18px 50px rgba(16, 24, 32, 0.12);
 }
 
@@ -292,16 +292,16 @@
 .rd-v2-discover-page .rd-v2-discover-result-actions button {
   min-height: 30px;
   padding: 0 var(--rd-space-3);
-  border: 1px solid rgba(255,255,255,.24);
+  border: 1px solid color-mix(in srgb, var(--rd-c-on-ink) 24%, transparent);
   border-radius: 6px;
   font-size: var(--rd-text-2xs);
   font-weight: 700;
 }
 
 .rd-v2-discover-page .rd-v2-discover-result-actions .is-ready {
-  border-color: #3f6f5c;
-  background: #3f6f5c;
-  color: #fff;
+  border-color: var(--rd-c-link);
+  background: var(--rd-c-link);
+  color: var(--rd-c-on-ink);
 }
 
 /* ── Evidence rows: scan like an instrument, not a generic card list ───── */
@@ -343,13 +343,13 @@
 }
 
 .rd-v2-discover-page .rd-v2-discover-candidates > li:hover {
-  background: #ffffff;
+  background: var(--rd-c-on-ink);
 }
 
 .rd-v2-discover-page .rd-v2-discover-candidates > li.rd-v2-row-on {
-  border-color: #9db4a8;
+  border-color: color-mix(in srgb, var(--rd-c-link) 52%, var(--rd-c-surface));
   box-shadow: inset 3px 0 0 #4b7766;
-  background: #ffffff;
+  background: var(--rd-c-on-ink);
 }
 
 .rd-v2-discover-page .rd-v2-discover-candidate {
@@ -446,7 +446,7 @@
 .rd-v2-discover-page .rd-v2-discover-sufficiency {
   width: fit-content;
   padding-left: var(--rd-space-2);
-  border-left: 2px solid #aebfb6;
+  border-left: 2px solid color-mix(in srgb, var(--rd-c-link) 44%, var(--rd-c-surface));
   color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
   font-weight: 600;
@@ -811,7 +811,7 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose b {
 .rd-v2-discover-page .rd-v2-discover-result-actions {
   min-height: 46px;
   padding: var(--rd-space-2) var(--rd-space-3);
-  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 82%, #91a6a0 18%);
+  border: 1px solid color-mix(in srgb, var(--rd-border, #dbd4c5) 82%, color-mix(in srgb, var(--rd-c-link) 58%, var(--rd-c-surface)) 18%);
   border-radius: 6px;
   background: color-mix(in srgb, var(--rd-active-bg, #eef1ee) 58%, var(--rd-surface, #fffdf6));
   color: var(--rd-text, #182033);
@@ -849,7 +849,7 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose b {
 
 .rd-v2-discover-page .rd-v2-discover-result-actions button {
   border-color: var(--rd-border2, #d2ccc0);
-  background: #ffffff;
+  background: var(--rd-c-on-ink);
   color: var(--rd-text, #182033);
 }
 
@@ -1041,11 +1041,11 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
 }
 
 .rd-v2-discover-ranked-results .rd-v2-discover-candidates > li:hover {
-  background: color-mix(in srgb, #eef1ee 44%, transparent);
+  background: color-mix(in srgb, var(--rd-c-mist) 44%, transparent);
 }
 
 .rd-v2-discover-ranked-results .rd-v2-row-on {
-  background: color-mix(in srgb, #eef1ee 56%, transparent);
+  background: color-mix(in srgb, var(--rd-c-mist) 56%, transparent);
 }
 .rd-v2-discover-ranked-results .rd-v2-discover-sufficiency { margin-top: 1px; }
 
@@ -1650,7 +1650,7 @@ body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(
   padding: var(--rd-space-3);
   border: 1px solid var(--rd-border);
   border-radius: var(--rd-radius);
-  background: #fff;
+  background: var(--rd-c-on-ink);
   text-align: left;
   cursor: pointer;
 }
@@ -1706,7 +1706,7 @@ body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(
   flex-direction: column;
   border: 1px solid var(--rd-border);
   border-radius: var(--rd-radius);
-  background: #fff;
+  background: var(--rd-c-on-ink);
 }
 .rd-v2-discover-page .rd-v2-discover-start-cards > li:hover,
 .rd-v2-discover-page .rd-v2-discover-start-cards > li:has(.selected) { border-color: var(--rd-link); }

@@ -4,7 +4,7 @@
 
 .yzu-sidebar .s04-threads--sidebar .s04-thread-new.is-active {
   border-color: rgba(207, 232, 216, .62);
-  background: rgba(238, 241, 238, 0.17);
+  background: color-mix(in srgb, var(--rd-c-mist) 17%, transparent);
   color: #f0fdf4;
   box-shadow: inset 0 0 0 1px rgba(238, 241, 238, 0.05);
 }
@@ -38,9 +38,9 @@ body:has(.rd-v2-synthesis-page [data-testid="synthesis-execution-state"] .s04-ex
 .s04-draft-rail-brief {
   margin: 0 0 var(--rd-space-3);
   padding: var(--rd-space-3);
-  border: 1px solid #e2ddd2;
+  border: 1px solid color-mix(in srgb, var(--rd-c-canvas) 94%, var(--rd-c-ink));
   border-radius: 9px;
-  background: rgba(255, 253, 246, 0.58);
+  background: color-mix(in srgb, var(--rd-c-paper) 58%, transparent);
 }
 
 .s04-draft-rail-brief > header {
@@ -89,7 +89,7 @@ body:has(.rd-v2-synthesis-page [data-testid="synthesis-execution-state"] .s04-ex
   gap: var(--rd-space-2);
   align-items: start;
   padding-top: var(--rd-space-1);
-  border-top: 1px solid #eeeae0;
+  border-top: 1px solid var(--rd-c-canvas);
 }
 
 .s04-draft-rail-brief li > b {
@@ -98,13 +98,13 @@ body:has(.rd-v2-synthesis-page [data-testid="synthesis-execution-state"] .s04-ex
   width: 17px;
   height: 17px;
   border-radius: 999px;
-  background: #eef1ee;
-  color: #9aa0a6;
+  background: var(--rd-c-mist);
+  color: color-mix(in srgb, var(--rd-c-ink) 41%, var(--rd-c-surface));
   font-size: var(--rd-text-2xs);
 }
 
 .s04-draft-rail-brief li.is-ready > b {
-  background: #e2eee6;
+  background: color-mix(in srgb, var(--rd-c-link) 17%, var(--rd-c-surface));
   color: var(--rd-link);
 }
 
@@ -158,7 +158,7 @@ body:has(.rd-v2-synthesis-page [data-testid="synthesis-execution-state"] .s04-ex
     [data-testid="synthesis-unit-conflict"],
     [data-testid="synthesis-join-decision"]
   ) {
-    border-color: #d2ccc0;
+    border-color: color-mix(in srgb, var(--rd-c-canvas) 86%, var(--rd-c-ink));
     box-shadow: 0 9px 24px rgba(36, 52, 58, 0.055), 0 1px 2px rgba(36, 52, 58, 0.04);
   }
 
@@ -169,7 +169,7 @@ body:has(.rd-v2-synthesis-page [data-testid="synthesis-execution-state"] .s04-ex
     .s04-opening-brief,
     .s04-brief
   ) {
-    border-color: #e2ddd2;
+    border-color: color-mix(in srgb, var(--rd-c-canvas) 94%, var(--rd-c-ink));
     box-shadow: none;
   }
 
@@ -256,7 +256,7 @@ body:has(.rd-v2-synthesis-page [data-testid="synthesis-execution-state"] .s04-ex
 .rd-v2-situation {
   padding: var(--rd-space-3) var(--rd-space-3) 0;
   border-bottom: 1px solid var(--rd-border);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 253, 246, 0.9));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--rd-c-on-ink) 98%, transparent), color-mix(in srgb, var(--rd-c-paper) 90%, transparent));
 }
 
 .rd-v2-situation-topline {
@@ -347,7 +347,7 @@ body:has(.rd-v2-synthesis-page [data-testid="synthesis-execution-state"] .s04-ex
   padding: 3px;
   border: 1px solid var(--rd-border);
   border-radius: 10px;
-  background: rgba(238, 241, 238, 0.72);
+  background: color-mix(in srgb, var(--rd-c-mist) 72%, transparent);
 }
 
 .rd-v2-situation-tabs button {

@@ -1,0 +1,25 @@
+:root {
+  --rd-c-text: #182033;
+  --rd-c-text-2: #3e4759;
+  --rd-c-text-3: #5d6574;
+  --rd-c-text-4: #94a3b8;
+  --rd-c-ink: #101820;
+  --rd-c-on-ink: #ffffff;
+  --rd-c-link: #3f6f5c;
+  --rd-c-blue: #2f5ea8;
+  --rd-c-steel: #5f7fa8;
+  --rd-c-warn: #8a5808;
+  --rd-c-amber: #d4a017;
+  --rd-c-danger: #a33b2d;
+  --rd-c-surface: #ffffff;
+  --rd-c-paper: #fffdf6;
+  --rd-c-canvas: #eeeae0;
+  --rd-c-mist: #eef1ee;
+  --rd-c-slate-soft: #e8ebf1;
+  --rd-c-warn-soft: #fffbeb;
+  --rd-c-danger-soft: #fef2f2;
+  --rd-c-line: #dbd4c5;
+  --rd-c-line-cool: #e8ebf1;
+  --rd-c-line-strong: #c5d2cb;
+  --rd-c-line-ink: #2a3a52;
+}

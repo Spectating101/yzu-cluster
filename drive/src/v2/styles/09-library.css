@@ -21,7 +21,7 @@
   gap: var(--rd-space-3);
   padding: var(--rd-space-2) var(--rd-space-3);
   border-top: 1px solid var(--rd-border);
-  background: rgba(255, 253, 246, 0.36);
+  background: color-mix(in srgb, var(--rd-c-paper) 36%, transparent);
 }
 
 .rd-v2-library-pagination.directory {
@@ -73,7 +73,7 @@
    permits without conflating readiness, verification, or provenance. */
 .rd-v2-library-inspector-basis {
   border-bottom: 1px solid var(--rd-border);
-  background: linear-gradient(180deg, rgba(255, 253, 246, 0.72), rgba(255, 255, 255, 0));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--rd-c-paper) 72%, transparent), color-mix(in srgb, var(--rd-c-on-ink) 0%, transparent));
 }
 
 .rd-v2-library-inspector-basis .rd-v2-rail-section-label {
@@ -197,7 +197,7 @@
   overflow: hidden;
   border: 1px solid var(--rd-border2);
   border-radius: 8px;
-  background: rgba(255, 253, 246, 0.45);
+  background: color-mix(in srgb, var(--rd-c-paper) 45%, transparent);
 }
 
 .rd-v2-library-holdings-summary > div {
@@ -235,7 +235,7 @@
   padding: var(--rd-space-3) var(--rd-space-3);
   border: 1px solid var(--rd-border2);
   border-radius: 9px;
-  background: rgba(255, 255, 255, .72);
+  background: color-mix(in srgb, var(--rd-c-on-ink) 72%, transparent);
 }
 
 .rd-v2-library-holding-card > header {
@@ -275,8 +275,8 @@
 }
 
 .rd-v2-library-holding-card[data-access="available"] .rd-v2-library-holding-status span:first-child {
-  border-color: rgba(63, 111, 92, .28);
-  background: rgba(63, 111, 92, .07);
+  border-color: color-mix(in srgb, var(--rd-c-link) 28%, transparent);
+  background: color-mix(in srgb, var(--rd-c-link) 7%, transparent);
   color: var(--rd-body);
 }
 
@@ -478,7 +478,7 @@
   flex: 1;
   flex-direction: column;
   border-top: 1px solid var(--rd-border);
-  background: rgba(255, 253, 246, 0.72);
+  background: color-mix(in srgb, var(--rd-c-paper) 72%, transparent);
 }
 
 .rd-v2-cap-collections {
@@ -630,7 +630,7 @@
   padding: 3px;
   border: 1px solid var(--rd-border2);
   border-radius: 10px;
-  background: rgba(255, 253, 246, 0.86);
+  background: color-mix(in srgb, var(--rd-c-paper) 86%, transparent);
   gap: 2px;
 }
 
@@ -661,11 +661,11 @@
 
 .rd-v2-cap-lens-option[aria-pressed="true"] {
   background: var(--rd-text);
-  color: #fff;
+  color: var(--rd-c-on-ink);
 }
 
 .rd-v2-cap-lens-option[aria-pressed="true"] b {
-  color: rgba(255, 255, 255, 0.78);
+  color: color-mix(in srgb, var(--rd-c-on-ink) 78%, transparent);
 }
 
 .rd-v2-cap-ledger-body {
@@ -709,7 +709,7 @@
   padding: var(--rd-space-2) var(--rd-space-4);
   border-bottom: 1px solid var(--rd-border);
   color: var(--rd-muted);
-  background: rgba(255, 253, 246, 0.94);
+  background: color-mix(in srgb, var(--rd-c-paper) 94%, transparent);
   font-size: var(--rd-text-label);
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -727,9 +727,9 @@
   min-height: 62px;
   padding: var(--rd-space-2) var(--rd-space-4);
   border: 0;
-  border-bottom: 1px solid rgba(219, 212, 197, 0.82);
+  border-bottom: 1px solid color-mix(in srgb, var(--rd-c-line) 82%, transparent);
   color: var(--rd-body);
-  background: rgba(255, 253, 246, 0.62);
+  background: color-mix(in srgb, var(--rd-c-paper) 62%, transparent);
   cursor: pointer;
   text-align: left;
   transition: background 120ms ease, box-shadow 120ms ease;
@@ -931,7 +931,7 @@
   border: 1px solid var(--rd-border2);
   border-radius: 999px;
   color: var(--rd-muted);
-  background: rgba(255, 255, 255, 0.55);
+  background: color-mix(in srgb, var(--rd-c-on-ink) 55%, transparent);
   font-size: var(--rd-text-2xs);
   font-weight: 700;
   line-height: 1.2;
@@ -948,21 +948,21 @@
 
 .rd-v2-cap-verify.verified,
 .rd-v2-cap-verify.matched {
-  border-color: #c7dacf;
+  border-color: color-mix(in srgb, var(--rd-c-link) 28%, var(--rd-c-surface));
   color: var(--rd-link);
-  background: #eef1ee;
+  background: var(--rd-c-mist);
 }
 
 .rd-v2-cap-verify.partial {
   border-color: #e5d2aa;
   color: var(--rd-review-fg);
-  background: #fffdf6;
+  background: var(--rd-c-paper);
 }
 
 .rd-v2-cap-verify.unverified {
-  border-color: #e7c4bf;
+  border-color: color-mix(in srgb, var(--rd-c-danger) 31%, var(--rd-c-surface));
   color: var(--rd-fail-fg);
-  background: #fef2f2;
+  background: var(--rd-c-danger-soft);
 }
 
 .rd-v2-library-observation-receipt {
@@ -981,8 +981,8 @@
 .rd-v2-library-verification-note {
   margin: var(--rd-space-4) 0 0;
   padding: var(--rd-space-3) var(--rd-space-3);
-  border-left: 2px solid #c7dacf;
-  background: #ffffff;
+  border-left: 2px solid color-mix(in srgb, var(--rd-c-link) 28%, var(--rd-c-surface));
+  background: var(--rd-c-on-ink);
   color: var(--rd-muted);
   font-size: var(--rd-text-xs);
   line-height: 1.5;
@@ -1152,7 +1152,7 @@
   border: 1px solid var(--rd-border2);
   border-radius: 5px;
   color: var(--rd-muted);
-  background: rgba(255, 255, 255, 0.62);
+  background: color-mix(in srgb, var(--rd-c-on-ink) 62%, transparent);
   font-family: var(--rd-mono);
   font-size: var(--rd-text-2xs);
   line-height: 16px;
@@ -1175,7 +1175,7 @@
   padding: 0 var(--rd-space-2);
   border: 1px solid var(--rd-border2);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.58);
+  background: color-mix(in srgb, var(--rd-c-on-ink) 58%, transparent);
   color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
   white-space: nowrap;
@@ -1216,7 +1216,7 @@
   padding: var(--rd-space-2) var(--rd-space-3);
   border: 1px solid var(--rd-border);
   border-radius: 8px;
-  background: rgba(255, 253, 246, 0.42);
+  background: color-mix(in srgb, var(--rd-c-paper) 42%, transparent);
 }
 
 .rd-v2-library-available.compact p {
@@ -1339,7 +1339,7 @@
   gap: var(--rd-space-4);
   padding: var(--rd-space-3) var(--rd-space-4) var(--rd-space-3);
   border-top: 1px solid var(--rd-border);
-  background: rgba(255, 253, 246, 0.72);
+  background: color-mix(in srgb, var(--rd-c-paper) 72%, transparent);
 }
 
 .rd-v2-library-available > div {
@@ -1439,11 +1439,11 @@
 .rd-v2-cap-access-option[aria-pressed="true"] {
   border-color: var(--rd-text);
   background: var(--rd-text);
-  color: #fff;
+  color: var(--rd-c-on-ink);
 }
 
 .rd-v2-cap-access-option[aria-pressed="true"] b {
-  color: rgba(255, 255, 255, 0.78);
+  color: color-mix(in srgb, var(--rd-c-on-ink) 78%, transparent);
 }
 
 .rd-v2-cap-added {
@@ -1570,8 +1570,8 @@
   padding: var(--rd-space-3) var(--rd-space-3);
   overflow-x: auto;
   border-radius: 8px;
-  background: #1f2a3d;
-  color: #f4f1e8;
+  background: color-mix(in srgb, var(--rd-c-blue) 18%, var(--rd-c-ink));
+  color: var(--rd-c-canvas);
   font-family: var(--rd-mono);
   font-size: var(--rd-text-xs);
   line-height: 1.5;

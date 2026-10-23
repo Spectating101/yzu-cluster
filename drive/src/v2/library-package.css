@@ -5,7 +5,7 @@
   display: grid;
   place-items: center;
   padding: var(--rd-space-5);
-  background: color-mix(in srgb, #142033 32%, transparent);
+  background: color-mix(in srgb, var(--rd-c-text) 32%, transparent);
   backdrop-filter: blur(8px);
 }
 
@@ -43,7 +43,7 @@
   padding: var(--rd-space-3) var(--rd-space-4);
   border-radius: 12px;
   background: color-mix(in srgb, var(--rd-accent, #315efb) 6%, white);
-  border: 1px solid color-mix(in srgb, var(--rd-accent, #315efb) 16%, #d8dee8);
+  border: 1px solid color-mix(in srgb, var(--rd-accent, #315efb) 16%, color-mix(in srgb, var(--rd-c-steel) 25%, var(--rd-c-surface)));
 }
 .rd-v2-library-package-need span { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--rd-muted, #647087); }
 
@@ -67,7 +67,7 @@
   transition: border-color .14s ease, background .14s ease;
 }
 .rd-v2-library-package-row.selected {
-  border-color: color-mix(in srgb, var(--rd-accent, #315efb) 42%, #d8dee8);
+  border-color: color-mix(in srgb, var(--rd-accent, #315efb) 42%, color-mix(in srgb, var(--rd-c-steel) 25%, var(--rd-c-surface)));
   background: color-mix(in srgb, var(--rd-accent, #315efb) 4%, white);
 }
 .rd-v2-library-package-row > span { min-width: 0; display: grid; gap: 2px; }
@@ -89,7 +89,7 @@
   margin-top: var(--rd-space-3);
   padding: var(--rd-space-3) var(--rd-space-3);
   border-radius: 10px;
-  background: #fff4f2;
+  background: var(--rd-c-danger-soft);
   border: 1px solid #f0c7bf;
   color: var(--rd-fail-fg);
 }
@@ -99,12 +99,12 @@
   padding: var(--rd-space-4);
   border-radius: 13px;
   border: 1px solid #bfdcc9;
-  background: #f6fbf7;
+  background: color-mix(in srgb, var(--rd-c-canvas) 21%, var(--rd-c-surface));
 }
 .rd-v2-library-package-ready-head > div { display: grid; gap: var(--rd-space-1); }
 .rd-v2-library-package-ready-head strong { font-size: 15px; }
 .rd-v2-library-package-breakdown { display: flex; flex-wrap: wrap; gap: var(--rd-space-2); margin-top: var(--rd-space-3); }
-.rd-v2-library-package-breakdown span { padding: var(--rd-space-1) var(--rd-space-2); border-radius: 999px; background: rgba(255,255,255,.76); border: 1px solid #d7e7dc; font-size: 11px; }
+.rd-v2-library-package-breakdown span { padding: var(--rd-space-1) var(--rd-space-2); border-radius: 999px; background: color-mix(in srgb, var(--rd-c-on-ink) 76%, transparent); border: 1px solid #d7e7dc; font-size: 11px; }
 .rd-v2-library-package-boundary { margin-top: var(--rd-space-3) !important; font-size: 12px; }
 
 @media (max-width: 700px) {
