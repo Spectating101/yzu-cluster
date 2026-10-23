@@ -15,6 +15,7 @@ import { describeDataset } from "@/v2/api";
 import { plainGrain } from "./plainText.js";
 import { methodSelection, useMethodSelection } from "./methodSelection.js";
 import { PartDetail } from "./MethodDiagram.jsx";
+import { synthesisGates } from "./synthesisGates.js";
 
 function normalizedExecutionStatus(thread) {
   return String(thread?.state?.execution?.status || "").trim().toLowerCase().replace(/-/g, "_");
@@ -124,7 +125,6 @@ function OpeningThreadRail({ thread, onAsk }) {
   const flaggedProfiles = profiles.filter((profile) => Array.isArray(profile?.flags) && profile.flags.length);
   const countFlag = (flag) => profiles.filter((profile) => (profile?.flags || []).includes(flag)).length;
   const measuredInputs = Number(state.measured_inputs || 0);
-  const joinReview = Boolean((Array.isArray(state.join_candidates) && state.join_candidates.length) || state.multi_overlap);
   const measurement = profiles.length
     ? `${profiles.length.toLocaleString()} column${profiles.length === 1 ? "" : "s"}`
     : nodes.length
@@ -140,16 +140,7 @@ function OpeningThreadRail({ thread, onAsk }) {
     : recommendation.present
       ? "Recommended · not accepted"
       : "Not accepted";
-  const objective = String(thread?.objective || state.objective || brief.purpose || "").trim();
-  const gates = [
-    ["Objective", objective ? "Recorded" : "Missing", Boolean(objective)],
-    ["Evidence", nodes.length ? `${nodes.length} mapped` : "Waiting", Boolean(nodes.length)],
-    ["Measurement", profiles.length ? `${profiles.length} profiled` : "Not checked", Boolean(profiles.length)],
-    ["Scope", state.scope_block ? "Decision needed" : profiles.length ? "No blocker" : "Not checked", profiles.length && !state.scope_block],
-    ["Units", state.unit_conflict ? "Decision needed" : profiles.length ? "No blocker" : "Not checked", profiles.length && !state.unit_conflict],
-    ["Join", joinReview ? "Review needed" : profiles.length ? "No blocker" : "Not checked", profiles.length && !joinReview],
-    ["Method", proposal ? "Proposal ready" : recommendation.present ? "Recommendation" : "Not proposed", Boolean(proposal)],
-  ];
+  const gates = synthesisGates(thread);
 
   return (
     <div data-testid="synthesis-opening-rail">

@@ -23,8 +23,8 @@ function presentationKind(row = {}) {
 
 function descriptionLabel(row = {}) {
   const explicit = String(
-    row.description ||
-      row.one_line ||
+    row.one_line ||
+      row.description ||
       row.summary ||
       row.recommended_use ||
       "",
@@ -318,7 +318,6 @@ export function LibraryEvidenceEstate({
                 >
                   <span className="rd-v2-cap-evidence" role="cell">
                     <strong title={displayName(row)}>{displayName(row)}</strong>
-                    <em>{listDescription(descriptionLabel(row))}</em>
                     {query && row.search_match?.reasons?.length ? (
                       <span className="rd-v2-library-match" data-testid="library-search-match">
                         <b>Matched</b>
@@ -331,9 +330,8 @@ export function LibraryEvidenceEstate({
                     ) : null}
                   </span>
                   {showKind ? <GlanceCell row={row} span={spans.get(row.dataset_id)} axis={axis} /> : null}
-                  <span className="rd-v2-cap-source" role="cell">
-                    <span className="rd-v2-cap-source-name" title={sourceLabel(row)}>{sourceLabel(row)}</span>
-                    {addedOn(row) ? <em className="rd-v2-cap-added">{addedOn(row)}</em> : null}
+                  <span className="rd-v2-cap-source" role="cell" title={[sourceLabel(row), addedOn(row)].filter(Boolean).join(" · ")}>
+                    {sourceLabel(row)}
                   </span>
                   {showVerify ? (
                     <span
@@ -346,6 +344,9 @@ export function LibraryEvidenceEstate({
                   ) : null}
                   <span className="rd-v2-cap-state" data-testid="library-evidence-readiness" role="cell">
                     <StatusPill dataset={row} />
+                  </span>
+                  <span className="rd-v2-cap-summary" data-testid="library-evidence-summary" role="cell" aria-colspan={2 + (showKind ? 1 : 0) + (showVerify ? 1 : 0) + 1}>
+                    {listDescription(descriptionLabel(row))}
                   </span>
                 </div>
               );

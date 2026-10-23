@@ -1590,6 +1590,121 @@ export function BrowsePage({
   </div>
   ) : null;
 
+  const resultActions = (
+    <>
+      <div
+        className="rd-v2-discover-result-actions"
+        role="group" aria-label="Discover next actions"
+        data-assessment-status={assessmentStatus || "none"}
+        data-assessment-verdict={assessmentVerdict || "none"}
+        data-has-evidence-gap={hasEvidenceGap ? "true" : "false"}
+      >
+        <div role={broaderSearchPending ? "status" : undefined}>
+          {broaderSearchPending && resultGroups.held.length > 0 ? (
+            <>
+              <strong>{plural(resultGroups.held.length, "Library match", "Library matches")}</strong>
+              <span>Checking broader sources for a direct route</span>
+            </>
+          ) : broaderSearchPending ? (
+            <>
+              <strong>Checking broader sources</strong>
+              <span>Related Library evidence remains visible while Research Drive looks for a direct collection method</span>
+            </>
+          ) : loading && centreRows.length === 0 && resultGroups.held.length > 0 ? (
+            <>
+              <strong>{plural(resultGroups.held.length, "Library match", "Library matches")}</strong>
+              <span>Known collection methods are still being checked</span>
+            </>
+          ) : loading && centreRows.length === 0 ? (
+            <>
+              <strong>Checking sources</strong>
+              <span>{merged.length ? "Library evidence is already visible" : "Finding available routes"}</span>
+            </>
+          ) : !loading && centreRows.length === 0 && contextualRows.length > 0 ? (
+            <>
+              <strong>{plural(contextualRows.length, "reference")} to inspect</strong>
+              <span>No collection method is documented as ready yet</span>
+            </>
+          ) : !loading && centreRows.length === 0 ? (
+            <>
+              <strong>No offering found yet</strong>
+              <span>Search wider or refine the evidence need</span>
+            </>
+          ) : stateFilter !== "all" ? (
+            <>
+              <strong>{plural(centreRows.length, "offering")}</strong>
+              <span>{activeFilter.label}</span>
+            </>
+          ) : null}
+        </div>
+        <div>
+          {assessmentPending ? null : strategyNeedsContext ? (
+            <button
+              type="button"
+              className="rd-v2-discover-strategy-trigger"
+              onClick={() => onAskQuery?.(
+                q,
+                {
+                  kind: "strategy_context",
+                  rows: merged,
+                  prompt: `Clarify the evidence requirement for: ${q}. Ask only for the missing context needed to judge coverage and prepare a custom dataset strategy. Do not submit procurement.`,
+                },
+              )}
+            >
+              Clarify evidence need
+            </button>
+          ) : hasEvidenceGap ? (
+            <button
+              type="button"
+              className="rd-v2-discover-strategy-trigger is-ready"
+              onClick={() => setRouteComparisonOpen(true)}
+            >
+              Review collection strategy
+            </button>
+          ) : null}
+          {onStartSynthesis && resultGroups.held.length > 0 ? (
+            <button
+              type="button"
+              data-testid="discover-start-synthesis"
+              className={`rd-v2-discover-strategy-trigger${hasEvidenceGap ? "" : " is-ready"}`}
+              disabled={synthesisStarting}
+              onClick={async () => {
+                setSynthesisStarting(true);
+                setSynthesisStartError("");
+                try {
+                  await onStartSynthesis({
+                    objective: q,
+                    datasetIds: resultGroups.held
+                      .map((row) => row?.dataset_id || row?.id)
+                      .filter(Boolean),
+                  });
+                } catch (cause) {
+                  setSynthesisStartError(
+                    cause?.message || "Could not start Synthesis from these Library results.",
+                  );
+                } finally {
+                  setSynthesisStarting(false);
+                }
+              }}
+            >
+              {synthesisStarting
+                ? "Starting Synthesis…"
+                : `Start Synthesis with ${plural(resultGroups.held.length, "Library result")}`}
+            </button>
+          ) : null}
+          {onSearchWeb ? (
+            <button type="button" onClick={() => onSearchWeb(q)}>
+              Search wider
+            </button>
+          ) : null}
+        </div>
+      </div>
+      {synthesisStartError ? (
+        <p className="rd-v2-inline-error" role="status">{synthesisStartError}</p>
+      ) : null}
+    </>
+  );
+
   return (
     <PageShell
       className="rd-v2-discover-page"
@@ -1726,121 +1841,13 @@ export function BrowsePage({
                 </div>
               </div>
               </div>
-              <div
-                className="rd-v2-discover-result-actions"
-                role="group" aria-label="Discover next actions"
-                data-assessment-status={assessmentStatus || "none"}
-                data-assessment-verdict={assessmentVerdict || "none"}
-                data-has-evidence-gap={hasEvidenceGap ? "true" : "false"}
-              >
-                <div role={broaderSearchPending ? "status" : undefined}>
-                  {broaderSearchPending && resultGroups.held.length > 0 ? (
-                    <>
-                      <strong>{plural(resultGroups.held.length, "Library match", "Library matches")}</strong>
-                      <span>Checking broader sources for a direct route</span>
-                    </>
-                  ) : broaderSearchPending ? (
-                    <>
-                      <strong>Checking broader sources</strong>
-                      <span>Related Library evidence remains visible while Research Drive looks for a direct collection method</span>
-                    </>
-                  ) : loading && centreRows.length === 0 && resultGroups.held.length > 0 ? (
-                    <>
-                      <strong>{plural(resultGroups.held.length, "Library match", "Library matches")}</strong>
-                      <span>Known collection methods are still being checked</span>
-                    </>
-                  ) : loading && centreRows.length === 0 ? (
-                    <>
-                      <strong>Checking sources</strong>
-                      <span>{merged.length ? "Library evidence is already visible" : "Finding available routes"}</span>
-                    </>
-                  ) : !loading && centreRows.length === 0 && contextualRows.length > 0 ? (
-                    <>
-                      <strong>{plural(contextualRows.length, "reference")} to inspect</strong>
-                      <span>No collection method is documented as ready yet</span>
-                    </>
-                  ) : !loading && centreRows.length === 0 ? (
-                    <>
-                      <strong>No offering found yet</strong>
-                      <span>Search wider or refine the evidence need</span>
-                    </>
-                  ) : stateFilter !== "all" ? (
-                    <>
-                      <strong>{plural(centreRows.length, "offering")}</strong>
-                      <span>{activeFilter.label}</span>
-                    </>
-                  ) : null}
-                </div>
-                <div>
-                  {assessmentPending ? null : strategyNeedsContext ? (
-                    <button
-                      type="button"
-                      className="rd-v2-discover-strategy-trigger"
-                      onClick={() => onAskQuery?.(
-                        q,
-                        {
-                          kind: "strategy_context",
-                          rows: merged,
-                          prompt: `Clarify the evidence requirement for: ${q}. Ask only for the missing context needed to judge coverage and prepare a custom dataset strategy. Do not submit procurement.`,
-                        },
-                      )}
-                    >
-                      Clarify evidence need
-                    </button>
-                  ) : hasEvidenceGap ? (
-                    <button
-                      type="button"
-                      className="rd-v2-discover-strategy-trigger is-ready"
-                      onClick={() => setRouteComparisonOpen(true)}
-                    >
-                      Review collection strategy
-                    </button>
-                  ) : null}
-                  {onStartSynthesis && resultGroups.held.length > 0 ? (
-                    <button
-                      type="button"
-                      data-testid="discover-start-synthesis"
-                      className={`rd-v2-discover-strategy-trigger${hasEvidenceGap ? "" : " is-ready"}`}
-                      disabled={synthesisStarting}
-                      onClick={async () => {
-                        setSynthesisStarting(true);
-                        setSynthesisStartError("");
-                        try {
-                          await onStartSynthesis({
-                            objective: q,
-                            datasetIds: resultGroups.held
-                              .map((row) => row?.dataset_id || row?.id)
-                              .filter(Boolean),
-                          });
-                        } catch (cause) {
-                          setSynthesisStartError(
-                            cause?.message || "Could not start Synthesis from these Library results.",
-                          );
-                        } finally {
-                          setSynthesisStarting(false);
-                        }
-                      }}
-                    >
-                      {synthesisStarting
-                        ? "Starting Synthesis…"
-                        : `Start Synthesis with ${plural(resultGroups.held.length, "Library result")}`}
-                    </button>
-                  ) : null}
-                  {onSearchWeb ? (
-                    <button type="button" onClick={() => onSearchWeb(q)}>
-                      Search wider
-                    </button>
-                  ) : null}
-                </div>
-              </div>
-              {synthesisStartError ? (
-                <p className="rd-v2-inline-error" role="status">{synthesisStartError}</p>
-              ) : null}
+              {assessmentActive ? null : resultActions}
 
               {assessmentActive ? (
                 <DiscoverEvidenceBrief
                   key={`assessment-workspace:${q}`}
                   variant="workspace"
+                  footer={resultActions}
                   initialQuestion={q}
                   autoAssess
                   assessmentValue={assessmentResult}

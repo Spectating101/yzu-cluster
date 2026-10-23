@@ -6,6 +6,8 @@ import { GuidedState, Skeleton } from "@/v2/InteractionFeedback";
 import { HomeSuggestedAsks } from "@/v2/HomeSuggestedAsks";
 import { readResourcesRollupCache, writeResourcesRollupCache } from "@/v2/resourcesRollupCache";
 import { PageShell } from "@/v2/ui";
+import { synthesisGates } from "@/v2/synthesisGates";
+import { synthesisAssist } from "@/v2/synthesisAssist.js";
 import { DeskError } from "@/v2/DeskError";
 import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
 import { displayName } from "@/v2/datasetMeta";
@@ -225,6 +227,8 @@ function PickUpCard({ point, loading, posture, onContinue, onReview }) {
       </div>
     );
   }
+  const gates = point.thread?.state ? synthesisGates(point.thread) : null;
+  const decision = gates ? String(synthesisAssist(point.thread).decision || "").trim() : "";
   const location = point.pill && String(point.location || "").endsWith(point.pill)
     ? String(point.location).slice(0, -point.pill.length).replace(/\s*·\s*$/, "")
     : point.location;
@@ -239,7 +243,21 @@ function PickUpCard({ point, loading, posture, onContinue, onReview }) {
     >
       <span className="rd-v2-home-eyebrow">{eyebrow}</span>
       <h2>{point.title}</h2>
-      <p className="rd-v2-home-pickup-state">{uiVocabularyLabel(point.stateSummary)}</p>
+      {gates ? (
+        <>
+          <p className="rd-v2-home-pickup-gates" data-testid="home-pickup-gates" aria-label={`Readiness ${gates.filter((gate) => gate[2]).length} of ${gates.length}`}>
+            <b>Readiness {gates.filter((gate) => gate[2]).length}/{gates.length}</b>
+            {gates.map(([label, value, ok]) => (
+              <span key={label} className={ok ? "is-ok" : /needed/i.test(value) ? "is-blocked" : "is-open"} title={`${label}: ${value}`}>
+                <i aria-hidden="true">{ok ? "✓" : /needed/i.test(value) ? "✗" : "·"}</i>{label}
+              </span>
+            ))}
+          </p>
+          {decision ? <p className="rd-v2-home-pickup-decision"><strong>Needs you</strong>{decision}</p> : <p className="rd-v2-home-pickup-state">{uiVocabularyLabel(point.stateSummary)}</p>}
+        </>
+      ) : (
+        <p className="rd-v2-home-pickup-state">{uiVocabularyLabel(point.stateSummary)}</p>
+      )}
       <div className="rd-v2-home-pickup-foot">
         <div>
           {point.pill ? <span className="rd-v2-pill">{point.pill}</span> : null}

@@ -75,10 +75,10 @@ function discoverSituation({ browseTarget, browseLifecycle, historyEvent, discov
     const gap = assessmentGapText(result);
     const support = discoverAssessment.result ? librarySupportSummary(result) : null;
     return {
-      status: verdict || "Coverage assessment",
-      facts: [support ? `${support.value} ${support.detail}` : "Checking your Library against this question"],
+      status: verdict || (discoverAssessment.result ? "Coverage assessment" : "Coverage check running"),
+      facts: support ? [`${support.value} ${support.detail}`] : [],
       next: !discoverAssessment.result
-        ? "Wait for the coverage check; the results are already usable."
+        ? "Results in the centre are usable now."
         : gap
           ? "Review the collection strategy to fill the gap shown in the centre."
           : judgedLibraryMatch(result)

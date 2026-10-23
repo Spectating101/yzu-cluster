@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { useRailSlot } from "@/v2/railSlot";
 import { assessDiscoverEvidence, listDiscoverGapRoutes } from "@/v2/api";
 import { DISCOVER_SUGGESTIONS } from "@/v2/deskSeed";
 import { handleEnterToRequestSubmit } from "@/v2/enterToSubmit";
@@ -167,7 +169,9 @@ export function DiscoverEvidenceBrief({
   resourcesError = "",
   deskHealth = null,
   libraryMatchCount = 0,
+  footer = null,
 }) {
+  const railSlot = useRailSlot();
   const [draft, setDraft] = useState(initialQuestion);
   const [assessment, setAssessment] = useState(assessmentValue);
   const [dimensions, setDimensions] = useState([]);
@@ -384,6 +388,7 @@ export function DiscoverEvidenceBrief({
               ? "Results below are still usable. Run the check again before relying on what the Library covers."
               : "Usually about 10 seconds. The results below are already usable."}
           </p>
+          {footer ? <div className="rd-v2-evidence-footer">{footer}</div> : null}
         </div>
       ) : null}
       {variant === "standalone" ? <form
@@ -538,24 +543,6 @@ export function DiscoverEvidenceBrief({
             </section>
           ) : null}
 
-          <details
-            className={`rd-v2-evidence-detail-disclosure${variant === "workspace" ? " is-workspace" : ""}`}
-            open={variant === "workspace" ? undefined : true}
-          >
-            <summary>
-              <span>Details</span>
-              <em>
-                {briefNeeded ? `${libraryMatchCount} Library matches` : `${heldEvidence.length} checked`} · {briefNeeded ? "brief needed" : assessment.gap ? "1 gap" : "no gap"} · {routeLoading
-                  ? "checking routes"
-                  : `${routeRows.length} documented route${routeRows.length === 1 ? "" : "s"}`}
-              </em>
-            </summary>
-          {variant === "workspace" ? (
-            <div className="rd-v2-evidence-workspace-why">
-              <p>{because}</p>
-              {needs.length ? <p className="muted">{needBasis(assessment)}</p> : null}
-            </div>
-          ) : null}
           {(variant === "layered" || variant === "workspace") ? (
             <details className="rd-v2-evidence-edit">
               <summary>
@@ -565,68 +552,88 @@ export function DiscoverEvidenceBrief({
               {requirementEditor}
             </details>
           ) : requirementEditor}
-
-          {variant !== "layered" ? <section className="rd-v2-evidence-held" aria-label="Library evidence">
-            <div className="rd-v2-evidence-section-head"><div><span className="rd-v2-eyebrow">Library evidence</span><p>Select a record for existing Detail or Ask.</p></div></div>
-            {heldEvidence.length ? (
-              <ul data-testid="discover-held-evidence">
-                {heldEvidence.map((evidence, index) => {
-                  const candidate = evidenceCandidate(evidence);
-                  return <li key={candidate.dataset_id || `${candidate.title}-${index}`}><button type="button" onClick={() => onSelectRow?.(candidate)}>
-                    <strong>{candidate.title}</strong>
-                    <span>{candidate.description}</span>
-                    <em>{candidate.evidence_state} · {candidate.limitations}</em>
-                  </button></li>;
-                })}
-              </ul>
-            ) : <p className="muted">No Library evidence was returned. This does not establish that no evidence exists.</p>}
-          </section> : null}
-
-          <section className="rd-v2-evidence-gap" aria-label="Evidence gap" data-testid="discover-evidence-gap">
-            <span className="rd-v2-eyebrow">One precise gap</span>
-            {assessment.gap ? <>
-              <strong>{text(assessment.gap.statement, "Gap statement unavailable")}</strong>
-              <p>{text(assessment.gap.blocks, "What this blocks is unknown.")}</p>
-              <p className="muted">Resolve with: {text(assessment.gap.resolution_evidence, "Evidence to resolve this is unknown.")}</p>
-            </> : <p className="muted">No remaining gap was reported.</p>}
-          </section>
-          {assessment.assessment_status === "assessed" && assessment.gap ? (
-            <section className="rd-v2-evidence-routes" aria-label="Documented acquisition routes">
-              <div className="rd-v2-evidence-section-head">
-                <div>
-                  <span className="rd-v2-eyebrow">Documented ways to close the gap</span>
-                  <p>Suggestions are source options, not a promise of collection or delivery.</p>
-                </div>
-                <button type="button" className="rd-v2-btn sm" disabled={routeLoading} onClick={requestRoutes}>
-                  {routeLoading ? "Comparing documented sources…" : routeResult ? "Refresh documented routes" : "Find documented routes"}
-                </button>
+          {footer ? <div className="rd-v2-evidence-footer">{footer}</div> : null}
+          {variant === "workspace" && railSlot ? createPortal(
+            <div className="rd-v2-evidence-rail-reasoning" data-testid="discover-assessment-reasoning">
+            {variant === "workspace" ? (
+              <div className="rd-v2-evidence-workspace-why">
+                <p>{because}</p>
+                {needs.length ? <p className="muted">{needBasis(assessment)}</p> : null}
               </div>
-              {routeError ? <p className="rd-v2-discover-error" role="status">{routeError}</p> : null}
-              {routeResult ? (
-                Array.isArray(routeResult.routes) && routeResult.routes.length ? (
-                  <ul className="rd-v2-evidence-routes-list">
-                    {routeResult.routes.map((route, index) => (
-                      <li key={`${route.dimension || "gap"}-${route.source_id || index}`}>
-                        <strong>{text(route.label, "Documented source")}</strong>
-                        <span>{text(route.reason, "May address the recorded gap.")}</span>
-                        <em>{[route.provider, text(route.access_mode, "").replaceAll("_", " "), route.action === "collect" ? "Collection can be requested for review" : "Access review is required"].filter(Boolean).join(" · ")}</em>
-                      </li>
-                    ))}
-                  </ul>
-                ) : <p className="muted">No documented collection method was found. A source may still exist.</p>
-              ) : null}
+            ) : null}
+  
+            {variant !== "layered" ? <section className="rd-v2-evidence-held" aria-label="Library evidence">
+              <div className="rd-v2-evidence-section-head"><div><span className="rd-v2-eyebrow">Library records checked · {heldEvidence.length}</span></div></div>
+              {heldEvidence.length ? (
+                <ul data-testid="discover-held-evidence">
+                  {heldEvidence.map((evidence, index) => {
+                    const candidate = evidenceCandidate(evidence);
+                    return <li key={candidate.dataset_id || `${candidate.title}-${index}`}><button type="button" onClick={() => onSelectRow?.(candidate)}>
+                      <strong>{candidate.title}</strong>
+                      <span>{candidate.description}</span>
+                      <em>{candidate.evidence_state} · {candidate.limitations}</em>
+                    </button></li>;
+                  })}
+                </ul>
+              ) : <p className="muted">No Library evidence was returned. This does not establish that no evidence exists.</p>}
+            </section> : null}
+  
+            <section className="rd-v2-evidence-gap" aria-label="Evidence gap" data-testid="discover-evidence-gap">
+              <span className="rd-v2-eyebrow">One precise gap</span>
+              {assessment.gap ? <>
+                <strong>{text(assessment.gap.statement, "Gap statement unavailable")}</strong>
+                <p>{text(assessment.gap.blocks, "What this blocks is unknown.")}</p>
+                <p className="muted">Resolve with: {text(assessment.gap.resolution_evidence, "Evidence to resolve this is unknown.")}</p>
+              </> : <p className="muted">No remaining gap was reported.</p>}
             </section>
-          ) : null}
-          {variant === "workspace" ? (
-            <section className="rd-v2-evidence-capacity" aria-label="Execution capacity" data-state={capacityState}>
-              <div className="rd-v2-evidence-section-head">
-                <div><span className="rd-v2-eyebrow">Execution capacity</span><p>Research Drive capacity that may affect where you get the data. No worker or quota is assigned here.</p></div>
-              </div>
-              {capacityState === "checking" ? (
-                <p className="muted" role="status">Checking measured Research Drive capacity…</p>
-              ) : capacityState === "partial" ? (
-                <>
-                  <p className="muted">The resource refresh failed. Only capacity still measured by Research Drive is shown. Missing compute, storage, and quota information remains unknown.</p>
+            {assessment.assessment_status === "assessed" && assessment.gap ? (
+              <section className="rd-v2-evidence-routes" aria-label="Documented acquisition routes">
+                <div className="rd-v2-evidence-section-head">
+                  <div>
+                    <span className="rd-v2-eyebrow">Documented ways to close the gap</span>
+                    <p>Suggestions are source options, not a promise of collection or delivery.</p>
+                  </div>
+                  <button type="button" className="rd-v2-btn sm" disabled={routeLoading} onClick={requestRoutes}>
+                    {routeLoading ? "Comparing documented sources…" : routeResult ? "Refresh documented routes" : "Find documented routes"}
+                  </button>
+                </div>
+                {routeError ? <p className="rd-v2-discover-error" role="status">{routeError}</p> : null}
+                {routeResult ? (
+                  Array.isArray(routeResult.routes) && routeResult.routes.length ? (
+                    <ul className="rd-v2-evidence-routes-list">
+                      {routeResult.routes.map((route, index) => (
+                        <li key={`${route.dimension || "gap"}-${route.source_id || index}`}>
+                          <strong>{text(route.label, "Documented source")}</strong>
+                          <span>{text(route.reason, "May address the recorded gap.")}</span>
+                          <em>{[route.provider, text(route.access_mode, "").replaceAll("_", " "), route.action === "collect" ? "Collection can be requested for review" : "Access review is required"].filter(Boolean).join(" · ")}</em>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : <p className="muted">No documented collection method was found. A source may still exist.</p>
+                ) : null}
+              </section>
+            ) : null}
+            {variant === "workspace" ? (
+              <section className="rd-v2-evidence-capacity" aria-label="Execution capacity" data-state={capacityState}>
+                <div className="rd-v2-evidence-section-head">
+                  <div><span className="rd-v2-eyebrow">Execution capacity</span><p>Research Drive capacity that may affect where you get the data. No worker or quota is assigned here.</p></div>
+                </div>
+                {capacityState === "checking" ? (
+                  <p className="muted" role="status">Checking measured Research Drive capacity…</p>
+                ) : capacityState === "partial" ? (
+                  <>
+                    <p className="muted">The resource refresh failed. Only capacity still measured by Research Drive is shown. Missing compute, storage, and quota information remains unknown.</p>
+                    <div className="rd-v2-evidence-capacity-grid">
+                      {visibleCapacityRows.map((row) => (
+                        <div key={row.id} className={row.attention ? "needs-attention" : ""}>
+                          <span>{row.label}</span><strong>{row.metric}</strong>{row.detail ? <em>{row.detail}</em> : null}
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : capacityState === "unavailable" ? (
+                  <p className="muted">Measured capacity is unavailable. Compute, storage, and quota cannot be inferred from this view of collection options.</p>
+                ) : visibleCapacityRows.length ? (
                   <div className="rd-v2-evidence-capacity-grid">
                     {visibleCapacityRows.map((row) => (
                       <div key={row.id} className={row.attention ? "needs-attention" : ""}>
@@ -634,29 +641,131 @@ export function DiscoverEvidenceBrief({
                       </div>
                     ))}
                   </div>
-                </>
-              ) : capacityState === "unavailable" ? (
-                <p className="muted">Measured capacity is unavailable. Compute, storage, and quota cannot be inferred from this view of collection options.</p>
-              ) : visibleCapacityRows.length ? (
-                <div className="rd-v2-evidence-capacity-grid">
-                  {visibleCapacityRows.map((row) => (
-                    <div key={row.id} className={row.attention ? "needs-attention" : ""}>
-                      <span>{row.label}</span><strong>{row.metric}</strong>{row.detail ? <em>{row.detail}</em> : null}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="muted">No decision-relevant measured capacity was reported.</p>
-              )}
+                ) : (
+                  <p className="muted">No decision-relevant measured capacity was reported.</p>
+                )}
+              </section>
+            ) : null}
+            {assessment.assessment_basis ? (
+              <details className="rd-v2-evidence-basis-details">
+                <summary>Assessment basis</summary>
+                <p className="rd-v2-evidence-basis">{assessmentBasisSummary(assessment.assessment_basis)}</p>
+              </details>
+            ) : null}
+            </div>,
+            railSlot,
+          ) : (
+            <details
+              className={`rd-v2-evidence-detail-disclosure${variant === "workspace" ? " is-workspace" : ""}`}
+              open={variant === "workspace" ? undefined : true}
+            >
+              <summary>
+                <span>Details</span>
+                <em>
+                  {briefNeeded ? `${libraryMatchCount} Library matches` : `${heldEvidence.length} checked`} · {briefNeeded ? "brief needed" : assessment.gap ? "1 gap" : "no gap"} · {routeLoading
+                    ? "checking routes"
+                    : `${routeRows.length} documented route${routeRows.length === 1 ? "" : "s"}`}
+                </em>
+              </summary>
+            {variant === "workspace" ? (
+              <div className="rd-v2-evidence-workspace-why">
+                <p>{because}</p>
+                {needs.length ? <p className="muted">{needBasis(assessment)}</p> : null}
+              </div>
+            ) : null}
+  
+            {variant !== "layered" ? <section className="rd-v2-evidence-held" aria-label="Library evidence">
+              <div className="rd-v2-evidence-section-head"><div><span className="rd-v2-eyebrow">Library records checked · {heldEvidence.length}</span></div></div>
+              {heldEvidence.length ? (
+                <ul data-testid="discover-held-evidence">
+                  {heldEvidence.map((evidence, index) => {
+                    const candidate = evidenceCandidate(evidence);
+                    return <li key={candidate.dataset_id || `${candidate.title}-${index}`}><button type="button" onClick={() => onSelectRow?.(candidate)}>
+                      <strong>{candidate.title}</strong>
+                      <span>{candidate.description}</span>
+                      <em>{candidate.evidence_state} · {candidate.limitations}</em>
+                    </button></li>;
+                  })}
+                </ul>
+              ) : <p className="muted">No Library evidence was returned. This does not establish that no evidence exists.</p>}
+            </section> : null}
+  
+            <section className="rd-v2-evidence-gap" aria-label="Evidence gap" data-testid="discover-evidence-gap">
+              <span className="rd-v2-eyebrow">One precise gap</span>
+              {assessment.gap ? <>
+                <strong>{text(assessment.gap.statement, "Gap statement unavailable")}</strong>
+                <p>{text(assessment.gap.blocks, "What this blocks is unknown.")}</p>
+                <p className="muted">Resolve with: {text(assessment.gap.resolution_evidence, "Evidence to resolve this is unknown.")}</p>
+              </> : <p className="muted">No remaining gap was reported.</p>}
             </section>
-          ) : null}
-          {assessment.assessment_basis ? (
-            <details className="rd-v2-evidence-basis-details">
-              <summary>Assessment basis</summary>
-              <p className="rd-v2-evidence-basis">{assessmentBasisSummary(assessment.assessment_basis)}</p>
+            {assessment.assessment_status === "assessed" && assessment.gap ? (
+              <section className="rd-v2-evidence-routes" aria-label="Documented acquisition routes">
+                <div className="rd-v2-evidence-section-head">
+                  <div>
+                    <span className="rd-v2-eyebrow">Documented ways to close the gap</span>
+                    <p>Suggestions are source options, not a promise of collection or delivery.</p>
+                  </div>
+                  <button type="button" className="rd-v2-btn sm" disabled={routeLoading} onClick={requestRoutes}>
+                    {routeLoading ? "Comparing documented sources…" : routeResult ? "Refresh documented routes" : "Find documented routes"}
+                  </button>
+                </div>
+                {routeError ? <p className="rd-v2-discover-error" role="status">{routeError}</p> : null}
+                {routeResult ? (
+                  Array.isArray(routeResult.routes) && routeResult.routes.length ? (
+                    <ul className="rd-v2-evidence-routes-list">
+                      {routeResult.routes.map((route, index) => (
+                        <li key={`${route.dimension || "gap"}-${route.source_id || index}`}>
+                          <strong>{text(route.label, "Documented source")}</strong>
+                          <span>{text(route.reason, "May address the recorded gap.")}</span>
+                          <em>{[route.provider, text(route.access_mode, "").replaceAll("_", " "), route.action === "collect" ? "Collection can be requested for review" : "Access review is required"].filter(Boolean).join(" · ")}</em>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : <p className="muted">No documented collection method was found. A source may still exist.</p>
+                ) : null}
+              </section>
+            ) : null}
+            {variant === "workspace" ? (
+              <section className="rd-v2-evidence-capacity" aria-label="Execution capacity" data-state={capacityState}>
+                <div className="rd-v2-evidence-section-head">
+                  <div><span className="rd-v2-eyebrow">Execution capacity</span><p>Research Drive capacity that may affect where you get the data. No worker or quota is assigned here.</p></div>
+                </div>
+                {capacityState === "checking" ? (
+                  <p className="muted" role="status">Checking measured Research Drive capacity…</p>
+                ) : capacityState === "partial" ? (
+                  <>
+                    <p className="muted">The resource refresh failed. Only capacity still measured by Research Drive is shown. Missing compute, storage, and quota information remains unknown.</p>
+                    <div className="rd-v2-evidence-capacity-grid">
+                      {visibleCapacityRows.map((row) => (
+                        <div key={row.id} className={row.attention ? "needs-attention" : ""}>
+                          <span>{row.label}</span><strong>{row.metric}</strong>{row.detail ? <em>{row.detail}</em> : null}
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : capacityState === "unavailable" ? (
+                  <p className="muted">Measured capacity is unavailable. Compute, storage, and quota cannot be inferred from this view of collection options.</p>
+                ) : visibleCapacityRows.length ? (
+                  <div className="rd-v2-evidence-capacity-grid">
+                    {visibleCapacityRows.map((row) => (
+                      <div key={row.id} className={row.attention ? "needs-attention" : ""}>
+                        <span>{row.label}</span><strong>{row.metric}</strong>{row.detail ? <em>{row.detail}</em> : null}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="muted">No decision-relevant measured capacity was reported.</p>
+                )}
+              </section>
+            ) : null}
+            {assessment.assessment_basis ? (
+              <details className="rd-v2-evidence-basis-details">
+                <summary>Assessment basis</summary>
+                <p className="rd-v2-evidence-basis">{assessmentBasisSummary(assessment.assessment_basis)}</p>
+              </details>
+            ) : null}
             </details>
-          ) : null}
-          </details>
+          )}
         </div>
       )}
       {loading && !(variant === "workspace" && !assessment) ? <p className="rd-v2-browse-loading" data-testid="discover-assessment-loading">Checking your request against the Library again…</p> : null}

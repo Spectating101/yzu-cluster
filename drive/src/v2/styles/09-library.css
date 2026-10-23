@@ -515,9 +515,11 @@
 }
 
 .rd-v2-cap-glance {
-  display: grid;
+  display: flex;
   min-width: 0;
-  gap: 3px;
+  align-items: center;
+  gap: var(--rd-space-2);
+  white-space: nowrap;
 }
 
 .rd-v2-cap-glance b {
@@ -534,7 +536,8 @@
 .rd-v2-cap-glance-track {
   position: relative;
   display: block;
-  width: 100%;
+  flex: 0 0 32px;
+  width: 32px;
   height: 5px;
   border-radius: 999px;
   background: var(--rd-border);
@@ -695,14 +698,14 @@
 .rd-v2-cap-ledger-row {
   display: grid;
   grid-template-columns: minmax(360px, 1fr) minmax(130px, 0.34fr) minmax(105px, 0.26fr);
-  gap: var(--rd-space-4);
+  gap: var(--rd-space-1) var(--rd-space-4);
   align-items: center;
 }
 
 .rd-v2-cap-ledger.show-kind .rd-v2-cap-ledger-head,
 .rd-v2-cap-ledger.show-kind .rd-v2-cap-ledger-row {
   grid-template-columns: minmax(300px, 1fr) minmax(105px, 0.28fr) minmax(115px, 0.32fr) minmax(105px, 0.26fr);
-  gap: var(--rd-space-4);
+  gap: var(--rd-space-1) var(--rd-space-4);
 }
 
 .rd-v2-cap-ledger-head {
@@ -773,16 +776,17 @@
   white-space: normal;
 }
 
-.rd-v2-cap-evidence em {
-  display: block;
-  margin-top: 3px;
+.rd-v2-cap-summary {
+  display: -webkit-box;
+  grid-column: 1 / -1;
+  grid-row: 2;
+  max-width: 96ch;
   overflow: hidden;
-  color: var(--rd-muted);
+  color: var(--rd-c-text-2);
   font-size: var(--rd-text-2xs);
-  font-style: normal;
-  line-height: 1.35;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .rd-v2-cap-kind,
@@ -868,23 +872,23 @@
 
 .rd-v2-cap-ledger.with-verify .rd-v2-cap-ledger-head,
 .rd-v2-cap-ledger.with-verify .rd-v2-cap-ledger-row {
-  grid-template-columns: minmax(270px, 1fr) minmax(140px, 0.4fr) minmax(96px, 0.22fr) minmax(184px, 0.36fr);
+  grid-template-columns: minmax(240px, 1fr) minmax(160px, 0.42fr) minmax(96px, 0.22fr) minmax(132px, 0.3fr);
   grid-template-areas: "evidence source verify state";
-  gap: var(--rd-space-4);
+  gap: var(--rd-space-1) var(--rd-space-4);
 }
 
 .rd-v2-cap-ledger.with-verify.show-kind .rd-v2-cap-ledger-head,
 .rd-v2-cap-ledger.with-verify.show-kind .rd-v2-cap-ledger-row {
-  grid-template-columns: minmax(230px, 1.05fr) minmax(138px, 0.3fr) minmax(112px, 0.34fr) minmax(94px, 0.2fr) minmax(176px, 0.3fr);
+  grid-template-columns: minmax(180px, 1fr) 200px minmax(120px, 0.34fr) minmax(94px, 0.2fr) 136px;
   grid-template-areas: "evidence kind source verify state";
-  gap: var(--rd-space-3);
+  gap: var(--rd-space-1) var(--rd-space-3);
 }
 
 .rd-v2-cap-ledger.without-verify.show-kind .rd-v2-cap-ledger-head,
 .rd-v2-cap-ledger.without-verify.show-kind .rd-v2-cap-ledger-row {
-  grid-template-columns: minmax(220px, 1fr) minmax(138px, 0.3fr) minmax(112px, 0.34fr) minmax(160px, 0.3fr);
+  grid-template-columns: minmax(200px, 1fr) 200px minmax(120px, 0.36fr) 136px;
   grid-template-areas: "evidence kind source state";
-  gap: var(--rd-space-3);
+  gap: var(--rd-space-1) var(--rd-space-3);
 }
 
 .rd-v2-cap-ledger.without-verify.show-kind .rd-v2-cap-ledger-head > span:nth-child(4) { grid-area: state; }
@@ -903,23 +907,6 @@
 .rd-v2-cap-ledger.show-kind .rd-v2-cap-ledger-head > span:nth-child(5),
 .rd-v2-cap-state { grid-area: state; }
 
-/* Provenance is a first-class evidence claim, not disposable table chrome.
-   Give long institutional source identities two readable lines before clipping. */
-.rd-v2-cap-source {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  overflow: hidden;
-  line-height: 1.35;
-  white-space: normal;
-}
-
-.rd-v2-cap-source-name {
-  display: -webkit-box;
-  overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
 
 .rd-v2-cap-verify {
   display: inline-flex;
@@ -1050,16 +1037,14 @@
     white-space: normal;
   }
 
-  .rd-v2-cap-evidence em {
-    display: -webkit-box;
-    white-space: normal;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-  }
 
   .rd-v2-cap-source {
     align-self: center;
     white-space: normal;
+  }
+
+  .rd-v2-cap-summary {
+    grid-row: 3;
   }
 
   .rd-v2-cap-state,
@@ -1446,13 +1431,6 @@
   color: color-mix(in srgb, var(--rd-c-on-ink) 78%, transparent);
 }
 
-.rd-v2-cap-added {
-  display: block;
-  margin-top: 2px;
-  color: var(--rd-muted);
-  font-size: var(--rd-text-2xs);
-  font-style: normal;
-}
 
 .rd-v2-use-dataset {
   position: relative;

@@ -799,6 +799,25 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-prose b {
   background: transparent;
 }
 
+.rd-v2-discover-page .rd-v2-evidence-footer {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-footer .rd-v2-discover-result-actions > div:first-child:not([role]) {
+  display: none;
+}
+
+.rd-v2-discover-page .rd-v2-evidence-footer .rd-v2-discover-result-actions {
+  min-height: 0;
+  margin-top: var(--rd-space-3);
+  padding: var(--rd-space-3) 0 0;
+  border: 0;
+  border-top: 1px solid var(--rd-border);
+  border-radius: 0;
+  background: transparent;
+}
+
 .rd-v2-discover-page .rd-v2-discover-result-actions:has(> div:first-child:empty) > div:first-child {
   display: none;
 }

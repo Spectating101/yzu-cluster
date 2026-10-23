@@ -21,6 +21,7 @@ import { SynthesisThreadRailPanel } from "@/v2/SynthesisThreadRailPanel";
 import { SynthesisIdleRailPanel } from "@/v2/SynthesisIdleRailPanel";
 import { ResearchSituationRail } from "@/v2/ResearchSituationRail";
 import { DISCOVER_TAB } from "@/v2/tabIdentity";
+import { setRailSlot } from "@/v2/railSlot";
 
 
 function railSelectionHint(
@@ -84,11 +85,36 @@ const MOBILE_RAIL_IDLE_HINTS = new Set([
   "Research Drive setup",
 ]);
 
-function DiscoverAssessmentRailSummary({ onClose }) {
-  if (!onClose) return null;
+function useElapsedSeconds(running) {
+  const [seconds, setSeconds] = useState(0);
+  useEffect(() => {
+    if (!running) return undefined;
+    const started = Date.now();
+    setSeconds(0);
+    const timer = setInterval(() => setSeconds(Math.round((Date.now() - started) / 1000)), 1000);
+    return () => clearInterval(timer);
+  }, [running]);
+  return seconds;
+}
+
+function DiscoverAssessmentRailSummary({ assessment, restingSummary, onClose }) {
+  const checking = Boolean(assessment?.active && !assessment?.result);
+  const seconds = useElapsedSeconds(checking);
+  const held = Number(restingSummary?.libraryEvidenceCount ?? restingSummary?.heldCount ?? 0);
+  const routes = Array.isArray(restingSummary?.routes) ? restingSummary.routes.length : 0;
+  const found = Number(restingSummary?.found || 0);
   return (
-    <section className="rd-v2-discover-assessment-rail-summary" aria-label="Evidence assessment summary">
-      <button type="button" className="rd-v2-btn sm" onClick={onClose}>Hide assessment</button>
+    <section className="rd-v2-discover-assessment-rail-summary" aria-label="Evidence assessment summary" data-testid="discover-assessment-rail">
+      {checking ? (
+        <ol className="rd-v2-assessment-progress" data-testid="discover-assessment-progress" aria-label={`Coverage check, running ${seconds} seconds`}>
+          <li className="is-done"><b aria-hidden="true">✓</b><span>Library searched</span><em>{held ? `${held} ${held === 1 ? "match" : "matches"}` : "no match"}</em></li>
+          <li className={found ? "is-done" : "is-waiting"}><b aria-hidden="true">{found ? "✓" : "·"}</b><span>Known sources listed</span><em>{found ? `${found} ${found === 1 ? "offering" : "offerings"}${routes ? ` · ${routes} ${routes === 1 ? "route" : "routes"}` : ""}` : "listing"}</em></li>
+          <li className="is-running"><b aria-hidden="true">…</b><span>Coverage verdict</span><em>{seconds}s · usually ~10s</em></li>
+          <li className="is-waiting"><b aria-hidden="true">·</b><span>Ways to close a gap</span><em>after the verdict</em></li>
+        </ol>
+      ) : null}
+      <div ref={setRailSlot} className="rd-v2-assessment-rail-slot" />
+      {onClose ? <button type="button" className="rd-v2-btn sm" onClick={onClose}>Hide assessment</button> : null}
     </section>
   );
 }
@@ -247,7 +273,11 @@ export function InspectorRail({
         onReviewRequest={onReviewHistoryRequest}
       />
     ) : discoverAssessment?.active ? (
-      <DiscoverAssessmentRailSummary onClose={onCloseDiscoverAssessment} />
+      <DiscoverAssessmentRailSummary
+        assessment={discoverAssessment}
+        restingSummary={discoverRestingSummary}
+        onClose={onCloseDiscoverAssessment}
+      />
     ) : discoverMode === "history" ? (
       <DiscoverHistoryRailPanel />
     ) : (
