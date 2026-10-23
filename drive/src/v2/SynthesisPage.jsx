@@ -1560,7 +1560,7 @@ function MeasurementStatus({ phase, measurements, onRetry }) {
         {measuredRisks.length ? (
           <ul className="s04-measurement-facts" aria-label="Measured risks">
             {measuredRisks.map(([label, count]) => (
-              <li key={label}><b>{count.toLocaleString()}</b><span>{label}</span></li>
+              <li key={label} className={label === "Uses future data" ? "is-severe" : undefined}><b>{count.toLocaleString()}</b><span>{label}</span></li>
             ))}
           </ul>
         ) : null}

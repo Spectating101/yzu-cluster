@@ -3435,3 +3435,6 @@
 ol.s04-diagram-col > li:not(:last-child)::after { content: "↓"; display: block; margin-top: var(--rd-space-1); text-align: center; color: var(--rd-muted); }
 
 #root .rd-v2-synthesis-page .s04-main:has(> .s04-diagram):has(> [data-testid="synthesis-proposal-state"]):not(:has(> .s04-opening-construction)) > [data-testid="synthesis-proposal-state"] { min-height: 0; height: auto; align-self: start; }
+
+.rd-v2-synthesis-page .s04-measurement-status .s04-measurement-facts > li.is-severe { color: #9b2c2c; border-color: #d9a5a5; background: #fbf1f0; }
+.rd-v2-synthesis-page .s04-measurement-status .s04-measurement-facts > li.is-severe :is(b, span) { color: #9b2c2c; }
