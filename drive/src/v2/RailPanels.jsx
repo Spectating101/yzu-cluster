@@ -5,6 +5,7 @@ import { fetchLiveIdentity } from "@/v2/api";
 import { DiscoverEvaluationSurface } from "@/v2/DiscoverEvaluationSurface";
 import { displayName } from "@/v2/datasetMeta";
 import { topicCounts } from "./libraryTopics.js";
+import { libraryHoldings } from "./deskCounts.js";
 import { EmptyRailState } from "@/v2/EmptyRailState";
 import { liveIdentityReadinessLabel, identityLookupFromRow } from "@/v2/liveIdentity";
 import {
@@ -475,7 +476,7 @@ export function PageRailPanel({ page = "home", onAskAbout }) {
 }
 
 export function HomeLibraryRailPanel({ catalog = [], onAskAbout }) {
-  const rows = Array.isArray(catalog) ? catalog : [];
+  const rows = libraryHoldings(Array.isArray(catalog) ? catalog : []);
   const topics = topicCounts(rows, 8);
   return (
     <RailFrame>
@@ -486,7 +487,7 @@ export function HomeLibraryRailPanel({ catalog = [], onAskAbout }) {
       <div className="rd-v2-rail-scroll">
         {topics.length ? (
           <RailFieldGrid>
-            {topics.map((topic) => <RailField key={topic.id} label={topic.label} value={`${topic.count} dataset${topic.count === 1 ? "" : "s"}`} />)}
+            {topics.map((topic) => <RailField key={topic.id} label={String(topic.count)} value={topic.label} />)}
           </RailFieldGrid>
         ) : null}
       </div>
