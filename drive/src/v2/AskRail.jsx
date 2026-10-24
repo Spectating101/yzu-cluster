@@ -1,4 +1,4 @@
-import { ASK_ABILITIES, ASK_EXAMPLES } from "@/v2/askIntro";
+import { ASK_EXAMPLES } from "@/v2/askIntro";
 import { uiVocabularyLabel } from "./uiVocabularyLabels.js";
 import { synthesisRequestCopy } from "@/v2/synthesisAssist.js";
 import { useEffect, useRef, useState } from "react";
@@ -472,7 +472,6 @@ export function AskRail({
               className="rd-v2-ask-guided-empty"
               eyebrow="Ask, the research assistant"
               title="Answers from the Library, and plans what is missing."
-              checks={ASK_ABILITIES}
               actions={ASK_EXAMPLES.map((example) => (
                 <button key={example} type="button" className="rd-v2-chip clickable" disabled={busy} onClick={() => send(example)}>
                   {example}
