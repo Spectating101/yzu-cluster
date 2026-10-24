@@ -51,6 +51,8 @@ Research Drive is a research-evidence procurement and Library workbench: a resea
 - Ask is scoped to the selected object and never leaks context across objects.
 
 - Page head (owner, 2026-10-24): every page uses `PageHead` (title, one state line, actions on the right, fixed height, rule below); the top bar carries only Focus, status and account.
+- Emphasis (2026-10-24): the left accent bar means "needs you" only (gaps, decisions, errors, approval required, blocked); selected rows use a tint and keyboard focus an outline; informational notes and lifecycle states carry no bar; pills are for status. Labels are sentence case except table column headers. Spacing uses the 4 px scale (`--rd-space-*`).
+- Competitor comparisons find gaps, they are not templates: keep what serves researchers even where Hugging Face or Google drop it (curated summaries, coverage reasoning) (owner, 2026-10-24).
 
 ## 5. Pages as they are now (live on 8775, ui d0f63a65 + backend bb4abb7d)
 
@@ -71,13 +73,18 @@ Decisions: no source list on the idle page — that is Resources' job (owner, 20
 ### Synthesis
 Home: one compose box ("What dataset do you need, and what is it for?"), saved-method picker that only selects (creating a build needs the button), a directory of builds (needs decision / in progress / running / finished) and Built in Synthesis examples; left sidebar keeps the thread list (Active work / Outputs saved to Library). Thread: the method diagram leads every state (inputs → steps → output, real transform steps from the spec, measured join facts), then the current decision card, proposal review, execution record; evidence map folds away once a method is drawn.
 Decisions: show the work, not explanations — the July/August studio was the version the owner liked (owner, 2026-10-22); diagram as the hero (owner, 2026-10-22); nothing runs before approval; proposal ≠ accepted method ≠ executed ≠ registered ≠ query-ready.
+Synthesis is a review surface, not a workbench: the agent proposes and illustrates, the researcher approves or discusses (owner, 2026-10-24). Layout polish here is low value; what must hold is that every fact shown at approval agrees — the measurement line states mapped · measured · unreadable inputs, and an objective that only repeats the title reads "Title only" in readiness (`synthesisGates.js`, shared with Home), not a pass.
 
 ### Resources
 Three facts (assistant allowance, collection requests, access) and "Where the data comes from" grouped by licence and kind with each source's state.
 Decision: one job per page, each number once, no repeated "Open to you" rows (owner, 2026-10-21).
 
 ### Profile, Settings
-Not reviewed in this consolidation; treat as low weight.
+Profile: name at heading size, "Verified" said once, the research-context form and learned-memory toggles.
+Settings (owner, 2026-10-24): one column, no in-page index (the app sidebar already navigates), groups Account · Preferences · Assistant · Connections · Researcher access (operators only) · Advanced (folded: storage, browser connection, system status, fallback access). A disconnected browser shows its connection under Account. Section titles nest under group headings (`StatementHeadingLevel`).
+
+### Dataset preview (Library · Inspect overlay)
+Title line with access tag and Close; a facts line (unit · period · rows · columns · keys); the full description (five lines, then More); "Use it for" and "Boundary" (research caveats only, operator notes dropped); actions on one row; the observed sample with per-column histograms and ranges; Research details folded. The right panel hides Known boundary while the preview is open.
 
 ## 6. Rejected — do not propose again
 
