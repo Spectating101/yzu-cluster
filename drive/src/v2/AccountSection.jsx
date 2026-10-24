@@ -7,15 +7,6 @@ import { EmailSignInForm } from "./EmailSignIn.jsx";
 export function AccountSection({ deskAccess, onSignOut, onOpenAccess }) {
   const actor = deskAccess?.principal;
   const signedIn = Boolean(deskAccess?.permissions?.use_ask);
-  const [usage, setUsage] = useState(null);
-  const [error, setError] = useState("");
-  const reload = () => { setError(""); return accountUsage().then(setUsage).catch((e) => setError(e.message)); };
-  useEffect(() => {
-    if (!signedIn) return undefined;
-    let current = true;
-    accountUsage().then((out) => { if (current) setUsage(out); }).catch((e) => { if (current) setError(e.message); });
-    return () => { current = false; };
-  }, [actor?.id, signedIn]);
   return <StatementSection title="Your account">
     <div className="rd-account-summary">
       <strong>{signedIn ? actor?.display_name || actor?.email || "Researcher" : "Guest browsing"}</strong>
@@ -34,13 +25,29 @@ export function AccountSection({ deskAccess, onSignOut, onOpenAccess }) {
     {!signedIn && !deskAccess?.session?.email_sign_in_available && deskAccess?.session?.member_access_code_available && onOpenAccess ? <div className="rd-access-actions rd-account-entry">
       <button type="button" className="rd-v2-btn sm primary" onClick={() => onOpenAccess("signin")}>Sign in with an invitation code</button>
     </div> : null}
-    {signedIn ? <div className="rd-account-usage" role="group" aria-label="Assistant allowance">
-      <h3>Shared assistant allowance</h3>
+  </StatementSection>;
+}
+
+export function AssistantAllowance({ deskAccess }) {
+  const actor = deskAccess?.principal;
+  const signedIn = Boolean(deskAccess?.permissions?.use_ask);
+  const [usage, setUsage] = useState(null);
+  const [error, setError] = useState("");
+  const reload = () => { setError(""); return accountUsage().then(setUsage).catch((e) => setError(e.message)); };
+  useEffect(() => {
+    if (!signedIn) return undefined;
+    let current = true;
+    accountUsage().then((out) => { if (current) setUsage(out); }).catch((e) => { if (current) setError(e.message); });
+    return () => { current = false; };
+  }, [actor?.id, signedIn]);
+  if (!signedIn) return null;
+  return <StatementSection title="Shared assistant allowance">
+    <div className="rd-account-usage" role="group" aria-label="Assistant allowance">
       {usage ? <p><strong>{usage.hourly_remaining} / {usage.limits.hourly_requests}</strong> requests remaining this hour · <strong>{usage.daily_remaining} / {usage.limits.daily_requests}</strong> in the last 24 hours{usage.running_requests ? ` · ${usage.running_requests} running` : ""}</p> : <p>{error ? "Allowance unavailable" : "Checking allowance…"}</p>}
       <p className="rd-v2-settings-hint">Counts Ask, advice and assistant warm-up requests. AI capacity is supplied by the desk; these numbers are request limits, not your provider token balance. Browsing stays available when the allowance is used.</p>
       <button type="button" className="rd-v2-btn sm ghost" onClick={reload}>Refresh allowance</button>
       {error ? <p role="alert">The desk could not read your allowance just now. Try Refresh allowance in a moment.</p> : null}
-    </div> : null}
+    </div>
   </StatementSection>;
 }
 

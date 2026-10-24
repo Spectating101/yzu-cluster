@@ -118,18 +118,22 @@ test.describe("Research Drive release visual contract", () => {
     }
   });
 
-  test("Settings keeps browser connection visible and operational status subordinate", async ({ page }) => {
+  test("Settings keeps a healthy browser connection and operational status in Advanced", async ({ page }) => {
   await openTab(page, "Settings");
 
+  const settingsAdvanced = page.getByTestId("settings-advanced");
+  await expect(settingsAdvanced).not.toHaveAttribute("open", "");
+  await settingsAdvanced.locator(":scope > summary").click();
+  await expect(page.getByText("This browser", { exact: true })).toBeVisible();
   await expect(page.getByText("This browser", { exact: true }).locator("..")).toContainText("Connected");
-  const advanced = page
+  const advanced = settingsAdvanced
     .locator("details.rd-v2-settings-advanced")
     .filter({ hasText: "System status and technical details" })
     .first();
   await expect(advanced).not.toHaveAttribute("open", "");
   await expect(page.getByText("Research API", { exact: true })).not.toBeVisible();
   await expect(page.getByText("Assistant runtime", { exact: true })).not.toBeVisible();
-  await advanced.locator("summary").first().click();
+  await advanced.locator(":scope > summary").click();
   await expect(page.getByText("Research API", { exact: true })).toBeVisible();
   await expect(page.getByText("Assistant runtime", { exact: true })).toBeVisible();
   await expect(page.getByText("Research archive", { exact: true })).toBeVisible();

@@ -266,7 +266,7 @@ test("render current Library evidence and decision states", async ({ page }) => 
   await expect(dataPreview.getByRole("columnheader", { name: "news_risk" })).toBeVisible();
   await expect(dataPreview.locator("tbody tr")).toHaveCount(GDELT_PREVIEW_ROWS.length);
   await expect(page.getByTestId("library-observation-receipt")).toContainText("6 rows");
-  await expect(dataPreview).toContainText("Coverage: 2018–2024 · 13 Asian economies");
+  await expect(page.getByTestId("library-asset-factline")).toContainText("2018–2024 · 13 Asian economies");
   await expect(assetFacts.getByText("Research details", { exact: true })).toBeVisible();
   expect(await assetFacts.evaluate((element) => element.open)).toBe(false);
   const selectedOrder = await Promise.all([dataPreview.boundingBox(), assetFacts.boundingBox()]);

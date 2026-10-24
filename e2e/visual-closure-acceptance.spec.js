@@ -120,6 +120,7 @@ test("Profile thin — a signed-in researcher can add a research focus beside th
 test("Settings connected — state-consistent actions, no production example control", async ({ page }) => {
   await open(page, "/?tab=settings");
   const main = page.locator("main");
+  await main.getByTestId("settings-advanced").locator(":scope > summary").click();
   await expect(main.getByRole("button", { name: "Reconnect" })).toBeVisible();
   await expect(main.getByRole("button", { name: "Disconnect" })).toBeVisible();
   // VC-3: a connected desk is not offered a primary Connect action, and the

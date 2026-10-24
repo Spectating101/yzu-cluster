@@ -1108,7 +1108,7 @@
   padding-bottom: 0;
 }
 
-.rd-v2-settings-statement > .rd-v2-statement-section {
+.rd-v2-settings-statement .rd-v2-settings-group .rd-v2-statement-section, .rd-v2-settings-statement .rd-v2-settings-advanced-body .rd-v2-statement-section {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: var(--rd-space-2);
@@ -1121,7 +1121,7 @@
   box-shadow: none;
 }
 
-.rd-v2-settings-statement > .rd-v2-statement-section:first-of-type {
+.rd-v2-settings-group > .rd-v2-settings-group-title + .rd-v2-statement-section {
   padding-top: 0;
   border-top: 0;
 }
@@ -1139,12 +1139,12 @@
   font-size: var(--rd-text-md);
 }
 
-.rd-v2-settings-statement .rd-v2-statement-head h2 {
+.rd-v2-settings-statement .rd-v2-statement-head :is(h2, h3) {
   margin: 0;
   color: var(--rd-hps-ink);
-  font-size: var(--rd-text-lg);
+  font-size: var(--rd-text-sm);
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: normal;
 }
 
 .rd-v2-settings-statement .rd-v2-statement-body {
@@ -1245,6 +1245,26 @@
   color: var(--rd-review-fg);
 }
 
+.rd-v2-settings-group + .rd-v2-settings-group,
+.rd-v2-settings-group + .rd-v2-settings-group-advanced {
+  margin-top: var(--rd-space-5);
+}
+
+.rd-v2-settings-group-title {
+  margin: 0 0 var(--rd-space-2);
+  padding-bottom: var(--rd-space-2);
+  border-bottom: 2px solid var(--rd-hps-ink);
+  color: var(--rd-hps-ink);
+  font-size: var(--rd-text-xl);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.rd-v2-settings-group-advanced > summary {
+  color: var(--rd-text);
+  font-size: var(--rd-text-sm);
+}
+
 .rd-v2-settings-advanced {
   margin-top: var(--rd-space-2);
   border: 1px solid var(--rd-hps-line);
@@ -1292,7 +1312,7 @@
     min-height: 180px;
   }
 
-  .rd-v2-settings-statement > .rd-v2-statement-section {
+  .rd-v2-settings-statement .rd-v2-settings-group .rd-v2-statement-section, .rd-v2-settings-statement .rd-v2-settings-advanced-body .rd-v2-statement-section {
     grid-template-columns: minmax(130px, 180px) minmax(0, 1fr);
     gap: var(--rd-space-5);
   }
@@ -1342,7 +1362,7 @@
     justify-content: space-between;
   }
 
-  .rd-v2-settings-statement > .rd-v2-statement-section {
+  .rd-v2-settings-statement .rd-v2-settings-group .rd-v2-statement-section, .rd-v2-settings-statement .rd-v2-settings-advanced-body .rd-v2-statement-section {
     grid-template-columns: 1fr;
     gap: var(--rd-space-3);
   }
@@ -1489,7 +1509,7 @@
    soon as the persistent rail materially narrows the workspace, not only at
    phone widths. This keeps label, metric, sublabel and status all visible. */
 @media (max-width: 1280px) {
-  .rd-v2-settings-statement > .rd-v2-statement-section {
+  .rd-v2-settings-statement .rd-v2-settings-group .rd-v2-statement-section, .rd-v2-settings-statement .rd-v2-settings-advanced-body .rd-v2-statement-section {
     grid-template-columns: 1fr;
     gap: var(--rd-space-3);
   }

@@ -2181,7 +2181,7 @@ button {
   border-bottom: 1px solid var(--rd-border);
 }
 
-.rd-v2-statement-head h2 {
+.rd-v2-statement-head :is(h2, h3) {
   margin: 0;
   font-size: var(--rd-text-lg);
   letter-spacing: normal;

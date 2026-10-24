@@ -121,13 +121,12 @@ test.describe("v2 Library evidence estate", () => {
     const facts = page.getByTestId("library-asset-facts");
     await expect(inspector).toBeVisible();
     await expect(workspace).toBeVisible();
-    await expect(workspace).toContainText("Selected Library dataset");
+    const factline = page.getByTestId("library-asset-factline");
+    await expect(factline).toBeVisible();
+    await expect(factline).toContainText(/ · /);
+    await expect(factline).toContainText(/keys?: /);
     await expect(preview).toBeVisible();
-    await expect(preview).toContainText("Dataset inspection");
     await expect(preview).toContainText("Observed sample");
-    await expect(preview).toContainText("Coverage:");
-    await expect(preview).toContainText("Unit of observation:");
-    await expect(preview).toContainText("Keys:");
     await expect(facts.getByText("Research details", { exact: true })).toBeVisible();
     expect(await facts.evaluate((element) => element.open)).toBe(false);
     await expect(workspace.getByLabel("Evidence claims")).toBeHidden();

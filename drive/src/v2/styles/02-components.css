@@ -678,7 +678,7 @@ summary:focus-visible {
   background: linear-gradient(180deg, var(--rd-c-on-ink), var(--rd-c-on-ink));
 }
 
-.rd-v2-statement-head h2 {
+.rd-v2-statement-head :is(h2, h3) {
   color: var(--rd-text);
   font-weight: 600;
 }
@@ -4744,15 +4744,64 @@ body,
 }
 
 .rd-v2-library-asset-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--rd-space-4);
+  display: grid;
+  gap: var(--rd-space-2);
   padding-bottom: var(--rd-space-3);
   border-bottom: 1px solid var(--rd-release-line, var(--rd-border));
 }
 
 .rd-v2-library-asset-header > div { min-width: 0; }
+
+.rd-v2-library-asset-titlebar {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--rd-space-3);
+}
+
+.rd-v2-library-asset-titlebar h1 { flex: 1 1 auto; }
+
+.rd-v2-library-asset-titlebar .rd-v2-btn { flex: 0 0 auto; margin-top: var(--rd-space-1); }
+
+.rd-v2-library-asset-tag {
+  flex: 0 0 auto;
+  margin-top: var(--rd-space-2);
+  color: var(--rd-muted);
+  font-size: var(--rd-text-2xs);
+  font-weight: 600;
+}
+
+.rd-v2-library-asset-header .rd-v2-library-asset-factline {
+  display: block;
+  margin: 0;
+  color: var(--rd-c-text-2);
+  font-size: var(--rd-text-xs);
+  font-variant-numeric: tabular-nums;
+  -webkit-line-clamp: unset;
+}
+
+.rd-v2-library-asset-description { display: grid; justify-items: start; gap: var(--rd-space-1); }
+
+.rd-v2-library-asset-header .rd-v2-library-asset-description p {
+  -webkit-line-clamp: 5;
+  color: var(--rd-body);
+}
+
+.rd-v2-library-asset-header .rd-v2-library-asset-description p.is-open { display: block; }
+
+.rd-v2-library-asset-notes {
+  display: grid;
+  gap: var(--rd-space-1);
+  max-width: 82ch;
+  margin: 0;
+  font-size: var(--rd-text-xs);
+  line-height: 1.45;
+}
+
+.rd-v2-library-asset-notes > div { display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: var(--rd-space-3); }
+
+.rd-v2-library-asset-notes dt { color: var(--rd-muted); font-weight: 600; }
+
+.rd-v2-library-asset-notes dd { margin: 0; color: var(--rd-body); }
 
 .rd-v2-library-asset-header h1 {
   max-width: 34ch;
@@ -4792,12 +4841,15 @@ body,
 .rd-v2-library-workspace-secondary {
   display: flex;
   flex-wrap: wrap;
-  gap: 2px;
+  gap: 0;
   margin-left: auto;
 }
 
 .rd-v2-library-workspace-secondary .rd-v2-btn.ghost {
+  padding-inline: var(--rd-space-1);
+  border-color: transparent;
   color: var(--rd-muted);
+  font-size: var(--rd-text-2xs);
   font-weight: 600;
 }
 

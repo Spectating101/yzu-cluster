@@ -103,10 +103,9 @@ export function profileBasis(profile) {
   return `Column summaries cover the first ${profiled.toLocaleString("en-US")} of ${total.toLocaleString("en-US")} rows.`;
 }
 
-export function sampleReceipt(shown, columns, total) {
+export function sampleReceipt(shown, total) {
   const n = Number(shown) || 0;
   const all = Number(total) || 0;
-  const cols = `${columns} column${columns === 1 ? "" : "s"}`;
-  if (all > n) return `Sample of ${n} from ${all.toLocaleString("en-US")} rows · ${cols}`;
-  return `${n} row${n === 1 ? "" : "s"} · ${cols}`;
+  if (all > n) return `${n} of ${all.toLocaleString("en-US")} rows`;
+  return `${n} row${n === 1 ? "" : "s"}`;
 }

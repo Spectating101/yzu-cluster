@@ -1695,3 +1695,7 @@
   border-radius: 7px;
   background: var(--rd-c-surface);
 }
+
+.rd-v2-shell:has(.rd-v2-library-inspector-scrim) [data-testid="library-known-boundary"] {
+  display: none;
+}

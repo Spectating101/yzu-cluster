@@ -1,3 +1,4 @@
+import { createContext, useContext } from "react";
 import { shortSourceLabel } from "./sourceLabel.js";
 /** Shared v2 page chrome — matches docs/design/references/desk-v2-1440.html */
 
@@ -95,11 +96,14 @@ export function SourceRibbon({ source }) {
   return <span className={`rd-v2-source-ribbon ${tone}`}>{label}</span>;
 }
 
+export const StatementHeadingLevel = createContext(2);
+
 export function StatementSection({ title, action, children }) {
+  const Heading = `h${useContext(StatementHeadingLevel)}`;
   return (
     <section className="rd-v2-statement-section">
       <div className="rd-v2-statement-head">
-        <h2>{title}</h2>
+        <Heading>{title}</Heading>
         {action}
       </div>
       <div className="rd-v2-statement-body">{children}</div>

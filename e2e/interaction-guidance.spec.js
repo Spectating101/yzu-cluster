@@ -7,7 +7,9 @@ async function openTab(page, label) {
 
 async function openSettingsStatus(page) {
   await openTab(page, "Settings");
-  const status = page.locator("details.rd-v2-settings-advanced").first();
+  const advanced = page.getByTestId("settings-advanced");
+  if (!(await advanced.evaluate((element) => element.open))) await advanced.locator(":scope > summary").click();
+  const status = advanced.locator("details.rd-v2-settings-advanced").filter({ hasText: "System status and technical details" }).first();
   await expect(status.getByText("System status and technical details", { exact: true })).toBeVisible();
   if (!(await status.evaluate((element) => element.open))) {
     await status.getByText("System status and technical details", { exact: true }).click();

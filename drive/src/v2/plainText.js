@@ -36,7 +36,7 @@ const INTERNAL_GRAINS = new Set(["procured_snapshot", "catalog_harvest", "scrape
 const GRAIN_DIMENSIONS = new Set([
   "country", "county", "state", "region", "city", "year", "quarter", "month", "week", "day", "date", "hour", "minute",
   "firm", "company", "issuer", "ticker", "symbol", "security", "asset", "instrument", "index", "constituent",
-  "industry", "sector", "measure", "series", "interval", "product", "person", "household", "indicator", "period",
+  "industry", "sector", "measure", "series", "interval", "product", "person", "household", "indicator", "period", "factor", "permno", "gvkey",
 ]);
 
 export function plainGrain(value) {

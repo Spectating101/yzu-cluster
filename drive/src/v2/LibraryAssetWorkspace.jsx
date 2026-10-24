@@ -50,6 +50,38 @@ function recordTerms(dataset) {
   ].map((item) => String(item || "").trim()).filter(Boolean))].slice(0, 10);
 }
 
+function sameText(a, b) {
+  const norm = (value) => String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  return norm(a) === norm(b);
+}
+
+function researchBoundary(dataset, fields) {
+  const raw = [dataset?.limitations, dataset?.caveats, fields.limitations]
+    .map((item) => (Array.isArray(item) ? item.join("; ") : String(item || "")).trim())
+    .find(Boolean) || "";
+  const clauses = raw.split(/;\s*|\.\s+/).map((part) => part.trim().replace(/\.$/, "")).filter(Boolean)
+    .filter((part) => !/\b[a-z0-9]+_[a-z0-9_]+\b/i.test(part));
+  return clauses.length ? `${clauses.join("; ")}.` : "";
+}
+
+function ExpandableText({ text }) {
+  const [open, setOpen] = useState(false);
+  const [overflows, setOverflows] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    const node = ref.current;
+    if (node) setOverflows(node.scrollHeight > node.clientHeight + 2);
+  }, [text]);
+  return (
+    <div className="rd-v2-library-asset-description">
+      <p ref={ref} className={open ? "is-open" : undefined}>{text}</p>
+      {overflows || open ? (
+        <button type="button" className="rd-v2-linkish" onClick={() => setOpen((value) => !value)}>{open ? "Less" : "More"}</button>
+      ) : null}
+    </div>
+  );
+}
+
 function limitation(dataset, fields, presentation) {
   const explicit = [dataset?.limitations, dataset?.caveats, fields.limitations]
     .map((item) => String(item || "").trim())
@@ -393,8 +425,6 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
         : { datasetId: dataset?.dataset_id, column, index }
     ));
   };
-  const joinKeys = fields.joinKeys || [];
-  const rowCount = dataset?.rows || dataset?.row_count || dataset?.num_rows || dataset?.records || dataset?.glance?.rows;
   const liveSource = presentation.kind === "live_source";
   if (licensedRowsLocked(dataset)) {
     return (
@@ -412,26 +442,17 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
       </section>
     );
   }
-  const coverage = coverageText(fields.coverage || dataset?.coverage).trim() || glanceCoverage(dataset);
-  const grain = plainGrain(dataset?.grain);
-  const footFacts = [
-    coverage ? `Coverage: ${coverage}` : "",
-    !liveSource && grain ? `Unit of observation: ${grain}` : "",
-    !liveSource && rowCount ? `Scale: ${Number.isFinite(Number(rowCount)) ? Number(rowCount).toLocaleString("en-US") : rowCount} rows` : "",
-    joinKeys.length ? `Keys: ${joinKeys.join(" · ")}` : "",
-  ].filter(Boolean);
 
   return (
     <section className="rd-v2-library-data-preview" aria-label="Dataset table and structure" data-testid="library-data-preview">
       <div className="rd-v2-library-section-heading">
         <div>
-          <span className="rd-v2-eyebrow">{liveSource ? "Source inspection" : "Dataset inspection"}</span>
           <h2>{observed ? (liveSource ? "Observed response sample" : "Observed sample") : (liveSource ? "Documented response shape" : "Table structure")}</h2>
         </div>
         <div className="rd-v2-library-preview-tools">
           {observed ? (
             <span className="rd-v2-library-observation-receipt" data-testid="library-observation-receipt">
-              {sampleReceipt(preview.rows.length, columns.length, preview.profile?.rows_total || preview.total)}
+              {sampleReceipt(preview.rows.length, preview.profile?.rows_total || preview.total)}
             </span>
           ) : null}
           <button type="button" className="rd-v2-btn sm" onClick={onInspect}>Inspect schema</button>
@@ -541,10 +562,9 @@ function DatasetPreview({ dataset, canQuery, names, fields, state, presentation,
         </div>
       )}
 
-      {observed || footFacts.length ? (
+      {observed || schemaColumns.length ? (
         <div className="rd-v2-library-preview-foot">
           {!preview.loading ? <span>{observed ? (profileBasis(preview.profile) || "Values read from the stored data") : "Documented structure only"}</span> : null}
-          {footFacts.map((fact) => <span key={fact}>{fact}</span>)}
         </div>
       ) : null}
     </section>
@@ -632,6 +652,17 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onOpenQuery,
   const names = useMemo(() => fieldNames(dataset, fields), [dataset, fields]);
   const rowCount = dataset?.rows || dataset?.row_count || dataset?.num_rows || dataset?.records || dataset?.glance?.rows;
   const purpose = value(dataset?.recommended_use, dataset?.description, fields.use, "Research use is not described in the current registry metadata.");
+  const description = value(dataset?.description, dataset?.summary, dataset?.one_line, `This ${presentation.noun} has no plain-language description in the current registry.`);
+  const useFor = sameText(dataset?.recommended_use, description) ? "" : String(dataset?.recommended_use || "").trim();
+  const boundary = researchBoundary(dataset, fields);
+  const columnCount = dataset?.glance?.columns || dataset?.materialization?.schema_observation?.columns;
+  const headFacts = presentation.previewRows ? [
+    plainGrain(dataset?.grain),
+    coverageText(fields.coverage || dataset?.coverage).trim() || glanceCoverage(dataset),
+    rowCount && Number.isFinite(Number(rowCount)) ? `${Number(rowCount).toLocaleString("en-US")} rows` : "",
+    columnCount ? `${columnCount} columns` : "",
+    (fields.joinKeys || []).length ? `${fields.joinKeys.length === 1 ? "key" : "keys"}: ${fields.joinKeys.join(", ")}` : "",
+  ].filter(Boolean) : [];
 
   const factContent = (
     <>
@@ -657,22 +688,22 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onOpenQuery,
   );
 
   return (
-    <PageShell
-      className="rd-v2-library-workspace"
-      headExtra={
-        <div className="rd-v2-library-inspector-bar">
-          <span className="rd-v2-library-inspector-context"><b>Library</b> <span aria-hidden="true">·</span> Inspect</span>
-          <button type="button" className="rd-v2-btn sm" onClick={onBack} aria-label="Close data inspector">Close</button>
-        </div>
-      }
-    >
+    <PageShell className="rd-v2-library-workspace">
       <article className="rd-v2-library-asset-canvas" data-testid="library-asset-workspace" data-asset-kind={presentation.kind}>
         <header className="rd-v2-library-asset-header">
-          <div>
-            <span className="rd-v2-eyebrow">{presentation.eyebrow}{dataset?.licensed ? " · University subscription" : ""}</span>
+          <div className="rd-v2-library-asset-titlebar">
             <h1>{keepRangesTogether(displayName(dataset))}</h1>
-            <p>{value(dataset?.description, dataset?.summary, dataset?.recommended_use, `This ${presentation.noun} has no plain-language description in the current registry.`)}</p>
+            {dataset?.licensed ? <span className="rd-v2-library-asset-tag">University subscription</span> : null}
+            <button type="button" className="rd-v2-btn sm" onClick={onBack} aria-label="Close data inspector">Close</button>
           </div>
+          {headFacts.length ? <p className="rd-v2-library-asset-factline" data-testid="library-asset-factline">{headFacts.join(" · ")}</p> : null}
+          <ExpandableText text={description} />
+          {useFor || boundary ? (
+            <dl className="rd-v2-library-asset-notes">
+              {useFor ? <div><dt>Use it for</dt><dd>{useFor}</dd></div> : null}
+              {boundary ? <div><dt>Boundary</dt><dd>{boundary}</dd></div> : null}
+            </dl>
+          ) : null}
         </header>
 
         {listedSources(dataset).length ? (
