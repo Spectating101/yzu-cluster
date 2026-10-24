@@ -73,7 +73,8 @@ function discoverSituation({ browseTarget, browseLifecycle, historyEvent, discov
     const result = discoverAssessment.result || discoverAssessment;
     const verdict = assessmentLabel(result, humanize(result.status));
     const gap = assessmentGapText(result);
-    const support = discoverAssessment.result ? librarySupportSummary(result) : null;
+    const inconclusive = ["assistant_unavailable", "insufficient_requirement"].includes(assessmentStatusKey(result));
+    const support = discoverAssessment.result && !inconclusive ? librarySupportSummary(result) : null;
     return {
       status: verdict || (discoverAssessment.result ? "Coverage assessment" : "Coverage check running"),
       facts: support ? [`${support.value} ${support.detail}`] : [],

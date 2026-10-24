@@ -270,4 +270,5 @@ test("a coverage check the assistant could not answer shows no gap, routes or ca
   expect(text).not.toContain("No assessable requirement dimension");
   expect(text).not.toContain("Execution capacity");
   await expect(inspector).not.toContainText("Review the collection strategy");
+  await expect(inspector).not.toContainText("Library records checked");
 });

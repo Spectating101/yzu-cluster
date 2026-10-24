@@ -1,4 +1,5 @@
 import { LockMark, lockTitle } from "@/v2/Lock";
+import { DISCOVER_GROUPS, collapseSameWork, discoverGroupOf, rowCitation, rowDescription, rowFacts } from "./discoverRowText.js";
 import { rowsLabel, spanOf, spanText } from "./libraryGlance.js";
 import { listDescription } from "./listDescription.js";
 import { hasNeedShape } from "./discoverQueryIntent.js";
@@ -15,7 +16,6 @@ import { isDiscoverHistoryJob, jobToCandidateRow, pendingApprovalJobs } from "@/
 import {
   classifyDiscoverResult,
   coverageLine,
-  descriptiveLine,
   discoverCandidateState,
   exceptionalRowPill,
   humanizeDiscoverDescription,
@@ -250,25 +250,16 @@ function DiscoverCandidateRow({
   const exceptionPill = exceptionalRowPill(row, taxonomy, state);
   const showSufficiency =
     !externalCatalogue && Number(taxonomy.group) >= 3 && row.discover_sufficiency?.browseLine;
-  const hasExplicitDescription = Boolean(
-    String(
-      row?.description ||
-        row?.recommended_use ||
-        row?.subtitle ||
-        row?.public_summary ||
-        row?.notes ||
-        "",
-    ).trim(),
-  );
-  const evidenceLine = hasExplicitDescription
-    ? humanizeDiscoverDescription(descriptiveLine(row)).replace(/\s*Bounded official API collection requires approval; no local mirror is implied\.?/i, "").trim()
-    : "";
+  const webResult = discoverGroupOf(taxonomy.key).id === "web";
+  const evidenceLine = humanizeDiscoverDescription(rowDescription(row));
+  const citation = webResult ? rowCitation(row) : "";
+  const facts = taxonomy.key.startsWith("local-") ? [] : rowFacts(row);
   const restatesTitle = evidenceLine.toLowerCase().replace(/[.\s]+$/, "") === candidateTitle(row).toLowerCase().replace(/[.\s]+$/, "");
   const fitLine = partialFitLine(row);
   const heldSpan = taxonomy.key.startsWith("local-") ? spanOf(row) : null;
   const heldGlance = heldSpan ? [rowsLabel(heldSpan.rows), spanText(heldSpan)].filter(Boolean).join(" · ") : "";
   const heldPurpose = heldSpan && !evidenceLine ? listDescription(row?.one_line || row?.meaning || "") : "";
-  const coverage = heldGlance || coverageLine(row);
+  const coverage = heldGlance || (facts.length ? facts.join(" · ") : coverageLine(row));
   const showCoverage = coverage && coverage !== "Coverage not described";
   const offeringFacts = [
     ["Fit", row?.place_fit ? row.place_fit.charAt(0).toUpperCase() + row.place_fit.slice(1) : null],
@@ -289,28 +280,30 @@ function DiscoverCandidateRow({
     <li className={selected ? "rd-v2-row-on" : undefined}>
       <button
         type="button"
-        className={`row rd-v2-discover-candidate${selected ? " selected" : ""}${exceptionPill ? " has-exception" : ""}`}
+        className={`row rd-v2-discover-candidate${selected ? " selected" : ""}${exceptionPill ? " has-exception" : ""}${webResult && citation && !exceptionPill ? " no-source" : ""}`}
         data-kind={taxonomy.key}
         data-state={state.key}
         data-sufficiency={showSufficiency ? row.discover_sufficiency.state : undefined}
         aria-pressed={selected}
         onClick={() => onSelectRow(row)}
       >
-        <span className="rd-v2-discover-candidate-source">
-          <SourceRibbon source={ribbonSource} />
-          {exceptionPill ? (
-            <span className={`rd-v2-pill ${exceptionPill.className}`}>{exceptionPill.label}</span>
-          ) : null}
-        </span>
+        {webResult && citation && !exceptionPill ? null : (
+          <span className="rd-v2-discover-candidate-source">
+            {webResult && citation ? null : <SourceRibbon source={ribbonSource} />}
+            {exceptionPill ? (
+              <span className={`rd-v2-pill ${exceptionPill.className}`}>{exceptionPill.label}</span>
+            ) : null}
+          </span>
+        )}
         <span className="rd-v2-discover-candidate-main">
           <span className="rd-v2-discover-candidate-heading">
             <strong className="rd-v2-discover-candidate-title">
               {candidateTitle(row)}
             </strong>
-            <em className="rd-v2-discover-possession">{taxonomyLine}</em>
+            {webResult ? (citation ? <em className="rd-v2-discover-citation" data-testid="discover-citation">{citation}</em> : null) : <em className="rd-v2-discover-possession">{taxonomyLine}</em>}
           </span>
           {fitLine ? <span className="rd-v2-discover-evidence" data-testid="discover-partial-fit">{fitLine}</span> : null}
-          {evidenceLine && !restatesTitle ? <span className="rd-v2-discover-evidence">{evidenceLine}</span> : heldPurpose ? <span className="rd-v2-discover-evidence">{heldPurpose}</span> : null}
+          {evidenceLine && !restatesTitle ? <span className="rd-v2-discover-evidence">{evidenceLine}</span> : heldPurpose ? <span className="rd-v2-discover-evidence">{heldPurpose}</span> : webResult ? <span className="rd-v2-discover-evidence is-missing">No description from the source</span> : null}
           {showCoverage ? <span className="rd-v2-discover-coverage-line" data-testid="discover-coverage-line">{coverage}</span> : null}
           <span className="rd-v2-discover-offering-facts" role="group" aria-label="Offering facts" hidden={!selected}>
             {offeringFacts.map(([label, value]) => (
@@ -625,10 +618,22 @@ function DiscoverCandidateList({
   onAdd,
   addLock,
   externalCatalogue = false,
+  grouped: showGroups = false,
 }) {
+  const grouped = !showGroups ? [{ group: null, rows }] : DISCOVER_GROUPS.map((group) => ({
+    group,
+    rows: rows.filter((row) => discoverGroupOf((row.discover_taxonomy || classifyDiscoverResult(row, labIds)).key).id === group.id),
+  })).filter((entry) => entry.rows.length);
   return (
     <ul className="rd-v2-catalog rd-v2-discover-candidates" aria-label="Discover candidates">
-      {rows.map((row) => (
+      {grouped.flatMap(({ group, rows: groupRows }) => [
+        group ? (
+          <li key={`group:${group.id}`} className="rd-v2-discover-group-head" data-testid={`discover-group-${group.id}`}>
+            <h3>{group.label}</h3>
+            <span>{groupRows.length}{group.note ? ` · ${group.note}` : ""}</span>
+          </li>
+        ) : null,
+        ...groupRows.map((row) => (
         <DiscoverCandidateRow
           key={candidateKey(row) || candidateTitle(row)}
           row={row}
@@ -639,19 +644,29 @@ function DiscoverCandidateList({
           addLock={addLock}
           externalCatalogue={externalCatalogue}
         />
-      ))}
+        )),
+      ])}
     </ul>
   );
 }
 
+const FILLABLE_FIELDS = ["description", "notes", "public_summary", "repository", "publication_year", "doi", "publisher"];
+
 function dedupeRows(rows) {
-  const seen = new Set();
+  const seen = new Map();
   const out = [];
   for (const row of rows) {
     const stamped = withCandidateKey(row);
     const key = candidateKey(stamped);
-    if (!key || seen.has(key)) continue;
-    seen.add(key);
+    if (!key) continue;
+    if (seen.has(key)) {
+      const index = seen.get(key);
+      const kept = out[index];
+      const missing = FILLABLE_FIELDS.filter((field) => !String(kept[field] ?? "").trim() && String(stamped[field] ?? "").trim());
+      if (missing.length) out[index] = { ...kept, ...Object.fromEntries(missing.map((field) => [field, stamped[field]])) };
+      continue;
+    }
+    seen.set(key, out.length);
     out.push(stamped);
   }
   return out;
@@ -1271,14 +1286,17 @@ export function BrowsePage({
       }),
     [renderedRows, labIds],
   );
+  const centreRows = useMemo(
+    () => collapseSameWork(stateFilter === "all" ? rankedOfferings : renderedRows),
+    [stateFilter, rankedOfferings, renderedRows],
+  );
   const contextualRows = useMemo(
-    () => renderedRows.filter((row) => {
+    () => collapseSameWork(renderedRows.filter((row) => {
       const taxonomy = row.discover_taxonomy || classifyDiscoverResult(row, labIds);
       return ["Reference only", "Web context"].includes(offeringType(row, taxonomy));
-    }),
-    [renderedRows, labIds],
+    }), centreRows),
+    [renderedRows, labIds, centreRows],
   );
-  const centreRows = stateFilter === "all" ? rankedOfferings : renderedRows;
 
   useEffect(() => {
     if (!isExplore || !selectedId || !centreRows.length) return;
@@ -1870,6 +1888,7 @@ export function BrowsePage({
             {centreRows.length ? (
               <section className="rd-v2-discover-ranked-results" aria-label="Ranked Discover results" data-testid="discover-ranked-results">
                 <DiscoverCandidateList
+                  grouped
                   rows={centreRows}
                   labIds={labIds}
                   selectedId={selectedId}

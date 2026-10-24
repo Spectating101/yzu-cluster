@@ -1762,3 +1762,49 @@ body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(
   right: auto;
   left: 0;
 }
+
+.rd-v2-discover-page .rd-v2-discover-candidates > .rd-v2-discover-group-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--rd-space-2);
+  padding: var(--rd-space-4) 0 var(--rd-space-2);
+  border-bottom: 1px solid var(--rd-border);
+  list-style: none;
+}
+
+.rd-v2-discover-page .rd-v2-discover-candidates > .rd-v2-discover-group-head:first-child {
+  padding-top: var(--rd-space-1);
+}
+
+.rd-v2-discover-group-head h3 {
+  margin: 0;
+  color: var(--rd-text);
+  font-size: var(--rd-text-xs);
+  font-weight: 700;
+}
+
+.rd-v2-discover-group-head span {
+  color: var(--rd-muted);
+  font-size: var(--rd-text-2xs);
+}
+
+.rd-v2-discover-citation {
+  flex: 0 0 auto;
+  max-width: 220px;
+  color: var(--rd-muted);
+  font-size: var(--rd-text-2xs);
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.3;
+  text-align: right;
+}
+
+.rd-v2-discover-page .rd-v2-discover-evidence.is-missing {
+  color: var(--rd-c-text-4);
+  font-style: italic;
+}
+
+.rd-v2-discover-page .rd-v2-discover-ranked-results .rd-v2-discover-candidate.no-source,
+.rd-v2-discover-page .rd-v2-discover-ranked-results:not(.rd-v2-discover-context-results) button.row.rd-v2-discover-candidate.no-source {
+  column-gap: 0;
+}

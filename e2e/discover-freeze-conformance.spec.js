@@ -68,7 +68,7 @@ test("§3 — the chrome row carries exactly the three frozen counters", async (
 
 test("§3 — every visible offering carries a description and a row-level Add", async ({ page }) => {
   await open(page, "stablecoin");
-  const rows = page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidates > li");
+  const rows = page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidates > li:not(.rd-v2-discover-group-head)");
   const n = await rows.count();
   expect(n).toBeGreaterThan(0);
   for (let i = 0; i < n; i += 1) {
@@ -80,7 +80,7 @@ test("§3 — every visible offering carries a description and a row-level Add",
 
 test("§12 — selecting a row does not take over the centre", async ({ page }) => {
   await open(page, "stablecoin");
-  const rows = page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidates > li");
+  const rows = page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidates > li:not(.rd-v2-discover-group-head)");
   const before = await rows.count();
   expect(before).toBeGreaterThan(0);
   await rows.first().locator(".rd-v2-discover-candidate").click();

@@ -62,6 +62,7 @@ export function decodeEntities(value) {
 
 export function cleanDescription(value) {
   return decodeEntities(String(value || "").replace(/<\/?[a-zA-Z][^<>]*>/g, " "))
+    .replace(/<\/?(?:a|b|br|div|em|h[1-6]|i|li|ol|p|span|strong|sub|sup|u|ul)(?:\s[^<>]*)?\/?>/gi, " ")
     .replace(/\u00a0/g, " ")
     .replace(/\s+/g, " ")
     .trim();
