@@ -239,3 +239,35 @@ test.describe("Discover adversarial lifecycle", () => {
     await expect(capacity).toContainText("No worker or quota is assigned here.");
   });
 });
+
+test("a coverage check the assistant could not answer shows no gap, routes or capacity", async ({ page }) => {
+  await mockV2Api(page, {
+    discoverBody: MOCK_DISCOVER_HIT,
+    assessmentBody: {
+      ...MOCK_DISCOVER_ASSESSMENT,
+      assessment_status: "assistant_unavailable",
+      verdict: null,
+      because: "The research assistant did not answer, so coverage could not be checked. Try again in a moment.",
+      held_evidence: [],
+      gap: {
+        statement: "No assessable requirement dimension was supplied.",
+        blocks: "The requirement is unspecified.",
+        resolution_evidence: "An explicit requirement dimension.",
+      },
+    },
+  });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/?tab=browse", { waitUntil: "domcontentloaded" });
+  await waitForShell(page);
+  await search(page, "What data covers Taiwan issuer-quarter governance?");
+
+  await expect(page.getByTestId("discover-assessment-retry")).toBeVisible();
+  const inspector = page.getByRole("complementary", { name: "Inspector" });
+  await expect(inspector).toContainText("Try the check again in a moment");
+  await expect(inspector).toContainText("did not answer");
+  const text = await assessmentText(page);
+  expect(text).not.toContain("One precise gap");
+  expect(text).not.toContain("No assessable requirement dimension");
+  expect(text).not.toContain("Execution capacity");
+  await expect(inspector).not.toContainText("Review the collection strategy");
+});

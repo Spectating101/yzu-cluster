@@ -224,6 +224,7 @@ export function DiscoverEvidenceBrief({
   const verdictTone = assessmentStatus || verdictKey || "unknown";
   const briefNeeded = assessmentStatus === "insufficient_requirement";
   const assistantUnavailable = assessmentStatus === "assistant_unavailable";
+  const inconclusive = briefNeeded || assistantUnavailable;
   const because = briefNeeded
     ? `${libraryMatchCount ? `${libraryMatchCount} Library ${libraryMatchCount === 1 ? "match" : "matches"} found. ` : ""}Coverage is checked once the brief says what the data must cover: period, frequency, or instruments.`
     : text(assessment?.because, "Reasoning was not provided.");
@@ -563,7 +564,7 @@ export function DiscoverEvidenceBrief({
               </div>
             ) : null}
   
-            {variant !== "layered" ? <section className="rd-v2-evidence-held" aria-label="Library evidence">
+            {inconclusive ? null : (<>{variant !== "layered" ? <section className="rd-v2-evidence-held" aria-label="Library evidence">
               <div className="rd-v2-evidence-section-head"><div><span className="rd-v2-eyebrow">Library records checked · {heldEvidence.length}</span></div></div>
               {heldEvidence.length ? (
                 <ul data-testid="discover-held-evidence">
@@ -652,7 +653,7 @@ export function DiscoverEvidenceBrief({
                 <summary>Assessment basis</summary>
                 <p className="rd-v2-evidence-basis">{assessmentBasisSummary(assessment.assessment_basis)}</p>
               </details>
-            ) : null}
+            ) : null}</>)}
             </div>,
             railSlot,
           ) : (
@@ -675,7 +676,7 @@ export function DiscoverEvidenceBrief({
               </div>
             ) : null}
   
-            {variant !== "layered" ? <section className="rd-v2-evidence-held" aria-label="Library evidence">
+            {inconclusive ? null : (<>{variant !== "layered" ? <section className="rd-v2-evidence-held" aria-label="Library evidence">
               <div className="rd-v2-evidence-section-head"><div><span className="rd-v2-eyebrow">Library records checked · {heldEvidence.length}</span></div></div>
               {heldEvidence.length ? (
                 <ul data-testid="discover-held-evidence">
@@ -764,7 +765,7 @@ export function DiscoverEvidenceBrief({
                 <summary>Assessment basis</summary>
                 <p className="rd-v2-evidence-basis">{assessmentBasisSummary(assessment.assessment_basis)}</p>
               </details>
-            ) : null}
+            ) : null}</>)}
             </details>
           )}
         </div>

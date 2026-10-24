@@ -3,7 +3,7 @@ import { canIUseDecision, libraryAssetPresentation, statusPillKind } from "@/v2/
 import { DISCOVER_TAB } from "@/v2/tabIdentity";
 import { plainIdentifiers } from "@/v2/plainText";
 import { synthesisJourneyStage } from "@/v2/synthesisLifecycle";
-import { assessmentGapText, assessmentLabel, judgedLibraryMatch, librarySupportSummary } from "./assessmentLabels.js";
+import { assessmentGapText, assessmentLabel, assessmentStatusKey, judgedLibraryMatch, librarySupportSummary } from "./assessmentLabels.js";
 
 function text(value) {
   if (value === null || value === undefined) return "";
@@ -79,7 +79,11 @@ function discoverSituation({ browseTarget, browseLifecycle, historyEvent, discov
       facts: support ? [`${support.value} ${support.detail}`] : [],
       next: !discoverAssessment.result
         ? "Results in the centre are usable now."
-        : gap
+        : assessmentStatusKey(result) === "assistant_unavailable"
+          ? "Try the check again in a moment; the results in the centre are usable now."
+          : assessmentStatusKey(result) === "insufficient_requirement"
+            ? "Say what the data must cover in Edit brief, and the Library is checked against it."
+            : gap
           ? "Review the collection strategy to fill the gap shown in the centre."
           : judgedLibraryMatch(result)
             ? "Open the matching dataset in your Library."
