@@ -30,6 +30,11 @@ import "./synthesisInteractionPolish.js";
  */
 export const PRE_BUILD = ["scope", "units", "join", "columns"];
 
+export function methodJoins(state) {
+  const spec = state?.proposal?.execution_spec || state?.execution_spec;
+  return (Array.isArray(spec?.transforms) ? spec.transforms : []).some((step) => ["join", "join_asof"].includes(String(step?.op || "")));
+}
+
 export function hasExecuted(state) {
   return Boolean(String(state?.execution?.status || "").trim());
 }
@@ -48,7 +53,7 @@ export const SUBJECTS = [
   { id: "proposal", panel: "proposal", label: "proposal to review",
     when: (s) => Boolean(s?.proposal) },
   { id: "join", panel: "join", label: "join needs review",
-    when: (s) => Boolean((s?.join_candidates || []).length) },
+    when: (s) => Boolean((s?.join_candidates || []).length) && !methodJoins(s) },
   { id: "building", panel: "execution", label: "building",
     when: (s) => ["queued", "running", "registering", "archiving"].includes(String(s?.execution?.status || "")) },
   { id: "ready", panel: "execution", label: "registered",
@@ -85,7 +90,7 @@ const STRIP = [
     } },
   { id: "join", label: "join needs review", summary: (s) => {
       const best = (s.join_candidates || [])[0];
-      if (!best) return "";
+      if (!best || methodJoins(s)) return "";
       const matched = Number(best.matched);
       const total = Number(best.left_distinct ?? best.total);
       const repeated = Number(best.right_duplicate_rows) > 0;

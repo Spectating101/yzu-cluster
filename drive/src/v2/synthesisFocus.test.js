@@ -134,3 +134,16 @@ test("promoting a stale subject is refused rather than honoured", () => {
   assert.equal(focus.subject, "ready");
   assert.equal(focus.promoted, false);
 });
+
+test("a method that carries its own join replaces the raw key-overlap review", () => {
+  const candidates = [{ matched: 0, left_distinct: 3653, match_rate_pct: 0, right_duplicate_rows: 0 }];
+  const raw = focusFor({ join_candidates: candidates, nodes: [{ layer: "evidence" }] });
+  assert.equal(raw.subject, "join");
+  const withMethod = focusFor({
+    join_candidates: candidates,
+    nodes: [{ layer: "evidence" }],
+    proposal: { execution_spec: { transforms: [{ op: "join_asof", right_dataset_id: "co2", left_on: "Date", right_on: "Date" }] } },
+  });
+  assert.equal(withMethod.subject, "proposal");
+  assert.equal(withMethod.strip.some((item) => item.id === "join"), false);
+});
