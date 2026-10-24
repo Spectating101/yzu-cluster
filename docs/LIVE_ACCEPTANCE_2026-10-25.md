@@ -28,12 +28,38 @@ Cost: these five assistant turns took Gmelody99 from 199 to 196 chats.
 ## Backend defects (for Codex)
 
 1. **Assistant quota exhausted.** Both Ask and the coverage check fail on the provider's monthly quota. The desk's own allowance still reads 60/60, so the two limits disagree. Needs capacity or a provider decision (owner ruled out Azure for the coverage check on 2026-10-23).
-2. **Collected CSV columns are misaligned.** `https://raw.githubusercontent.com/datasets/co2-ppm/main/data/co2-mm-mlo.csv` registered with headers `Date, Decimal Date, Average, Interpolated, Trend, Number of Days, column_7`, but the values are shifted ("Trend" holds `-01`, an extra `column_7`). The header has one fewer name than the data columns; the collector stored it as-is. Same class as the 2026-10-22 parity benchmark (no transform or validation after fetch).
+2. **A malformed source CSV is stored without a warning.** The upstream file `co2-mm-mlo.csv` itself has 6 header names over 7 values, so `Trend`/`Number of Days` hold the wrong fields and a `column_7` appears. `Date` and `Average` are correct. The collector should flag a header/value count mismatch at registration rather than store it silently.
 3. **`recommended_use` holds an internal path** for collected datasets: `Inspect files under data_lake/procured/…/table_1.parquet`. The UI now hides it; the field should carry research guidance or be empty.
 4. **No `source_system` on collected datasets**, only `source_url`. The UI now derives "GitHub · datasets/co2-ppm" from the URL; a source name at registration would be better.
 5. **Evidence-map nodes for collected datasets use the request title** ("Custom collect · raw.githubusercontent.com") instead of the dataset name, and their `coverage` is a Python dict string (`{'rows': 822, 'columns': [...], 'date_range': {...}}`). The picker now maps both; the build page's join decision still shows the request title.
 6. **Synthesis cannot aggregate an input before joining** (see the re-run above). Any monthly-vs-daily study stops at the join decision.
 7. **Request plans for URL collections have no `provider`/`source_id`**; the review dialog now falls back to the URL host.
+
+## Synthesis run, end to end (2026-10-25)
+
+Build `bc24a774d4d7452f`, recipe: BTC daily returns (`pct_change`), month via `date_trunc`, CO₂ joined with `join_asof` (backward, 31D), grouped by month → std of returns, mean CO₂, day count.
+
+| Step | Result |
+|---|---|
+| Assistant writes the recipe | ❌ It tried an equi-join on a derived month; preflight refused it as `empty_join`. |
+| Recipe attached via the proposal endpoint | ✅ preflight passed |
+| Accept → sample preview | ✅ 121 output rows on 3,653 BTC days |
+| Request approval | ✅ job `1c8324d60462` created (pending_approval) |
+| Approve in the UI | ❌ no control anywhere (see below); approved through the API as operator |
+| Worker build → archive → registry → Library | ✅ 20 s; archived and verified on cms-drive; registered as `synthesis_btc_vol_co2_monthly`; row ledger and as-of coverage (99.3%) recorded; `method.py` frozen |
+| Correctness | ✅ independent pandas recomputation matches all 121 rows exactly |
+
+Backend defects:
+- **The join preflight measures the raw input file, not the transformed frame** (`preflight_execution_spec`, `op == "join"` → `_probe_join_step(left_path=try_path(input_row))`). Any join on a key built by an earlier rename/derive reports `empty_join`. This is what stopped the assistant.
+- **`date_trunc` returns text** (`"2016-09"`), so a derived month can never equi-join a datetime `Date` column even after the probe is fixed.
+- **Synthesis build jobs are tagged ops-internal** (`plan.execution_policy.scope = "ops"`, `request._ops_internal = true`), and approval needs `approve_jobs` (operator). History hides ops jobs by design, so no one can see or approve a synthesis build in the UI.
+- **Output naming:** the dataset is titled "Synthesis: <truncated thread title>" rather than from the recipe's purpose.
+
+Frontend defects (Claude):
+- The method strip shows 3 of 5 steps (filter, rename, aggregate); `pct_change`, `derive` and the CO₂ `join_asof` are missing. "Rename 1 columns" is ungrammatical, and only the first metric is named.
+- "Review execution approval" routes to Discover History, which cannot list the job; as operator it selected an unrelated pending collection request.
+- The step is labelled "Researcher approval" but only an operator can approve.
+- "Intended output: …; not yet constructed." still shows after the build is saved.
 
 ## Frontend fixes made from this run
 
