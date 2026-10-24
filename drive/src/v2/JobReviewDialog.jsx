@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { sourceFromUrl } from "./datasetSources.js";
 import { createPortal } from "react-dom";
 import { approveJob, fetchJson } from "./api.js";
 import { jobReviewFacts } from "./jobReviewFacts.js";
@@ -71,7 +72,7 @@ export function JobReviewDialog({ jobId, canApprove, onClose, onApproved }) {
           <h3>{job.title || jobId}</h3>
           <dl className="rd-v2-job-review-facts">
             <div><dt>Status</dt><dd>{job.status === "pending_approval" ? "Awaiting approval" : String(job.status || "Unknown").replaceAll("_", " ")}</dd></div>
-            <div><dt>Source</dt><dd>{plan.provider || plan.source_id || plan.connector_id || "Not recorded"}</dd></div>
+            <div><dt>Source</dt><dd>{plan.provider || plan.source_id || plan.connector_id || sourceFromUrl(plan.url || plan.items?.[0]?.url) || "Not recorded"}</dd></div>
             <div><dt>Destination</dt><dd>{plan.destination || (plan.dataset_id ? `Library · ${plan.dataset_id}` : "Default collection destination")}</dd></div>
             {jobReviewFacts(request).map(({ label, value }) =>
               <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}

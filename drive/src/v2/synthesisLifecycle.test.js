@@ -213,7 +213,7 @@ test("pending approval asks for a decision instead of claiming approval", () => 
       execution: { status: "pending_approval" },
     },
   };
-  assert.equal(buildStageDetail(thread), "Waiting for your approval");
+  assert.equal(buildStageDetail(thread), "Waiting for approval");
 });
 
 test("only post-approval lifecycle states describe execution as approved", () => {

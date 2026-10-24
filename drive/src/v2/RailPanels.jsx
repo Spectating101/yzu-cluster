@@ -127,7 +127,7 @@ function resourceRailStatus(row) {
 }
 
 const HOME_ITEM_KINDS = {
-  decision: "A request waiting for your approval",
+  decision: "A request waiting for approval",
   synthesis_thread: "A Synthesis build",
   discover_work: "A data collection",
   library_asset: "A dataset in your Library",

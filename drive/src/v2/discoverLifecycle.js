@@ -167,7 +167,7 @@ export function classifyJobLifecycle(job, { catalog = [], labIds = null } = {}) 
   if (status === "pending_approval") {
     return {
       state: LIFECYCLE.APPROVAL_REQUIRED,
-      label: "Waiting for your approval",
+      label: "Waiting for approval",
       explanation: "This collection plan is waiting for approval before work begins.",
       primaryAction: { id: "review_approval", label: "Review approval" },
       secondaryActions: [{ id: "track_resources", label: "Track in Resources" }],

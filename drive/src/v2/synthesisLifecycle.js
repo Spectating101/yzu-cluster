@@ -161,7 +161,7 @@ export function synthesisStageLockReason(thread, stageId) {
 export function buildStageDetail(thread) {
   const state = thread?.state || {};
   const status = normalizeStatus(state.execution?.status);
-  if (status === "pending_approval") return "Waiting for your approval";
+  if (status === "pending_approval") return "Waiting for approval";
   if (status === "failed") return "Execution failed";
   if (POST_APPROVAL_STATUSES.includes(status)) return "Approved execution";
   if (state.execution_spec) {

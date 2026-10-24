@@ -84,7 +84,7 @@ export function historyLifecycleInternalLabel(event) {
 }
 
 const STATUS_LABELS = {
-  "Approval required": "Waiting for your approval",
+  "Approval required": "Waiting for approval",
   "Blocked — needs recovery": "Blocked — needs attention",
   "Failed — needs recovery": "Failed — needs attention",
   "Registered · unconfirmed": "In Library · not yet checked",
@@ -95,7 +95,7 @@ const STATUS_LABELS = {
   "schema review": "Review dataset fields",
   "query ready": "Ready to query",
   "registered not queryable": "In Library · not yet checked",
-  "pending approval": "Waiting for your approval",
+  "pending approval": "Waiting for approval",
   "route selected": "Collection method selected",
   "proposal ready": "Proposal ready for review",
   "receipt only": "Saved receipt · data not yet checked",

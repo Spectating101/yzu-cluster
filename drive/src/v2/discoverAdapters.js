@@ -445,7 +445,7 @@ export function historyHoldingTruth(event = null) {
   else if (registered) label = "Saved to Library";
   else if (completedOnly) label = "Completed";
   else if (/pending_approval|ready_for_review|awaiting|needs_approval/.test(status)) {
-    label = "Waiting for your approval";
+    label = "Waiting for approval";
   } else if (/queued|running|active|in_progress/.test(status)) {
     label = status === "running" ? "Collecting" : "Active";
   } else if (/failed|error|needs_recovery|blocked/.test(status)) {

@@ -127,7 +127,7 @@ test("workspace resume labels describe the actual next researcher action", () =>
   assert.equal(synthesisWorkspaceActionLabel(previewRequired), "Run Preview");
   assert.equal(synthesisWorkspacePhaseLabel(previewPassed), "Preview passed");
   assert.equal(synthesisWorkspaceActionLabel(previewPassed), "Review Preview");
-  assert.equal(synthesisWorkspacePhaseLabel(approval), "Waiting for your approval");
+  assert.equal(synthesisWorkspacePhaseLabel(approval), "Waiting for approval");
   assert.equal(synthesisWorkspaceActionLabel(approval), "Review approval");
   assert.equal(synthesisWorkspacePhaseLabel(building), "Execution running");
   assert.equal(synthesisWorkspaceActionLabel(building), "View build");

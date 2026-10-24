@@ -101,7 +101,7 @@ export function mergeJobLists(recent, pending) {
 }
 
 const COLLECTION_STATUS_LABELS = {
-  pending_approval: "Waiting for your approval",
+  pending_approval: "Waiting for approval",
   running: "Collecting",
   collecting: "Collecting",
   queued: "Queued",

@@ -1,4 +1,5 @@
 import { uiVocabularyLabel } from "./uiVocabularyLabels.js";
+import { friendlyAssistantReply } from "./askFailure.js";
 import { synthesisRailContextForRequest } from "@/v2/synthesisAssist.js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -373,7 +374,8 @@ export function useAskChat({
             sessionRef.current = out.session_id;
           }
         }
-        const reply = out.reply || out.message || "Done.";
+        const rawReply = out.reply || out.message || "Done.";
+        const reply = friendlyAssistantReply(rawReply);
         const artifacts = out.artifacts || {};
         const recordedProposal =
           artifacts.synthesis_proposal ||
@@ -392,7 +394,7 @@ export function useAskChat({
           out.action === "composer_error" ||
           artifacts.action === "composer_error" ||
           /could not complete that turn|composer session expired|internal:\s*internal error/i.test(
-            String(reply || ""),
+            String(rawReply || ""),
           );
         if (composerBroken && !sendSynthesisThreadId) {
           clearChatSessionId(sendContextKey);

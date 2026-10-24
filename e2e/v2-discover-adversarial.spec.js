@@ -155,7 +155,7 @@ test.describe("Discover adversarial lifecycle", () => {
       node.click();
     });
 
-    await expect(workspace.getByTestId("discover-intent-collection")).toContainText("Waiting for your approval");
+    await expect(workspace.getByTestId("discover-intent-collection")).toContainText("Waiting for approval");
     await expect.poll(() => submitCalls).toBe(1);
     await expect(workspace.getByRole("button", { name: "Submit for approval" })).toHaveCount(0);
     await expect(workspace.getByRole("button", { name: "Select route" })).toHaveCount(0);

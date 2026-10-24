@@ -45,7 +45,7 @@ test.describe("Discover lifecycle screenshots", () => {
     await page.setViewportSize({ width: 1440, height: 900 });
 
     let surface = await openMops(page, [job("pending_approval")]);
-    await expect(surface.getByTestId("discover-lifecycle")).toContainText("Waiting for your approval");
+    await expect(surface.getByTestId("discover-lifecycle")).toContainText("Waiting for approval");
     await expect(page.getByTestId("discover-browse-mode")).toBeVisible();
     await shot(page, "01-desktop-approval-required");
 

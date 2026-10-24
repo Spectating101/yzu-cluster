@@ -178,7 +178,7 @@ test.describe("Discover authority depth", () => {
     await acquisition.getByRole("button", { name: "Submit for approval" }).click();
 
     const lifecycle = acquisition.getByTestId("discover-intent-collection");
-    await expect(lifecycle).toContainText("Waiting for your approval");
+    await expect(lifecycle).toContainText("Waiting for approval");
     await expect(lifecycle).toContainText("collection remains governed by History");
     await expect(acquisition).not.toContainText(/approved collection|collection complete|saved to library/i);
 
@@ -187,14 +187,14 @@ test.describe("Discover authority depth", () => {
     await expect(history).toBeVisible();
     await expect(page.getByRole("tab", { name: /History/ })).toHaveAttribute("aria-selected", "true");
     await expect(history).toContainText("MOPS financial statements");
-    await expect(history).toContainText(/waiting for your approval/i);
+    await expect(history).toContainText(/waiting for approval/i);
 
     await page.reload({ waitUntil: "domcontentloaded" });
     await waitForShell(page);
     const restoredHistory = page.getByTestId("discover-history");
     await expect(restoredHistory).toBeVisible();
     await expect(restoredHistory).toContainText("MOPS financial statements");
-    await expect(restoredHistory).toContainText(/waiting for your approval/i);
+    await expect(restoredHistory).toContainText(/waiting for approval/i);
 
     expect(assessmentCalls()).toBe(2);
     expect(routeCalls).toBeGreaterThanOrEqual(2);

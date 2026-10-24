@@ -22,3 +22,10 @@ test("files from one origin are counted as files, not independent sources", () =
   assert.equal(sourceSummary(same), "SEC EDGAR · 2 files");
   assert.equal(sourcesHeading(same), "2 files on record");
 });
+
+test("a collected file without a source name is labelled by where it came from", async () => {
+  const { sourceSummary } = await import("./datasetSources.js");
+  assert.equal(sourceSummary({ source_url: "https://raw.githubusercontent.com/datasets/co2-ppm/main/data/co2-mm-mlo.csv" }), "GitHub · datasets/co2-ppm");
+  assert.equal(sourceSummary({ source_url: "https://www.ncei.noaa.gov/data/file.csv" }), "ncei.noaa.gov");
+  assert.equal(sourceSummary({}), "Not recorded");
+});

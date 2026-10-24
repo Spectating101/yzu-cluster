@@ -62,7 +62,7 @@ test.describe("v2 Discover Explore|History (main converge)", () => {
     await expect(page.getByRole("tab", { name: /History/ })).toHaveAttribute("aria-selected", "true");
     const rail = page.getByRole("complementary", { name: "Inspector" });
     await expect(rail).toContainText("TWSE governance");
-    await expect(rail).toContainText("Waiting for your approval");
+    await expect(rail).toContainText("Waiting for approval");
   });
 
   test("History names the pending-approval hydration window instead of looking empty", async ({ page }) => {

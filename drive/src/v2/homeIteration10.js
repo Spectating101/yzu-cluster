@@ -96,7 +96,7 @@ function pendingSummary(count, jobs) {
     .map((job) => Date.parse(job?.created_at || job?.updated_at || ""))
     .filter(Number.isFinite);
   const age = stamps.length ? waitingAge(new Date(Math.min(...stamps)).toISOString()) : "";
-  const waiting = count === 1 ? "This request is waiting for your approval." : `${count} requests are waiting for your approval.`;
+  const waiting = count === 1 ? "This request is waiting for approval." : `${count} requests are waiting for approval.`;
   return age && count > 1 ? `${waiting} The oldest has been ${age}.` : age ? `${waiting.slice(0, -1)}, ${age}.` : waiting;
 }
 

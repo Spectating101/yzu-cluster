@@ -131,7 +131,7 @@ export function buildHomeBriefing({
     needsJudgment.push({
       id: `job-${job.id || jobTitle(job)}`,
       kind: "approval",
-      label: "Waiting for your approval",
+      label: "Waiting for approval",
       title: jobTitle(job),
       detail: "Review source, cost, and vault destination before collection starts.",
       metric: String(job.status || job.state || "pending").replace(/_/g, " "),
@@ -172,7 +172,7 @@ export function buildHomeBriefing({
     needsJudgment.push({
       id: "approval-count",
       kind: "approval",
-      label: "Waiting for your approval",
+      label: "Waiting for approval",
       title: "Procurement approval waiting",
       detail: "Research Drive reports a request waiting for approval. Open Discover to review.",
       metric: `${healthPending} pending`,

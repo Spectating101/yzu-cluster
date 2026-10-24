@@ -653,7 +653,8 @@ export function LibraryAssetWorkspace({ dataset, onBack, onPreview, onOpenQuery,
   const rowCount = dataset?.rows || dataset?.row_count || dataset?.num_rows || dataset?.records || dataset?.glance?.rows;
   const purpose = value(dataset?.recommended_use, dataset?.description, fields.use, "Research use is not described in the current registry metadata.");
   const description = value(dataset?.description, dataset?.summary, dataset?.one_line, `This ${presentation.noun} has no plain-language description in the current registry.`);
-  const useFor = sameText(dataset?.recommended_use, description) ? "" : String(dataset?.recommended_use || "").trim();
+  const recommended = String(dataset?.recommended_use || "").trim();
+  const useFor = sameText(recommended, description) || /data_lake\/|\.parquet\b|\/revisions\//i.test(recommended) ? "" : recommended;
   const boundary = researchBoundary(dataset, fields);
   const columnCount = dataset?.glance?.columns || dataset?.materialization?.schema_observation?.columns;
   const headFacts = presentation.previewRows ? [

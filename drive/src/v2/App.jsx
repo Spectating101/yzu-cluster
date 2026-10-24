@@ -1512,7 +1512,7 @@ function DeskWorkspace({ onIdentityChanged }) {
         goTab("browse");
         showToast(
           job?.status === "pending_approval"
-            ? "Collection plan prepared — waiting for your approval"
+            ? "Collection plan prepared — waiting for approval"
             : "Collection plan queued",
         );
       } catch (err) {
@@ -2137,7 +2137,7 @@ function DeskWorkspace({ onIdentityChanged }) {
             refreshBackend({ preserveJob: job || null });
             showToast(
               job?.status === "pending_approval"
-                ? "Request submitted — waiting for your approval"
+                ? "Request submitted — waiting for approval"
                 : "Request submitted — open History for its current state",
             );
           }}

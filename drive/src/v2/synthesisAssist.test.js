@@ -117,7 +117,7 @@ describe("synthesisAssist canonical research state", () => {
     }));
 
     assert.equal(assist.label, "Execution approval");
-    assert.equal(assist.status, "Waiting for your approval");
+    assert.equal(assist.status, "Waiting for approval");
     assert.match(assist.risk, /No worker is authorized/);
     assert.ok(assist.prompts.some((prompt) => /exactly what I would authorize/i.test(prompt)));
   });

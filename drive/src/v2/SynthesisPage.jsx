@@ -653,6 +653,19 @@ function isEvidenceGap(node, missingIds) {
   return Boolean(id) && Boolean(missingIds?.has(id));
 }
 
+function catalogName(catalog, datasetId) {
+  const row = datasetId ? (catalog || []).find((item) => item?.dataset_id === datasetId) : null;
+  return row ? String(row.display_name || row.name || row.title || "").trim() : "";
+}
+
+function plainCoverage(value) {
+  const raw = String(value ?? "").trim();
+  if (!raw.startsWith("{")) return raw;
+  const start = raw.match(/'start':\s*'(\d{4}-\d{2})/);
+  const end = raw.match(/'end':\s*'(\d{4}-\d{2})/);
+  return start && end ? `${start[1]} → ${end[1]}` : "";
+}
+
 function EvidenceMap({
   thread,
   onAsk,
@@ -665,6 +678,7 @@ function EvidenceMap({
   mappingEvidence,
   onFindEvidence,
   onApplyEvidence,
+  catalog = [],
 }) {
   const proposalRef = useRef(null);
   const [reviewedIds, setReviewedIds] = useState(() => new Set());
@@ -766,9 +780,9 @@ function EvidenceMap({
                         onChange={() => toggleReviewed(id)}
                       />
                       <span>
-                        <strong>{text(node.label || node.dataset_id, "Unnamed evidence")}</strong>
+                        <strong>{text(catalogName(catalog, node.dataset_id) || node.label || node.dataset_id, "Unnamed evidence")}</strong>
                         <small>
-                          {[plainGrain(node.grain), node.coverage, node.query_ready ? "Data ready to query" : "Bytes not verified"]
+                          {[plainGrain(node.grain), plainCoverage(node.coverage), node.query_ready ? "Data ready to query" : "Bytes not verified"]
                             .filter(Boolean)
                             .join(" · ")}
                         </small>
@@ -2193,6 +2207,7 @@ export function SynthesisPage({
       mappingEvidence={mappingEvidence}
       onFindEvidence={findHeldEvidence}
       onApplyEvidence={applyHeldEvidence}
+      catalog={datasets}
     />
   ) : null;
   const surfaceState = resolveSurfaceLifecycle({

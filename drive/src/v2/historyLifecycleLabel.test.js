@@ -33,7 +33,7 @@ test("last step labels map backend event kinds without changing the record", () 
   assert.equal(historyEventLabel("new_internal_event"), "Request update");
   assert.equal(event.kind, "intent");
   assert.equal(historyLifecycleInternalLabel(event), "Approval required");
-  assert.equal(historyLifecycleLabel(event), "Waiting for your approval");
+  assert.equal(historyLifecycleLabel(event), "Waiting for approval");
 });
 
 test("unrecognized statuses remain honest and execution modes describe behavior", () => {

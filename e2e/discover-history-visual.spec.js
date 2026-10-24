@@ -85,7 +85,7 @@ test.describe("Discover History visual acceptance", () => {
     await expect(ledger.getByRole("heading", { name: "Needs you" })).toBeVisible();
     await expect(ledger.getByRole("heading", { name: "Request history" })).toBeVisible();
     await expect(rail).toContainText("Historical USDT transactions");
-    await expect(rail).toContainText("Waiting for your approval");
+    await expect(rail).toContainText("Waiting for approval");
     await shot(page, "01-desktop-needs-you");
 
     await ledger.getByRole("button", { name: /Historical stablecoin attention/i }).click();
