@@ -182,7 +182,7 @@
     margin: var(--rd-space-3) var(--rd-space-3) 0;
     padding: var(--rd-space-3) var(--rd-space-3);
     border: 1px solid var(--rd-border);
-    border-radius: 10px;
+    border-radius: var(--rd-radius-lg);
     background: color-mix(in srgb, var(--rd-surface) 88%, transparent);
   }
   body:has(.rd-v2-synthesis-page) .s04-rail-proof ul {
@@ -626,8 +626,8 @@
     min-width: 0;
     padding: var(--rd-space-3) var(--rd-space-3) !important;
     border: 1px solid var(--rd-c-line-cool);
-    border-radius: 12px;
-    background: color-mix(in srgb, var(--rd-c-on-ink) 92%, transparent);
+    border-radius: var(--rd-radius-lg);
+    background: var(--rd-c-surface);
     box-shadow: none;
   }
 
@@ -1435,7 +1435,7 @@
   padding: var(--rd-space-2) var(--rd-space-3);
   margin: 0;
   border: 1px solid var(--rd-c-line-cool);
-  border-radius: 8px;
+  border-radius: var(--rd-radius-md);
   box-shadow: none;
 }
 
@@ -1576,7 +1576,7 @@
   margin: 0 !important;
   padding: var(--rd-space-2) var(--rd-space-3) !important;
   border: 1px solid var(--rd-c-line-cool) !important;
-  border-radius: 8px !important;
+  border-radius: var(--rd-radius-md) !important;
   background: var(--rd-c-on-ink) !important;
   box-shadow: none !important;
 }
@@ -1784,7 +1784,7 @@
     margin: 0;
     padding: var(--rd-space-2) var(--rd-space-3);
     border: 1px solid color-mix(in srgb, var(--rd-c-link) 17%, var(--rd-c-surface));
-    border-radius: 8px;
+    border-radius: var(--rd-radius-md);
     background: var(--rd-c-on-ink);
   }
 
@@ -1874,7 +1874,7 @@
     margin: 0 var(--rd-space-4) var(--rd-space-4) !important;
     padding: var(--rd-space-4) !important;
     border: 1px solid color-mix(in srgb, var(--rd-c-link) 17%, var(--rd-c-surface)) !important;
-    border-radius: 10px !important;
+    border-radius: var(--rd-radius-lg) !important;
     background: var(--rd-c-on-ink) !important;
   }
 
@@ -1892,7 +1892,7 @@
   .rd-v2-synthesis-page .s04-evidence-proposal > ul > li {
     margin: 0 !important;
     border: 1px solid color-mix(in srgb, var(--rd-c-ink) 13%, var(--rd-c-surface)) !important;
-    border-radius: 8px !important;
+    border-radius: var(--rd-radius-md) !important;
     background: var(--rd-c-on-ink) !important;
   }
 
@@ -1916,7 +1916,7 @@
     margin: 0;
     padding: var(--rd-space-2) var(--rd-space-3);
     border: 1px solid color-mix(in srgb, var(--rd-c-link) 17%, var(--rd-c-surface));
-    border-radius: 8px;
+    border-radius: var(--rd-radius-md);
     background: transparent;
     box-shadow: none;
   }
@@ -1954,7 +1954,7 @@
     min-height: 0;
     padding: var(--rd-space-3) var(--rd-space-3) !important;
     border: 1px solid color-mix(in srgb, var(--rd-c-link) 17%, var(--rd-c-surface));
-    border-radius: 9px !important;
+    border-radius: var(--rd-radius-md) !important;
     background: color-mix(in srgb, var(--rd-c-link) 5%, var(--rd-c-surface)) !important;
     box-shadow: none;
   }
@@ -2071,7 +2071,7 @@
     margin: 0;
     padding: 0;
     border: 1px solid color-mix(in srgb, var(--rd-c-link) 17%, var(--rd-c-surface));
-    border-radius: 7px;
+    border-radius: var(--rd-radius-md);
     overflow: hidden;
     background: transparent;
     box-shadow: none;
@@ -2667,7 +2667,7 @@
     margin: 0;
     padding: var(--rd-space-3);
     border: 1px solid color-mix(in srgb, var(--rd-c-canvas) 94%, var(--rd-c-ink));
-    border-radius: 9px;
+    border-radius: var(--rd-radius-md);
     background: var(--rd-c-on-ink);
   }
 
@@ -2691,7 +2691,7 @@
     margin: 0;
     padding: var(--rd-space-3);
     border: 1px solid color-mix(in srgb, var(--rd-c-warn) 22%, var(--rd-c-surface));
-    border-radius: 9px;
+    border-radius: var(--rd-radius-md);
     background: var(--rd-c-paper);
   }
 
@@ -3132,7 +3132,7 @@
     gap: var(--rd-space-3);
     margin: 0;
     padding: var(--rd-space-2) var(--rd-space-3);
-    border-radius: 8px;
+    border-radius: var(--rd-radius-md);
   }
 
   #root .rd-v2-synthesis-page .s04-main:has(> :is(
@@ -3378,8 +3378,8 @@
   #root .rd-v2-synthesis-page :is(.s04-rail-gates,.s04-rail-evidence-ledger,.s04-rail-measurement) {
     padding: var(--rd-space-3) var(--rd-space-3) !important;
     border: 1px solid color-mix(in srgb, var(--rd-c-canvas) 94%, var(--rd-c-ink)) !important;
-    border-radius: 8px !important;
-    background: color-mix(in srgb, var(--rd-c-paper) 74%, transparent) !important;
+    border-radius: var(--rd-radius-md) !important;
+    background: var(--rd-c-paper) !important;
   }
 
   #root .rd-v2-synthesis-page :is(.s04-rail-gates,.s04-rail-evidence-ledger,.s04-rail-measurement) > header {
@@ -3457,8 +3457,8 @@
     min-width: 0 !important;
     padding: var(--rd-space-2) var(--rd-space-2) !important;
     border: 1px solid color-mix(in srgb, var(--rd-c-canvas) 94%, var(--rd-c-ink)) !important;
-    border-radius: 6px !important;
-    background: color-mix(in srgb, var(--rd-c-on-ink) 50%, transparent) !important;
+    border-radius: var(--rd-radius-md) !important;
+    background: var(--rd-c-surface) !important;
   }
   #root .rd-v2-synthesis-page .s04-rail-measurement dt {
     color: var(--rd-muted) !important;
@@ -3504,8 +3504,8 @@
     margin: 0;
     padding: var(--rd-space-3) var(--rd-space-3);
     border: 1px solid color-mix(in srgb, var(--rd-c-canvas) 94%, var(--rd-c-ink));
-    border-radius: 9px;
-    background: color-mix(in srgb, var(--rd-c-paper) 82%, transparent);
+    border-radius: var(--rd-radius-md);
+    background: var(--rd-c-paper);
     box-shadow: none;
   }
 
@@ -3647,8 +3647,8 @@
     min-width: 0;
     padding: var(--rd-space-2) var(--rd-space-2);
     border: 1px solid color-mix(in srgb, var(--rd-c-canvas) 94%, var(--rd-c-ink));
-    border-radius: 7px;
-    background: color-mix(in srgb, var(--rd-c-on-ink) 50%, transparent);
+    border-radius: var(--rd-radius-md);
+    background: var(--rd-c-surface);
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-measurement dt,
@@ -3872,7 +3872,7 @@
 
 .rd-v2-synthesis-page-authority.is-auto_approve::before {
   background: #3e8061;
-  box-shadow: 0 0 0 2px rgba(62, 128, 97, .09);
+  box-shadow: var(--rd-focus-ring);
 }
 
 .rd-v2-synthesis-page-authority:focus-within {
@@ -3934,8 +3934,8 @@
     margin: 0;
     padding: var(--rd-space-3) var(--rd-space-3);
     border: 1px solid color-mix(in srgb, var(--rd-c-canvas) 94%, var(--rd-c-ink));
-    border-radius: 9px;
-    background: color-mix(in srgb, var(--rd-c-paper) 82%, transparent);
+    border-radius: var(--rd-radius-md);
+    background: var(--rd-c-paper);
     box-shadow: none;
   }
 
@@ -4075,8 +4075,8 @@
     min-width: 0;
     padding: var(--rd-space-2) var(--rd-space-2);
     border: 1px solid color-mix(in srgb, var(--rd-c-canvas) 94%, var(--rd-c-ink));
-    border-radius: 7px;
-    background: color-mix(in srgb, var(--rd-c-on-ink) 50%, transparent);
+    border-radius: var(--rd-radius-md);
+    background: var(--rd-c-surface);
   }
 
   body:has(.rd-v2-synthesis-page) [data-testid="synthesis-opening-rail"] .s04-rail-measurement dt,
@@ -4138,7 +4138,7 @@
     gap: var(--rd-space-2);
     padding: var(--rd-space-3);
     border: 1px solid color-mix(in srgb, var(--rd-c-canvas) 94%, var(--rd-c-ink));
-    border-radius: 9px;
+    border-radius: var(--rd-radius-md);
     background: var(--rd-c-on-ink);
   }
 
@@ -4194,8 +4194,8 @@
     margin: var(--rd-space-3) var(--rd-space-3) 0;
     padding: var(--rd-space-3) var(--rd-space-3);
     border: 1px solid color-mix(in srgb, var(--rd-c-canvas) 94%, var(--rd-c-ink));
-    border-radius: 9px;
-    background: color-mix(in srgb, var(--rd-c-paper) 82%, transparent);
+    border-radius: var(--rd-radius-md);
+    background: var(--rd-c-paper);
     box-shadow: none;
   }
 
@@ -4369,9 +4369,9 @@
 .rd-v2-synthesis-agent-console {
   margin: 0 var(--rd-space-3) var(--rd-space-3);
   border: 1px solid color-mix(in srgb, var(--rd-c-link) 17%, var(--rd-c-surface));
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--rd-c-on-ink) 96%, transparent);
-  box-shadow: 0 8px 22px rgba(17, 24, 39, 0.045);
+  border-radius: var(--rd-radius-lg);
+  background: var(--rd-c-surface);
+  box-shadow: none;
   overflow: hidden;
 }
 
@@ -4524,7 +4524,7 @@
   align-items: start;
   padding: var(--rd-space-2) var(--rd-space-1);
   border: 0;
-  border-radius: 7px;
+  border-radius: var(--rd-radius-md);
   background: transparent;
   color: inherit;
   text-align: left;
@@ -4592,7 +4592,7 @@
   padding: var(--rd-space-1);
   overflow: auto;
   border: 1px solid color-mix(in srgb, var(--rd-c-link) 17%, var(--rd-c-surface));
-  border-radius: 8px;
+  border-radius: var(--rd-radius-md);
   background: var(--rd-c-on-ink);
 }
 
@@ -4741,7 +4741,7 @@
 .rd-v2-synthesis-forensics-body > section {
   padding: var(--rd-space-2);
   border: 1px solid color-mix(in srgb, var(--rd-c-link) 17%, var(--rd-c-surface));
-  border-radius: 9px;
+  border-radius: var(--rd-radius-md);
   background: var(--rd-c-on-ink);
 }
 
@@ -4871,7 +4871,7 @@
   margin: var(--rd-space-2) 0 0;
   padding: var(--rd-space-2);
   overflow: auto;
-  border-radius: 7px;
+  border-radius: var(--rd-radius-md);
   background: var(--rd-c-mist);
   color: var(--rd-body);
   font-family: var(--rd-mono);
@@ -4936,7 +4936,7 @@
 .rd-v2-synthesis-forensic-error {
   margin: var(--rd-space-2) 0 0;
   padding: var(--rd-space-2) var(--rd-space-2);
-  border-radius: 7px;
+  border-radius: var(--rd-radius-md);
   background: color-mix(in srgb, var(--rd-c-amber) 9%, var(--rd-c-surface));
   color: var(--rd-review-fg);
   font-size: var(--rd-text-2xs);
@@ -4959,7 +4959,7 @@
 .rd-v2-synthesis-agent-prompts button {
   padding: var(--rd-space-2) var(--rd-space-2);
   border: 1px solid color-mix(in srgb, var(--rd-c-link) 17%, var(--rd-c-surface));
-  border-radius: 7px;
+  border-radius: var(--rd-radius-md);
   background: var(--rd-c-on-ink);
   color: var(--rd-link);
   font-size: var(--rd-text-2xs);
@@ -4986,7 +4986,7 @@
   flex: 1 1 0;
   padding: var(--rd-space-1) var(--rd-space-2);
   border: 1px solid color-mix(in srgb, var(--rd-c-link) 17%, var(--rd-c-surface));
-  border-radius: 7px;
+  border-radius: var(--rd-radius-md);
   background: var(--rd-c-on-ink);
   color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
@@ -5053,7 +5053,7 @@
   margin: calc(var(--rd-space-1) * -1) var(--rd-space-3) var(--rd-space-2);
   padding: var(--rd-space-2) var(--rd-space-2) var(--rd-space-2) var(--rd-space-3);
   border: 1px solid color-mix(in srgb, var(--rd-c-link) 17%, var(--rd-c-surface));
-  border-radius: 9px;
+  border-radius: var(--rd-radius-md);
   background: var(--rd-c-on-ink);
 }
 
@@ -5094,7 +5094,7 @@
 .rd-v2-synthesis-ask-object-context button {
   padding: var(--rd-space-1) var(--rd-space-2);
   border: 0;
-  border-radius: 6px;
+  border-radius: var(--rd-radius-md);
   background: transparent;
   color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
@@ -5147,7 +5147,7 @@
   gap: var(--rd-space-3);
   padding: var(--rd-space-3) var(--rd-space-3);
   border: 1px solid var(--s04-line, #ddd5c6);
-  border-radius: 10px;
+  border-radius: var(--rd-radius-lg);
 }
 
 .s04-home-archived-list li span {

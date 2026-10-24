@@ -620,13 +620,14 @@ export function HomePage({
             <p className="rd-v2-home-section-empty">
               Nothing opened recently. Datasets you open and searches you run appear here.
             </p>
-            <HomeSuggestedAsks
-              profile={profile}
-              researchTopics={researchTopics}
-              onAskComposer={onAskComposer || onSuggestSearch}
-              allowPrincipalSeed={canUseSynthesis}
-              firstUse={homePosture.id === "cold"}
-            />
+            {homePosture.id === "cold" ? (
+              <HomeSuggestedAsks
+                profile={profile}
+                researchTopics={researchTopics}
+                onAskComposer={onAskComposer || onSuggestSearch}
+                allowPrincipalSeed={canUseSynthesis}
+              />
+            ) : null}
           </div>
         )}
       </section>}

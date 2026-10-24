@@ -127,7 +127,7 @@ function discoverSituation({ browseTarget, browseLifecycle, historyEvent, discov
   return {
     status: "Ready for an evidence need",
     facts: [],
-    next: "State your research need. Discover will show data in your Library, external candidates, and unresolved gaps.",
+    next: "",
   };
 }
 

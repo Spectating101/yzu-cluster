@@ -1,26 +1,15 @@
 const KEY = "rd_v2_appearance";
 
-export const PALETTES = [
-  { id: "current", label: "Current" },
-  { id: "archive", label: "Archive ink" },
-  { id: "reading-room", label: "Reading room" },
-  { id: "instrument", label: "Instrument" },
-];
-
 export const THEMES = [
   { id: "system", label: "Match this device" },
   { id: "light", label: "Light" },
   { id: "dark", label: "Dark" },
 ];
 
-const PALETTE_IDS = new Set(PALETTES.map((p) => p.id));
 const THEME_IDS = new Set(THEMES.map((t) => t.id));
 
 function normalize(value = {}) {
-  return {
-    theme: THEME_IDS.has(value.theme) ? value.theme : "light",
-    palette: PALETTE_IDS.has(value.palette) ? value.palette : "current",
-  };
+  return { theme: THEME_IDS.has(value.theme) ? value.theme : "system" };
 }
 
 export function loadAppearance() {
@@ -47,11 +36,8 @@ export function resolveTheme(theme, prefersDark) {
 }
 
 export function appearanceFromSearch(search) {
-  const params = new URLSearchParams(search || "");
-  const out = {};
-  if (PALETTE_IDS.has(params.get("palette"))) out.palette = params.get("palette");
-  if (THEME_IDS.has(params.get("theme"))) out.theme = params.get("theme");
-  return out;
+  const theme = new URLSearchParams(search || "").get("theme");
+  return THEME_IDS.has(theme) ? { theme } : {};
 }
 
 function prefersDark() {
@@ -61,8 +47,7 @@ function prefersDark() {
 export function applyAppearance(appearance = loadAppearance()) {
   const root = document.documentElement;
   const theme = resolveTheme(appearance.theme, prefersDark());
-  if (appearance.palette === "current") delete root.dataset.palette;
-  else root.dataset.palette = appearance.palette;
+  delete root.dataset.palette;
   root.dataset.theme = theme;
   return theme;
 }

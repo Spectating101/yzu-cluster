@@ -36,7 +36,7 @@ async function shot(page, name) {
 test("Home sparse — start action, no dead sidebar placeholder", async ({ page }) => {
   await open(page, "/?tab=home");
   // VC-8: suggested questions replace dead system language.
-  await expect(page.getByRole("region", { name: "Suggested asks" })).toBeVisible();
+  await expect(page.getByRole("complementary", { name: "Inspector" }).getByRole("button", { name: /Which datasets cover/ })).toBeVisible();
   await expect(page.locator("main")).not.toContainText("No material machine consequences");
   // Sidebar placeholder is removed rather than decorated.
   await expect(page.locator(".rd-v2-sidebar-hint", { hasText: "Recent assets appear" })).toHaveCount(0);

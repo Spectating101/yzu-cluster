@@ -14,7 +14,7 @@ import { ConnectedAccountsSection } from "@/v2/ConnectedAccountsSection";
 import { archiveRuntimeStatus } from "@/v2/archiveRuntimeStatus";
 import { assistantRuntimeDetail, composerRuntimeRead } from "@/v2/composerRuntimeStatus";
 import { loadSettings, saveSettings } from "@/v2/settingsStore";
-import { PALETTES, THEMES, applyAppearance, loadAppearance, saveAppearance } from "@/v2/appearance";
+import { THEMES, applyAppearance, loadAppearance, saveAppearance } from "@/v2/appearance";
 import { PILOT_PREVIEW_EMAIL } from "@/v2/profileViewModel";
 import { PageShell, StatementHeadingLevel, StatementRow, StatementSection } from "@/v2/ui";
 import { handleEnterToSubmit } from "@/v2/enterToSubmit";
@@ -453,14 +453,6 @@ function AppearanceSection() {
             <label className="rd-v2-settings-label" htmlFor="rd-settings-theme">Theme</label>
             <select id="rd-settings-theme" value={appearance.theme} onChange={(event) => choose({ theme: event.target.value })} className="rd-v2-select">
               {THEMES.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
-            </select>
-          </div>
-        </div>
-        <div className="rd-v2-settings-preference">
-          <div className="rd-v2-settings-row">
-            <label className="rd-v2-settings-label" htmlFor="rd-settings-palette">Palette</label>
-            <select id="rd-settings-palette" value={appearance.palette} onChange={(event) => choose({ palette: event.target.value })} className="rd-v2-select">
-              {PALETTES.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
             </select>
           </div>
           <p className="rd-v2-settings-hint">Applies to this browser only.</p>

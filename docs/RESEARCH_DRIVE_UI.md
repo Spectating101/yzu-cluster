@@ -57,7 +57,7 @@ Research Drive is a research-evidence procurement and Library workbench: a resea
 ## 5. Pages as they are now (live on 8775, ui d0f63a65 + backend bb4abb7d)
 
 ### Home
-Welcome strip for an unset research focus · Pick up card (one resume point; a Synthesis build shows its seven readiness checks and the one decision it needs, from the same `synthesisGates.js` and read-only measurement call as the Synthesis panel, and shows nothing until measured) · a second row (one line) · Recent trail (3 rows, "View all" opens Discover History) · with an empty trail, "Ask to get started" prompts; only a true first visit (no work) explains the four pages. Right panel: Ask until the researcher selects something.
+Welcome strip for an unset research focus · Pick up card (one resume point; a Synthesis build shows its seven readiness checks and the one decision it needs, from the same `synthesisGates.js` and read-only measurement call as the Synthesis panel, and shows nothing until measured) · a second row (one line) · Recent trail (3 rows, "View all" opens Discover History) · a true first visit (no work) explains the four pages and offers starter questions; otherwise Ask starters live only in the right panel, which opens on Ask. Right panel: Ask until the researcher selects something.
 Decisions: Home is a resume / needs-you surface, never a metrics dashboard or chat landing (owner, July). No-scroll desktop; caps: 1–2 resume points, 3 trail rows.
 
 ### Library

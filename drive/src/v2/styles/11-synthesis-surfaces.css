@@ -10,7 +10,7 @@
   margin: 0 0 var(--rd-space-3);
   padding: var(--rd-space-2) var(--rd-space-3);
   border: 1px solid transparent;
-  border-radius: 9px;
+  border-radius: var(--rd-radius-md);
   background: transparent;
   color: var(--rd-muted);
   font: inherit;
@@ -30,7 +30,7 @@
   width: 22px;
   height: 22px;
   flex: 0 0 22px;
-  border-radius: 6px;
+  border-radius: var(--rd-radius-md);
   background: var(--rd-c-line-cool);
   color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
@@ -128,7 +128,7 @@
   gap: var(--rd-space-4);
   padding: var(--rd-space-3) var(--rd-space-3) var(--rd-space-3) var(--rd-space-4);
   border: 1px solid #e6d9b8;
-  border-radius: 11px;
+  border-radius: var(--rd-radius-lg);
   background: var(--rd-c-paper);
   color: var(--rd-review-fg);
   font-size: var(--rd-text-2xs);
@@ -140,7 +140,7 @@
   margin: 0;
   padding: var(--rd-space-4) var(--rd-space-4);
   border: 1px dashed color-mix(in srgb, var(--rd-c-steel) 20%, var(--rd-c-surface));
-  border-radius: 11px;
+  border-radius: var(--rd-radius-lg);
   background: var(--rd-c-on-ink);
   color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
@@ -270,7 +270,7 @@
 
 @media (max-width: 760px) {
   .s04-home { gap: var(--rd-space-3); padding-bottom: var(--rd-space-4); }
-  .s04-home-hero { padding: var(--rd-space-4) var(--rd-space-4); border-radius: 12px; }
+  .s04-home-hero { padding: var(--rd-space-4) var(--rd-space-4); border-radius: var(--rd-radius-lg); }
   .s04-home-hero h1 { font-size: var(--rd-text-3xl); }
   .s04-home-hero dl { grid-template-columns: repeat(2, 1fr); }
   .s04-home-hero dl > div:nth-child(3) { border-left: 0; border-top: 1px solid var(--rd-c-line-cool); }
@@ -350,9 +350,9 @@
 .s04-opening-next {
   margin-top: var(--rd-space-2);
   border: 1px solid color-mix(in srgb, var(--rd-c-steel) 20%, var(--rd-c-surface));
-  border-radius: 14px;
+  border-radius: var(--rd-radius-lg);
   background: var(--rd-c-on-ink);
-  box-shadow: 0 8px 20px rgba(30, 43, 72, .045);
+  box-shadow: none;
 }
 
 .s04-opening-brief {
@@ -463,7 +463,7 @@
   margin: 0;
   padding: 0;
   border: 1px solid var(--rd-c-line);
-  border-radius: 9px;
+  border-radius: var(--rd-radius-md);
   background: var(--rd-c-canvas);
   list-style: none;
   overflow: hidden;
@@ -581,7 +581,7 @@
   padding: var(--rd-space-2);
   overflow: hidden;
   border: 1px solid var(--rd-c-line-cool);
-  border-radius: 12px;
+  border-radius: var(--rd-radius-lg);
   background-color: var(--rd-c-on-ink);
 }
 
@@ -606,8 +606,8 @@
   min-width: 0;
   padding: var(--rd-space-2) var(--rd-space-3);
   border: 1px solid color-mix(in srgb, var(--rd-c-steel) 20%, var(--rd-c-surface));
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--rd-c-on-ink) 94%, transparent);
+  border-radius: var(--rd-radius-lg);
+  background: var(--rd-c-surface);
 }
 
 .s04-opening-map li > small {
@@ -667,7 +667,7 @@
   margin: 0 auto;
   padding: var(--rd-space-2) var(--rd-space-3);
   border: 1px solid color-mix(in srgb, var(--rd-c-steel) 37%, var(--rd-c-surface));
-  border-radius: 10px;
+  border-radius: var(--rd-radius-lg);
   background: var(--rd-c-on-ink);
   text-align: center;
 }
@@ -784,7 +784,7 @@
 .s04-opening-next button {
   min-height: 32px;
   padding: 0 var(--rd-space-3);
-  border-radius: 8px;
+  border-radius: var(--rd-radius-md);
   font: inherit;
   font-size: var(--rd-text-sm);
   font-weight: 600;
@@ -1053,7 +1053,7 @@
   min-height: 0;
   padding: var(--rd-space-1) var(--rd-space-2);
   border: 1px solid rgba(184, 209, 196, 0.35);
-  border-radius: 7px;
+  border-radius: var(--rd-radius-md);
   background: color-mix(in srgb, var(--rd-c-sidebar-fg-strong) 6%, transparent);
   color: #cfe8d8;
   font-size: var(--rd-text-2xs);
@@ -1099,7 +1099,7 @@
   min-height: 0;
   padding: var(--rd-space-2);
   border: 1px solid transparent;
-  border-radius: 9px;
+  border-radius: var(--rd-radius-md);
   background: transparent;
   color: color-mix(in srgb, var(--rd-c-sidebar-fg) 42%, var(--rd-c-sidebar-fg-strong));
   text-align: left;
@@ -1127,7 +1127,7 @@
   width: 25px;
   height: 25px;
   place-items: center;
-  border-radius: 7px;
+  border-radius: var(--rd-radius-md);
   background: color-mix(in srgb, var(--rd-c-sidebar-fg-strong) 9%, transparent);
   color: color-mix(in srgb, var(--rd-c-sidebar-fg) 42%, var(--rd-c-sidebar-fg-strong));
   font-size: var(--rd-text-2xs);
@@ -1188,7 +1188,7 @@
   min-width: 0;
   padding: var(--rd-space-3);
   border: 1px solid color-mix(in srgb, var(--rd-c-steel) 20%, var(--rd-c-surface));
-  border-radius: 12px;
+  border-radius: var(--rd-radius-lg);
   background: var(--rd-c-on-ink);
   color: inherit;
   text-align: left;
@@ -1239,8 +1239,8 @@
   margin-top: var(--rd-space-3);
   padding: var(--rd-space-3);
   border: 1px solid color-mix(in srgb, var(--rd-c-link) 28%, var(--rd-c-surface));
-  border-radius: 9px;
-  background: color-mix(in srgb, var(--rd-c-mist) 68%, transparent);
+  border-radius: var(--rd-radius-md);
+  background: var(--rd-c-mist);
 }
 
 .rd-v2-synthesis-page .s04-evidence-proposal > header,
@@ -1280,7 +1280,7 @@
   border: 1px solid var(--rd-c-line-strong);
   border-radius: 999px;
   color: var(--rd-muted);
-  background: color-mix(in srgb, var(--rd-c-paper) 76%, transparent);
+  background: var(--rd-c-paper);
   font-size: var(--rd-text-label);
   font-style: normal;
   font-weight: 700;
@@ -1302,13 +1302,13 @@
   min-width: 0;
   padding: var(--rd-space-2) var(--rd-space-2);
   border: 1px solid color-mix(in srgb, var(--rd-c-link) 22%, var(--rd-c-surface));
-  border-radius: 7px;
-  background: color-mix(in srgb, var(--rd-c-paper) 72%, transparent);
+  border-radius: var(--rd-radius-md);
+  background: var(--rd-c-paper);
 }
 
 .rd-v2-synthesis-page .s04-evidence-proposal li.selected {
   border-color: #9fb8a6;
-  background: color-mix(in srgb, var(--rd-c-mist) 90%, transparent);
+  background: var(--rd-c-mist);
 }
 
 .rd-v2-synthesis-page .s04-evidence-proposal li > label {
@@ -1466,7 +1466,7 @@
 .rd-v2-synthesis-page .s04-opening-next {
   margin-top: var(--rd-space-3);
   border-color: var(--s04-rule);
-  border-radius: 10px;
+  border-radius: var(--rd-radius-lg);
   box-shadow: none;
 }
 
@@ -1518,7 +1518,7 @@
 
 .rd-v2-synthesis-page .s04-opening-construction {
   padding: var(--rd-space-3) var(--rd-space-3);
-  background: color-mix(in srgb, var(--rd-c-paper) 72%, transparent);
+  background: var(--rd-c-paper);
 }
 
 .rd-v2-synthesis-page .s04-opening-construction > h2 {
@@ -1541,7 +1541,7 @@
 .rd-v2-synthesis-page .s04-opening-next--blocked {
   padding: var(--rd-space-3) var(--rd-space-3);
   border-left: 3px solid color-mix(in srgb, var(--rd-c-link) 60%, var(--rd-c-surface));
-  background: color-mix(in srgb, var(--rd-c-mist) 66%, transparent);
+  background: var(--rd-c-mist);
 }
 
 .rd-v2-synthesis-page .s04-opening-next--blocked > p {
@@ -1570,7 +1570,7 @@
 
 .rd-v2-synthesis-page .s04-opening-next .s04-next-secondary {
   border-color: var(--rd-c-line-strong);
-  background: color-mix(in srgb, var(--rd-c-paper) 76%, transparent);
+  background: var(--rd-c-paper);
   color: var(--rd-muted);
 }
 
@@ -1597,8 +1597,8 @@
  * away when the durable thread receives evidence or a review proposal. */
 .rd-v2-synthesis-page .s04-draft {
   border-color: color-mix(in srgb, var(--rd-c-link) 22%, var(--rd-c-surface));
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--rd-c-mist) 76%, transparent);
+  border-radius: var(--rd-radius-lg);
+  background: var(--rd-c-mist);
   box-shadow: none;
 }
 
@@ -1608,16 +1608,16 @@
 
 .rd-v2-synthesis-page .s04-draft-flow {
   border-color: color-mix(in srgb, var(--rd-c-link) 22%, var(--rd-c-surface));
-  border-radius: 8px;
-  background-color: color-mix(in srgb, var(--rd-c-paper) 62%, transparent);
+  border-radius: var(--rd-radius-md);
+  background-color: var(--rd-c-paper);
   background-image: none;
 }
 
 .rd-v2-synthesis-page .s04-draft-flow > div > article {
   border-color: color-mix(in srgb, var(--rd-c-link) 22%, var(--rd-c-surface));
   border-style: solid;
-  border-radius: 7px;
-  background: color-mix(in srgb, var(--rd-c-paper) 80%, transparent);
+  border-radius: var(--rd-radius-md);
+  background: var(--rd-c-paper);
 }
 
 /* Evidence and review cards sit on the same paper-toned desk. The inherited
@@ -1625,14 +1625,14 @@
    the map read as a pasted canvas instead of part of the work surface. */
 .rd-v2-synthesis-page .s04-card:not(.s04-draft) {
   border-color: var(--s04-rule);
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--rd-c-paper) 82%, transparent);
+  border-radius: var(--rd-radius-lg);
+  background: var(--rd-c-paper);
   box-shadow: none;
 }
 
 .rd-v2-synthesis-page .s04-card .s04-map {
   border-color: var(--rd-c-line);
-  border-radius: 9px;
+  border-radius: var(--rd-radius-md);
   background-color: var(--rd-c-canvas);
   background-image: linear-gradient(color-mix(in srgb, var(--rd-c-canvas) 94%, var(--rd-c-ink)) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--rd-c-canvas) 94%, var(--rd-c-ink)) 1px, transparent 1px);
   box-shadow: none;
@@ -1642,7 +1642,7 @@
 .rd-v2-synthesis-page .s04-card .s04-map > .output,
 .rd-v2-synthesis-page .s04-card .s04-map .sources > .s04-map-node {
   border-color: var(--rd-c-line);
-  background: color-mix(in srgb, var(--rd-c-paper) 92%, transparent);
+  background: var(--rd-c-paper);
   box-shadow: none;
 }
 
@@ -1654,7 +1654,7 @@
 
 .rd-v2-synthesis-page .s04-card .s04-pairs > article {
   border-color: color-mix(in srgb, var(--rd-c-canvas) 94%, var(--rd-c-ink));
-  background: color-mix(in srgb, var(--rd-c-paper) 66%, transparent);
+  background: var(--rd-c-paper);
 }
 
 .rd-v2-synthesis-page .s04-card > .s04-actions {
@@ -1762,7 +1762,7 @@
   padding: var(--rd-space-1) var(--rd-space-2);
   border: 1px solid var(--rd-c-line);
   border-radius: 999px;
-  background: color-mix(in srgb, var(--rd-c-paper) 72%, transparent);
+  background: var(--rd-c-paper);
   color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
   line-height: 1.1;
@@ -1817,8 +1817,8 @@
 .rd-v2-synthesis-page .s04-measured-dataset .s04-method,
 .rd-v2-synthesis-page .s04-measured-dataset .s04-options {
   border-color: color-mix(in srgb, var(--rd-c-canvas) 94%, var(--rd-c-ink));
-  border-radius: 8px;
-  background: color-mix(in srgb, var(--rd-c-paper) 62%, transparent);
+  border-radius: var(--rd-radius-md);
+  background: var(--rd-c-paper);
 }
 
 .rd-v2-synthesis-page .s04-blueprint-recipe.is-static {
@@ -1910,7 +1910,7 @@
     min-height: 38px;
     padding: 0 var(--rd-space-3);
     border: 1px solid color-mix(in srgb, var(--rd-c-steel) 20%, var(--rd-c-surface));
-    border-radius: 9px;
+    border-radius: var(--rd-radius-md);
     background: var(--rd-c-on-ink);
     color: var(--rd-body);
     font: inherit;
@@ -1951,7 +1951,7 @@
     height: 44px;
     min-height: 44px;
     padding: 0;
-    border-radius: 22px;
+    border-radius: var(--rd-radius-lg);
     font-size: 0;
   }
 
@@ -1971,7 +1971,7 @@
   margin-top: var(--rd-space-3);
   padding: var(--rd-space-3) var(--rd-space-4) var(--rd-space-4);
   border: 1px solid color-mix(in srgb, var(--rd-c-steel) 20%, var(--rd-c-surface));
-  border-radius: 14px;
+  border-radius: var(--rd-radius-lg);
   background: var(--rd-c-on-ink);
 }
 
@@ -2041,7 +2041,7 @@
   min-width: 0;
   padding: var(--rd-space-2) var(--rd-space-3);
   border: 1px solid var(--rd-c-line-cool);
-  border-radius: 10px;
+  border-radius: var(--rd-radius-lg);
   background: var(--rd-c-on-ink);
 }
 
@@ -2088,7 +2088,7 @@
   margin: var(--rd-space-3) 0 0;
   padding: var(--rd-space-3) var(--rd-space-4);
   border: 1px solid color-mix(in srgb, var(--rd-c-link) 22%, var(--rd-c-surface));
-  border-radius: 10px;
+  border-radius: var(--rd-radius-lg);
   background: var(--rd-c-on-ink);
 }
 
@@ -2169,7 +2169,7 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
   margin: 0;
   border: 1px solid color-mix(in srgb, var(--rd-c-link) 17%, var(--rd-c-surface));
-  border-radius: 8px;
+  border-radius: var(--rd-radius-md);
   overflow: hidden;
   background: var(--rd-c-on-ink);
 }
@@ -2198,7 +2198,7 @@
 .s04-preview-table-wrap {
   overflow-x: auto;
   border: 1px solid color-mix(in srgb, var(--rd-c-link) 17%, var(--rd-c-surface));
-  border-radius: 8px;
+  border-radius: var(--rd-radius-md);
   background: var(--rd-c-on-ink);
 }
 
@@ -2346,8 +2346,8 @@
   margin: var(--rd-space-3) 0 var(--rd-space-3);
   padding: var(--rd-space-3) var(--rd-space-3);
   border: 1px solid var(--rd-c-line);
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--rd-c-paper) 72%, transparent);
+  border-radius: var(--rd-radius-lg);
+  background: var(--rd-c-paper);
 }
 
 .s04-viz > header {
@@ -2465,8 +2465,8 @@
   gap: 2px;
   padding: var(--rd-space-2) var(--rd-space-2);
   border: 1px solid color-mix(in srgb, var(--rd-c-canvas) 94%, var(--rd-c-ink));
-  border-radius: 8px;
-  background: color-mix(in srgb, var(--rd-c-on-ink) 58%, transparent);
+  border-radius: var(--rd-radius-md);
+  background: var(--rd-c-surface);
 }
 
 .s04-viz-overlap-facts strong,
@@ -2481,7 +2481,7 @@
   height: 24px;
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--rd-c-canvas) 92%, var(--rd-c-ink));
-  border-radius: 6px;
+  border-radius: var(--rd-radius-md);
   background: var(--rd-c-on-ink);
 }
 
@@ -2515,7 +2515,7 @@
   top: 25px;
   left: 0;
   height: 14px;
-  border-radius: 4px;
+  border-radius: var(--rd-radius-sm);
 }
 
 .s04-viz-scope-track .input {
@@ -2646,7 +2646,7 @@
     min-width: 0;
     padding: var(--rd-space-2) var(--rd-space-3);
     border: 1px solid color-mix(in srgb, var(--rd-c-link) 17%, var(--rd-c-surface));
-    border-radius: 8px;
+    border-radius: var(--rd-radius-md);
     background: var(--rd-c-on-ink);
   }
 
@@ -2686,8 +2686,8 @@
     min-width: 0;
     padding: var(--rd-space-2) var(--rd-space-2);
     border: 1px solid color-mix(in srgb, var(--rd-c-link) 17%, var(--rd-c-surface));
-    border-radius: 8px;
-    background: color-mix(in srgb, var(--rd-c-on-ink) 78%, transparent);
+    border-radius: var(--rd-radius-md);
+    background: var(--rd-c-surface);
   }
 
   .rd-v2-synthesis-page .s04-exec-track > li:not(:nth-child(3n + 1))::before {
@@ -2716,7 +2716,7 @@
 
   .rd-v2-synthesis-page .s04-exec-track > li.done {
     border-color: color-mix(in srgb, var(--rd-c-link) 22%, var(--rd-c-surface));
-    background: color-mix(in srgb, var(--rd-c-mist) 78%, transparent);
+    background: var(--rd-c-mist);
   }
 
   .rd-v2-synthesis-page .s04-exec-track > li.done > b {
@@ -2727,14 +2727,14 @@
 
   .rd-v2-synthesis-page .s04-exec-track > li.now {
     border-color: #b8cbbb;
-    background: color-mix(in srgb, var(--rd-c-mist) 92%, transparent);
+    background: var(--rd-c-mist);
   }
 
   .rd-v2-synthesis-page .s04-exec-track > li.now > b {
     border-color: color-mix(in srgb, var(--rd-c-link) 71%, var(--rd-c-surface));
     background: #dceee2;
     color: var(--rd-link);
-    box-shadow: 0 0 0 3px rgba(84, 119, 99, 0.08);
+    box-shadow: var(--rd-focus-ring);
   }
 
   .rd-v2-synthesis-page .s04-exec-track > li.failed {
@@ -2857,8 +2857,8 @@
   min-width: 0;
   padding: var(--rd-space-2) var(--rd-space-2);
   border: 1px solid color-mix(in srgb, var(--rd-c-canvas) 94%, var(--rd-c-ink));
-  border-radius: 8px;
-  background: color-mix(in srgb, var(--rd-c-on-ink) 58%, transparent);
+  border-radius: var(--rd-radius-md);
+  background: var(--rd-c-surface);
 }
 
 .s04-multi-source-legend b,
@@ -3151,7 +3151,7 @@
   margin-top: var(--rd-space-3);
   background: var(--rd-surface);
   font-family: var(--rd-font);
-  font-size: 12px;
+  font-size: var(--rd-text-label);
 }
 
 .rd-analysis-chart text {
@@ -3351,7 +3351,7 @@ ol.s04-diagram-col > li:not(:last-child)::after { content: "↓"; display: block
   margin: 0 0 var(--rd-space-3);
   padding: var(--rd-space-3);
   border-left: 3px solid var(--rd-c-warn);
-  border-radius: 0 8px 8px 0;
+  border-radius: 0 var(--rd-radius-md) var(--rd-radius-md) 0;
   background: var(--rd-c-warn-soft);
 }
 
