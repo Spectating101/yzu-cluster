@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { plainAccess, plainGrain, plainRoute } from "./plainText.js";
+import { grainAfterBuild, plainAccess, plainGrain, plainRoute } from "./plainText.js";
 
 test("backend and collection method names read as plain words", () => {
   assert.equal(plainRoute("local_json_file"), "Local file");
@@ -46,4 +46,11 @@ test("internal collection grains stay hidden", () => {
   for (const grain of ["procured_snapshot", "catalog_harvest", "scrape_snapshot"]) {
     assert.equal(plainGrain(grain), "");
   }
+});
+
+test("written-out grain keeps its dates, and a built output drops the not-yet wording", () => {
+  const prose = "Intended output: one row per calendar month from 2016-09 onward; not yet constructed.";
+  assert.equal(plainGrain(prose), prose);
+  assert.equal(grainAfterBuild(prose, false), prose);
+  assert.equal(grainAfterBuild(prose, true), "one row per calendar month from 2016-09 onward");
 });

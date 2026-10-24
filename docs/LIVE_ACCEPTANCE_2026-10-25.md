@@ -49,17 +49,26 @@ Build `bc24a774d4d7452f`, recipe: BTC daily returns (`pct_change`), month via `d
 | Worker build → archive → registry → Library | ✅ 20 s; archived and verified on cms-drive; registered as `synthesis_btc_vol_co2_monthly`; row ledger and as-of coverage (99.3%) recorded; `method.py` frozen |
 | Correctness | ✅ independent pandas recomputation matches all 121 rows exactly |
 
-Backend defects:
+Backend defects — fixed by Claude on branch `claude/preview-backend-synthesis-20261025` (except the ops tagging, which stays: approval moved to the Synthesis page instead):
 - **The join preflight measures the raw input file, not the transformed frame** (`preflight_execution_spec`, `op == "join"` → `_probe_join_step(left_path=try_path(input_row))`). Any join on a key built by an earlier rename/derive reports `empty_join`. This is what stopped the assistant.
 - **`date_trunc` returns text** (`"2016-09"`), so a derived month can never equi-join a datetime `Date` column even after the probe is fixed.
 - **Synthesis build jobs are tagged ops-internal** (`plan.execution_policy.scope = "ops"`, `request._ops_internal = true`), and approval needs `approve_jobs` (operator). History hides ops jobs by design, so no one can see or approve a synthesis build in the UI.
 - **Output naming:** the dataset is titled "Synthesis: <truncated thread title>" rather than from the recipe's purpose.
 
-Frontend defects (Claude):
+Frontend defects (Claude) — fixed: every engine step draws in the method strip; operators approve on the build itself and members see that it waits for an operator; the step reads "Operator approval"; built outputs drop the not-yet wording and keep dates intact:
 - The method strip shows 3 of 5 steps (filter, rename, aggregate); `pct_change`, `derive` and the CO₂ `join_asof` are missing. "Rename 1 columns" is ungrammatical, and only the first metric is named.
 - "Review execution approval" routes to Discover History, which cannot list the job; as operator it selected an unrelated pending collection request.
 - The step is labelled "Researcher approval" but only an operator can approve.
 - "Intended output: …; not yet constructed." still shows after the build is saved.
+
+## Engine checks and scale (2026-10-25)
+
+Three studies through the worker's own execute path, each recomputed independently in pandas/numpy: CRSP monthly returns by year (994k stock-months), Penn World Table growth on investment share and human capital with country fixed effects (145 countries, 6,786 obs), OLS of BTC volatility on CO₂ (121 months). All matched exactly.
+
+Limits found and fixed on `claude/preview-backend-synthesis-20261025` (f4c89ddf):
+- A 1,000,000-row cap on every intermediate frame refused any long CRSP study after approval. Builds now use the existing byte budget (1.5 GiB): CRSP monthly full history 5.2M rows in ~2 s, CRSP daily 2020–2024 11.3M rows in ~25 s. Full CRSP daily (~108M rows, ~3 GiB) is refused at Preview, before approval, with guidance; running it needs an out-of-core engine (DuckDB prototype pending the owner's decision).
+- The check's non-finite scan loaded the whole input (13 GB peak on CRSP daily); it now streams the metric columns (0.3 GB).
+- The engine reported BTC~CO₂ as significant (p = 0.0006) with no caution. OLS and correlation on a single time series now test for trends and warn (CO₂ ADF p = 0.99, trend t = 37); differenced series pass without a warning.
 
 ## Frontend fixes made from this run
 

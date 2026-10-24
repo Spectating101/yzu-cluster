@@ -242,21 +242,21 @@ test("accepted method marks bounded preview as the current required step", () =>
   const track = executionTrack("spec_accepted", false, false, {});
   assert.equal(row(track, "Sample preview").detail, "Required");
   assert.equal(row(track, "Sample preview").state, "now");
-  assert.equal(row(track, "Researcher approval").detail, "Not requested");
+  assert.equal(row(track, "Operator approval").detail, "Not requested");
 });
 
 test("successful preview completes Preview without inventing approval", () => {
   const track = executionTrack("spec_accepted", false, false, { status: "succeeded" });
   assert.equal(row(track, "Sample preview").detail, "Passed");
   assert.equal(row(track, "Sample preview").state, "done");
-  assert.equal(row(track, "Researcher approval").detail, "Not requested");
+  assert.equal(row(track, "Operator approval").detail, "Not requested");
 });
 
 test("failed preview is visible and does not advance approval", () => {
   const track = executionTrack("spec_accepted", false, false, { status: "failed" });
   assert.equal(row(track, "Sample preview").detail, "Failed");
   assert.equal(row(track, "Sample preview").state, "failed");
-  assert.equal(row(track, "Researcher approval").state, "");
+  assert.equal(row(track, "Operator approval").state, "");
 });
 
 test("completed worker leaves archive and registry unverified", () => {
@@ -270,7 +270,7 @@ test("completed worker leaves archive and registry unverified", () => {
 test("pending approval does not advance the worker or archive rows", () => {
   const track = executionTrack("pending_approval", false, false, { status: "succeeded" });
   assert.equal(row(track, "Sample preview").detail, "Passed");
-  assert.equal(row(track, "Researcher approval").detail, "Decision required");
+  assert.equal(row(track, "Operator approval").detail, "Waiting for an operator");
   assert.equal(row(track, "Worker build").detail, "Waiting");
   assert.equal(row(track, "Archive + registry").detail, "Waiting");
 });
@@ -291,7 +291,7 @@ test("query readiness requires the explicit query_ready lifecycle", () => {
 test("an unrequested execution claims nothing beyond Preview", () => {
   const track = executionTrack("", false, false, {});
   assert.equal(row(track, "Sample preview").detail, "Required");
-  assert.equal(row(track, "Researcher approval").detail, "Not requested");
+  assert.equal(row(track, "Operator approval").detail, "Not requested");
   assert.equal(row(track, "Worker build").detail, "Waiting");
   assert.equal(row(track, "Archive + registry").detail, "Waiting");
   assert.equal(row(track, "Library handoff").detail, "Not saved to Library");

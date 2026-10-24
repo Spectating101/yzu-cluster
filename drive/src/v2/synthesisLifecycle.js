@@ -200,8 +200,8 @@ export function executionTrack(status, registered, queryReady = false, preview =
       state: previewDone ? "done" : previewFailed ? "failed" : normalized === "spec_accepted" || !normalized ? "now" : "",
     },
     {
-      label: "Researcher approval",
-      detail: normalized === "pending_approval" ? "Decision required" : approved ? "Approved" : "Not requested",
+      label: "Operator approval",
+      detail: normalized === "pending_approval" ? "Waiting for an operator" : approved ? "Approved" : "Not requested",
       state: normalized === "pending_approval" ? "now" : approved ? "done" : "",
     },
     {

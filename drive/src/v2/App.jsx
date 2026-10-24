@@ -2216,10 +2216,7 @@ function DeskWorkspace({ onIdentityChanged }) {
           assistantAllowed={canUseAsk}
           onGoTab={goTab}
           onOpenDataset={openInLibraryFromDiscover}
-          onReviewExecution={(execution) => {
-            const jobId = execution?.job_id || "";
-            openDiscoverAwaiting({ job: jobId ? { id: jobId, status: "pending_approval" } : null });
-          }}
+          canApproveBuilds={canApproveJobs}
           onSelectThread={selectSynthesisThread}
           onBeginNew={() => {
             setActiveObject(null);

@@ -42,8 +42,15 @@ const GRAIN_DIMENSIONS = new Set([
 export function plainGrain(value) {
   const key = String(value || "").trim();
   if (!key || INTERNAL_GRAINS.has(key)) return "";
+  if (/\s/.test(key)) return key;
   const parts = key.split(/[_-]/).filter(Boolean);
   return parts.join(parts.every((part) => GRAIN_DIMENSIONS.has(part)) ? " × " : " ");
+}
+
+export function grainAfterBuild(value, built) {
+  const text = String(value || "").trim();
+  if (!built) return text;
+  return text.replace(/^intended output:\s*/i, "").replace(/[;,.]?\s*not yet constructed\.?$/i, "").trim();
 }
 
 const ACCESS = {

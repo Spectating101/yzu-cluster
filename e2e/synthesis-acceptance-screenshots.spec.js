@@ -272,12 +272,12 @@ test.describe("Synthesis acceptance screenshots", () => {
           await expect(preview).toBeVisible();
           await expect(preview).toContainText("This accepted recipe completed on sample data");
           await expect(preview).toContainText("5,000");
-          await expect(page.getByRole("button", { name: "Review execution approval" })).toBeVisible();
+          await expect(page.getByRole("button", { name: "Request build approval" })).toBeVisible();
         }
 
         if (name === "06c-approval") {
           await expect(page.getByTestId("synthesis-preview-state")).toHaveCount(0);
-          await expect(page.getByRole("button", { name: "Review execution approval" })).toBeVisible();
+          await expect(page.getByRole("button", { name: "Approve build" })).toBeVisible();
           await expect(page.getByText("Sample preview", { exact: true })).toBeVisible();
           const previewStep = page.getByRole("listitem").filter({ hasText: "Sample preview" }).first();
           await expect(previewStep).toBeVisible();

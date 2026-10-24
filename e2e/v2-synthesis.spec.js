@@ -615,14 +615,11 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await expect(execution).toContainText("stablecoin_attention_weekly");
     await expect(execution).toContainText("Sample preview passed");
     await expect(execution.getByRole("button", { name: "Run sample test" })).toHaveCount(0);
-    await expect(execution.getByRole("button", { name: "Review execution approval" })).toBeVisible();
+    await expect(execution.getByRole("button", { name: "Request build approval" })).toBeVisible();
     await capture(page, "03-preview-passed-desktop");
 
-    // One action creates/reuses the pending approval and opens its durable
-    // researcher review record. It still does not approve worker execution.
-    await execution.getByRole("button", { name: "Review execution approval" }).click();
-    await expect(page).toHaveURL(/tab=discover/);
-    await expect(page).toHaveURL(/mode=history/);
+    await execution.getByRole("button", { name: "Request build approval" }).click();
+    await expect(page).toHaveURL(/tab=synthesis/);
   });
 
   test("does not create a second approval request when a prior approval response was lost", async ({ page }) => {
@@ -704,14 +701,23 @@ test.describe("v2 Synthesis durable thread surface", () => {
     await page.getByTestId("synthesis-thread-item").filter({ hasText: "Weekly trust panel" }).click();
     const execution = page.getByTestId("synthesis-execution-state");
     await expect(execution).toContainText("stablecoin_attention_weekly");
-    await expect(execution.getByRole("button", { name: "Review execution approval" })).toBeVisible();
+    await expect(execution.getByRole("button", { name: "Request build approval" })).toBeVisible();
 
-    await execution.getByRole("button", { name: "Review execution approval" }).click();
+    await execution.getByRole("button", { name: "Request build approval" }).click();
 
-    await expect(page).toHaveURL(/tab=discover/);
-    await expect(page).toHaveURL(/mode=history/);
+    await expect(page).toHaveURL(/tab=synthesis/);
     expect(executeCalls).toBe(0);
     expect(getCalls).toBeGreaterThanOrEqual(2);
+
+    const approvals = [];
+    await page.route("**/api/library/jobs/*/approve", (route) => {
+      approvals.push(new URL(route.request().url()).pathname);
+      return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ id: "job-already-created", status: "queued" }) });
+    });
+    await execution.getByRole("button", { name: "Approve build" }).click();
+    await expect.poll(() => approvals).toEqual(["/api/library/jobs/job-already-created/approve"]);
+    await expect(execution.getByTestId("synthesis-approval-wait")).toHaveText("Approved · building");
+    await expect(execution.getByRole("button", { name: "Approve build" })).toHaveCount(0);
   });
 
   test("rail Evidence field does not contradict an accepted execution record with empty evidence nodes", async ({ page }) => {

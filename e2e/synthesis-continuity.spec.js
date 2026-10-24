@@ -159,7 +159,7 @@ test.describe("Synthesis continuity surfaces", () => {
       execution: { status: "pending_approval", job_id: "job-pending", spec_hash: ACCEPTED_HASH, output_dataset_id: SPEC.output_dataset_id },
     });
     await expect(page.locator(".rd-v2-synthesis-page")).toHaveAttribute("data-synthesis-workspace-phase", "review");
-    await expect(page.getByRole("button", { name: "Review execution approval" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Approve build" })).toBeVisible();
 
     await page.unrouteAll({ behavior: "ignoreErrors" });
     await page.goto("about:blank");

@@ -38,8 +38,8 @@ function executionIsReview(surface) {
   if (!surface) return false;
   if (surface.querySelector('[data-testid="synthesis-preview-state"]')) return true;
   const current = surface.querySelector(".s04-exec-track li.now strong")?.textContent?.trim().toLowerCase() || "";
-  if (current.includes("researcher approval")) return true;
-  return /pending approval|approval required|awaiting researcher approval/i.test(surface.textContent || "");
+  if (current.includes("approval")) return true;
+  return /pending approval|approval required|waiting for an operator/i.test(surface.textContent || "");
 }
 
 function surfacePhase(surface) {

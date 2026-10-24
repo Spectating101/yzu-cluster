@@ -81,3 +81,39 @@ test("repeated step kinds get distinct ids", () => {
   t.state.execution_spec.transforms = [{ op: "filter", column: "a", cmp: "==", value: 1 }, { op: "filter", column: "b", cmp: "==", value: 2 }];
   assert.deepEqual(methodGraph(t).steps.map((s) => s.id), ["filter-1", "filter-2", "aggregate"]);
 });
+
+test("every recorded step draws, including returns, derived keys and as-of joins", () => {
+  const t = {
+    title: "BTC volatility and CO2",
+    state: {
+      nodes: [
+        { dataset_id: "crypto", layer: "evidence", label: "Crypto daily prices" },
+        { dataset_id: "co2", layer: "evidence", label: "Mauna Loa CO₂" },
+      ],
+      execution_spec: {
+        input_dataset_id: "crypto",
+        output_dataset_id: "synthesis_btc",
+        transforms: [
+          { op: "filter", column: "Instrument", cmp: "eq", value: "BTC-USD" },
+          { op: "pct_change", column: "Price_Close", by: [], order_by: ["Date"], as: "ret" },
+          { op: "rename", mapping: { Date: "day" } },
+          { op: "derive", as: "month", expr: "date_trunc(day, 'month')" },
+          { op: "join_asof", right_dataset_id: "co2", left_on: "day", right_on: "Date", direction: "backward", tolerance: "31D" },
+          { op: "brand_new_op" },
+        ],
+        group_by: ["month"],
+        metrics: [{ function: "std", column: "ret", as: "btc_vol" }, { function: "mean", column: "Average", as: "co2_ppm" }, { function: "count", as: "days" }],
+      },
+    },
+  };
+  const g = methodGraph(t);
+  assert.deepEqual(g.inputs.map((i) => i.id), ["crypto", "co2"]);
+  assert.deepEqual(g.steps.map((s) => s.kind), ["Filter", "% change", "Rename", "Derive", "As-of join", "Brand new op", "Aggregate"]);
+  assert.equal(g.steps[0].label, "Instrument = BTC-USD");
+  assert.equal(g.steps[1].label, "Price_Close as ret");
+  assert.equal(g.steps[2].label, "Date → day");
+  assert.equal(g.steps[3].label, "month = date_trunc(day, 'month')");
+  assert.equal(g.steps[4].label, "latest Mauna Loa CO₂ row at or before each day");
+  assert.deepEqual(g.steps[4].facts, ["day → Date", "no older than 31D"]);
+  assert.deepEqual(g.steps[6].facts, ["std of ret as btc_vol", "mean of Average as co2_ppm", "count as days"]);
+});

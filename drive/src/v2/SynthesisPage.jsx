@@ -1,7 +1,7 @@
 import { AnalysisResults } from "./AnalysisResults.jsx";
 import { threadWithMeasurements } from "./synthesisGates.js";
 import { synthesisObjectiveDisplay, uiVocabularyLabel } from "./uiVocabularyLabels.js";
-import { plainGrain } from "./plainText.js";
+import { grainAfterBuild, plainGrain } from "./plainText.js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { PageShell } from "@/v2/ui";
@@ -21,6 +21,7 @@ import {
   listSynthesisThreads,
   proposeSynthesisEvidenceMap,
   requestSynthesisExecution,
+  approveJob,
 } from "@/v2/api";
 import { handleEnterToSubmit } from "@/v2/enterToSubmit";
 import { DeskError } from "@/v2/DeskError";
@@ -298,7 +299,8 @@ function ThreadPicker({ threads, selectedId, onSelect }) {
  * was understood, and a blank slot would claim that falsely.
  */
 function ResearchBrief({ thread, onEditIntent }) {
-  const brief = researchBrief(thread);
+  const researched = researchBrief(thread);
+  const brief = { ...researched, targetGrain: grainAfterBuild(researched.targetGrain, ["registered", "query_ready"].includes(stateFor(thread))) };
   if (!brief.body && !brief.targetGrain && !brief.targetPeriod && !brief.intendedUse) return null;
   const mobileContext = [plainGrain(brief.targetGrain), brief.targetPeriod, brief.intendedUse].filter(Boolean);
   return (
@@ -1151,7 +1153,15 @@ function RegisteredResultTable({ result }) {
   );
 }
 
-function ExecutionRecord({ thread, busy, onRequest, onReview, onAsk, onOpenDataset }) {
+function fullBuildEstimate(estimate) {
+  const rows = Number(estimate?.estimated_rows);
+  const bytes = Number(estimate?.estimated_bytes);
+  if (!Number.isFinite(rows) || rows <= 0) return "";
+  const size = !Number.isFinite(bytes) || bytes <= 0 ? "" : bytes >= 2 ** 30 ? `${(bytes / 2 ** 30).toFixed(1)} GB` : `${Math.max(1, Math.round(bytes / 2 ** 20))} MB`;
+  return [`about ${rows.toLocaleString()} rows`, size ? `~${size} in memory` : ""].filter(Boolean).join(" · ");
+}
+
+function ExecutionRecord({ thread, busy, onRequest, canApprove = false, approved = false, onApprove, onAsk, onOpenDataset }) {
   const state = thread?.state || {};
   const execution = state.execution || {};
   const spec = state.execution_spec || {};
@@ -1178,6 +1188,7 @@ function ExecutionRecord({ thread, busy, onRequest, onReview, onAsk, onOpenDatas
   const sampleRows = Array.isArray(previewOutput.rows) ? previewOutput.rows : [];
   const sampleColumns = Array.isArray(previewOutput.columns) ? previewOutput.columns : Object.keys(sampleRows[0] || {});
   const warningCount = Array.isArray(preview.preflight?.warnings) ? preview.preflight.warnings.length : 0;
+  const fullBuild = fullBuildEstimate(preview.preflight?.size_estimate);
   const showExecutionProof = Boolean(execution.job_id || registered || failed || pendingApproval || active);
   const headline = previewEligible
     ? previewTruth.failed
@@ -1245,6 +1256,7 @@ function ExecutionRecord({ thread, busy, onRequest, onReview, onAsk, onOpenDatas
                 <div><dt>Previewed</dt><dd>{sampling.previewed_rows == null ? "—" : Number(sampling.previewed_rows).toLocaleString()}</dd></div>
                 <div><dt>After transforms</dt><dd>{previewRows.after_transforms == null ? "—" : Number(previewRows.after_transforms).toLocaleString()}</dd></div>
                 <div><dt>Output rows</dt><dd>{previewRows.output == null ? "—" : Number(previewRows.output).toLocaleString()}</dd></div>
+                {fullBuild ? <div data-testid="synthesis-full-build-estimate"><dt>Full build</dt><dd>{fullBuild}</dd></div> : null}
               </dl>
               <p className="s04-preview-copy">
                 {warningCount ? `${warningCount} preflight warning${warningCount === 1 ? "" : "s"} recorded. ` : "No preflight warnings recorded. "}
@@ -1308,9 +1320,13 @@ function ExecutionRecord({ thread, busy, onRequest, onReview, onAsk, onOpenDatas
               ? "This dataset appears because the saved build reports an output saved to Library. Query readiness is not confirmed."
               : failed
                 ? "You can inspect the accepted specification. No output has been confirmed as saved to Library."
+                : pendingApproval
+                  ? approved
+                    ? "Approved. The worker builds this version, archives it and saves it to Library; this page updates when it finishes."
+                    : "The full build waits for an operator's approval. Nothing runs until then."
                 : previewEligible
                   ? previewTruth.succeeded
-                    ? "The sample preview passed. Requesting the full build creates a separate approval request for this version. The worker still needs approval to run."
+                    ? "The sample preview passed. Requesting the full build asks an operator to approve this exact version before the worker runs it."
                     : "This accepted version must pass a sample preview before you can request approval for the full build."
                   : hasSpec
                     ? "An execution request after a sample preview still requires worker approval and separate checks before saving to Library."
@@ -1331,10 +1347,15 @@ function ExecutionRecord({ thread, busy, onRequest, onReview, onAsk, onOpenDatas
         ) : null}
         {previewEligible ? (
           <button type="button" className="rd-v2-btn primary" disabled={busy} onClick={onRequest}>
-            {previewTruth.succeeded ? "Review execution approval" : previewTruth.failed ? "Rerun sample test" : "Run sample test"}
+            {previewTruth.succeeded ? "Request build approval" : previewTruth.failed ? "Rerun sample test" : "Run sample test"}
           </button>
         ) : null}
-        {pendingApproval ? <button type="button" className="rd-v2-btn primary" onClick={() => onReview?.(execution)}>Review execution approval</button> : null}
+        {pendingApproval && canApprove && !approved && execution.job_id ? (
+          <button type="button" className="rd-v2-btn primary" disabled={busy} onClick={() => onApprove?.(execution.job_id)}>Approve build</button>
+        ) : null}
+        {pendingApproval && (approved || !canApprove) ? (
+          <span className="s04-live-note" data-testid="synthesis-approval-wait">{approved ? "Approved · building" : "Waiting for an operator to approve"}</span>
+        ) : null}
         {active ? <span className="s04-live-note">This thread refreshes automatically.</span> : null}
         <button type="button" className="rd-v2-btn" onClick={() => onAsk("Explain the exact Preview/Test or execution state and which evidence is still missing before this output can be trusted.")}>Ask about this state</button>
       </footer>
@@ -1574,7 +1595,7 @@ export function SynthesisPage({
   assistantAllowed = false,
   onGoTab,
   onOpenDataset,
-  onReviewExecution,
+  canApproveBuilds = false,
   onSelectThread,
   onBeginNew,
   onDiscoverHandoff,
@@ -1592,6 +1613,7 @@ export function SynthesisPage({
   const [selectedId, setSelectedId] = useState("");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [approvedJobIds, setApprovedJobIds] = useState(() => new Set());
   const [error, setError] = useState("");
   const [threadsLoadError, setThreadsLoadError] = useState("");
   const [newMode, setNewMode] = useState(false);
@@ -2162,10 +2184,7 @@ export function SynthesisPage({
         onSelectThread?.(current);
       }
       const currentStatus = text(authoritative?.state?.execution?.status).toLowerCase().replace(/-/g, "_");
-      if (currentStatus === "pending_approval") {
-        onReviewExecution?.(authoritative.state.execution);
-        return;
-      }
+      if (currentStatus === "pending_approval") return;
       if (currentStatus && currentStatus !== "spec_accepted") return;
       const preview = synthesisPreviewTruth(authoritative);
       const action = preview.succeeded ? "request_approval" : "preview";
@@ -2174,14 +2193,25 @@ export function SynthesisPage({
       if (next) {
         replaceThread(next);
         onSelectThread?.(next);
-        const nextStatus = text(next?.state?.execution?.status).toLowerCase().replace(/-/g, "_");
-        if (action === "request_approval" && nextStatus === "pending_approval") {
-          onReviewExecution?.(next.state.execution);
-        }
       }
     } catch (cause) {
       setError(text(cause?.message, "The sample preview or build request could not be completed."));
       refreshThread().catch(() => {});
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const approveBuild = async (jobId) => {
+    if (!jobId || !selected) return;
+    setBusy(true);
+    setError("");
+    try {
+      await approveJob(jobId);
+      setApprovedJobIds((current) => new Set(current).add(jobId));
+      await refreshThread(selected.id).catch(() => null);
+    } catch (cause) {
+      setError(text(cause?.message, "The build could not be approved."));
     } finally {
       setBusy(false);
     }
@@ -2365,7 +2395,9 @@ export function SynthesisPage({
                   thread={displayedSelected}
                   busy={busy}
                   onRequest={requestExecution}
-                  onReview={onReviewExecution}
+                  canApprove={canApproveBuilds}
+                  approved={approvedJobIds.has(text(selected?.state?.execution?.job_id))}
+                  onApprove={approveBuild}
                   onAsk={ask}
                   onOpenDataset={onOpenDataset}
                 />

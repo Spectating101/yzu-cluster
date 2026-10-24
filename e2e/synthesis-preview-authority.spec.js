@@ -89,7 +89,7 @@ async function installAuthorityMocks(page, { stale = false } = {}) {
                 columns: ["asset_id", "week", "row_count"],
                 rows: [{ asset_id: "A", week: "2026-W01", row_count: 10 }],
               },
-              preflight: { warnings: [] },
+              preflight: { warnings: [], size_estimate: { estimated_rows: 11281513, estimated_bytes: 612368384 } },
             },
           },
         };
@@ -152,7 +152,7 @@ test("Preview and approval remain separate visible and network intentions", asyn
   const runPreview = execution.getByRole("button", { name: "Run sample test" });
   await expect(runPreview).toBeVisible();
   await expect(execution).toContainText("Sample preview required");
-  await expect(execution.getByRole("button", { name: "Review execution approval" })).toHaveCount(0);
+  await expect(execution.getByRole("button", { name: "Request build approval" })).toHaveCount(0);
   await runPreview.click();
 
   // The bounded test is its own network intention. It may not create an
@@ -160,7 +160,8 @@ test("Preview and approval remain separate visible and network intentions", asyn
   await expect.poll(() => observed.actions()).toEqual(["preview"]);
   await expect(execution).toContainText("Sample preview passed");
   await expect(execution).toContainText("100");
-  const reviewApproval = execution.getByRole("button", { name: "Review execution approval" });
+  await expect(execution.getByTestId("synthesis-full-build-estimate")).toContainText("about 11,281,513 rows · ~584 MB in memory");
+  const reviewApproval = execution.getByRole("button", { name: "Request build approval" });
   await expect(reviewApproval).toBeVisible();
   await expect.poll(() => observed.actions()).toEqual(["preview"]);
 
@@ -174,8 +175,7 @@ test("Preview and approval remain separate visible and network intentions", asyn
   // followed by request_approval.
   await reviewApproval.click();
   await expect.poll(() => observed.actions()).toEqual(["preview", "request_approval"]);
-  await expect(page).toHaveURL(/tab=discover/);
-  await expect(page).toHaveURL(/mode=history/);
+  await expect(page).not.toHaveURL(/mode=history/);
 });
 
 test("a stale Preview can only rerun the bounded test from the browser", async ({ page }) => {
@@ -187,11 +187,11 @@ test("a stale Preview can only rerun the bounded test from the browser", async (
   await expect(execution).toContainText("Stale");
   const rerun = execution.getByRole("button", { name: "Run sample test" });
   await expect(rerun).toBeVisible();
-  await expect(execution.getByRole("button", { name: "Review execution approval" })).toHaveCount(0);
+  await expect(execution.getByRole("button", { name: "Request build approval" })).toHaveCount(0);
   await rerun.click();
 
   await expect.poll(() => observed.actions()).toEqual(["preview"]);
   await expect(execution).toContainText("Sample preview passed");
-  await expect(execution.getByRole("button", { name: "Review execution approval" })).toBeVisible();
+  await expect(execution.getByRole("button", { name: "Request build approval" })).toBeVisible();
   await expect.poll(() => observed.actions()).toEqual(["preview"]);
 });
