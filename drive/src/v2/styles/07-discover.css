@@ -50,7 +50,6 @@
 .rd-v2-discover-page .rd-v2-discover-composer-prompt {
   grid-column: 1 / -1;
   padding: var(--rd-space-2) var(--rd-space-3);
-  border-left: 3px solid var(--rd-accent);
   background: var(--rd-accent-soft);
   color: var(--rd-ink, #101820);
   font-size: var(--rd-text-xs);
@@ -348,7 +347,7 @@
 
 .rd-v2-discover-page .rd-v2-discover-candidates > li.rd-v2-row-on {
   border-color: color-mix(in srgb, var(--rd-c-link) 52%, var(--rd-c-surface));
-  box-shadow: inset 3px 0 0 #4b7766;
+  box-shadow: none;
   background: var(--rd-c-on-ink);
 }
 
@@ -443,7 +442,6 @@
 .rd-v2-discover-page .rd-v2-discover-sufficiency {
   width: fit-content;
   padding-left: var(--rd-space-2);
-  border-left: 2px solid color-mix(in srgb, var(--rd-c-link) 44%, var(--rd-c-surface));
   color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
   font-weight: 600;
@@ -511,8 +509,7 @@ body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-section-label {
   margin: 0;
   color: var(--rd-muted);
   font: 700 11px/1.25 var(--rd-font);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: normal;
 }
 
 body:has(.rd-v2-discover-page) .rd-v2-resting-rail .rd-v2-eval-question {
@@ -1172,7 +1169,7 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
   display: inline-flex;
   min-width: 0;
   min-height: 0;
-  gap: 3px;
+  gap: var(--rd-space-1);
   padding: 0;
   border: 0;
   background: transparent;
@@ -1206,7 +1203,7 @@ body:has(.rd-v2-discover-page .rd-v2-discover-idle) .rd-v2-rail-empty-hint {
   top: 8px;
   right: 8px;
   min-height: 25px;
-  padding: 3px var(--rd-space-2);
+  padding: var(--rd-space-1) var(--rd-space-2);
 }
 
 .rd-v2-discover-ranked-results li:hover .rd-v2-discover-row-add,
@@ -1608,8 +1605,7 @@ body:has(.rd-v2-discover-page [data-testid="discover-result-summary"]):not(:has(
   color: var(--rd-muted);
   font-size: var(--rd-text-label);
   font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  letter-spacing: normal;
 }
 
 .rd-v2-discover-page .rd-v2-discover-start-cards {

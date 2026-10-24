@@ -1,4 +1,4 @@
-import { isPreAcceptance, recommendedConstruction, researchBrief } from "./synthesisBrief.js";
+import { isPreAcceptance, objectiveIsTitleOnly, recommendedConstruction, researchBrief } from "./synthesisBrief.js";
 
 export function synthesisEvidenceNodes(thread) {
   return (thread?.state?.nodes || []).filter(
@@ -15,8 +15,9 @@ export function synthesisGates(thread) {
   const proposal = state.proposal || null;
   const joinReview = Boolean((Array.isArray(state.join_candidates) && state.join_candidates.length) || state.multi_overlap);
   const objective = String(thread?.objective || state.objective || brief.purpose || "").trim();
+  const titleOnly = objectiveIsTitleOnly(thread);
   return [
-    ["Objective", objective ? "Recorded" : "Missing", Boolean(objective)],
+    ["Objective", !objective ? "Missing" : titleOnly ? "Title only" : "Recorded", Boolean(objective) && !titleOnly],
     ["Evidence", nodes.length ? `${nodes.length} mapped` : "Waiting", Boolean(nodes.length)],
     ["Measurement", profiles.length ? `${profiles.length} profiled` : "Not checked", Boolean(profiles.length)],
     ["Scope", state.scope_block ? "Decision needed" : profiles.length ? "No blocker" : "Not checked", Boolean(profiles.length && !state.scope_block)],

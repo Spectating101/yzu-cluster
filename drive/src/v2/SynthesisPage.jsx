@@ -54,6 +54,7 @@ import {
 import {
   EXPLORATION_READY,
   isPreAcceptance,
+  objectiveIsTitleOnly,
   recommendedConstruction,
   researchBrief,
 } from "@/v2/synthesisBrief.js";
@@ -338,7 +339,9 @@ function ResearchBrief({ thread, onEditIntent }) {
           </dl>
         </div>
       </details>
-      {brief.body ? <p>{synthesisObjectiveDisplay(brief.body)}</p> : null}
+      {objectiveIsTitleOnly(thread) ? (
+        <p className="s04-brief-missing" data-testid="synthesis-brief-title-only">Only the title is recorded. Say what the data is for and what it must cover.</p>
+      ) : brief.body ? <p>{synthesisObjectiveDisplay(brief.body)}</p> : null}
       {plainGrain(brief.targetGrain) || brief.targetPeriod || brief.intendedUse ? (
         <dl>
           {plainGrain(brief.targetGrain) ? <div><dt>Unit of observation</dt><dd>{plainGrain(brief.targetGrain)}</dd></div> : null}
@@ -1519,7 +1522,11 @@ function MeasurementStatus({ phase, measurements, onRetry }) {
     <section className="s04-measurement-status is-ready" data-testid="synthesis-measurement-status" role="status">
       <span aria-hidden="true">✓</span>
       <div>
-        <strong>{inputs} mapped input{inputs === 1 ? "" : "s"} measured from Library data</strong>
+        <strong>
+          {unmeasured.length
+            ? `${inputs + unmeasured.length} mapped inputs · ${inputs} measured from Library data`
+            : `${inputs} mapped input${inputs === 1 ? "" : "s"} measured from Library data`}
+        </strong>
         <small>
           {profiles.length.toLocaleString()} columns profiled
           {unmeasured.length ? ` · ${unmeasured.length} input${unmeasured.length === 1 ? "" : "s"} could not be read` : " · no assistant involved"}

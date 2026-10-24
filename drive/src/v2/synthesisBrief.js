@@ -64,6 +64,14 @@ export function researchBrief(thread) {
   };
 }
 
+export function objectiveIsTitleOnly(thread) {
+  const brief = researchBrief(thread);
+  const title = str(thread?.title) || str(thread?.state?.title);
+  const norm = (value) => String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  return Boolean(brief.body) && Boolean(title) && norm(brief.body) === norm(title)
+    && !brief.targetGrain && !brief.targetPeriod && !brief.intendedUse;
+}
+
 /**
  * Spec §6: exactly one construction is recommended, and the alternatives stay
  * counted but collapsed. A construction with no nodes is not a construction —

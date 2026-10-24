@@ -319,11 +319,10 @@
   display: grid;
   width: 100%;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 3px var(--rd-space-4);
+  gap: var(--rd-space-1) var(--rd-space-4);
   align-items: center;
   padding: var(--rd-space-3) var(--rd-space-4) var(--rd-space-3) var(--rd-space-4);
   border: 0;
-  border-left: 2px solid var(--rd-c-line-strong);
   border-radius: 0;
   background: transparent;
   color: inherit;
@@ -338,7 +337,7 @@
 }
 
 .rd-v2-home-pickup-secondary.warn {
-  border-left-color: #d8b36e;
+  border-left: 2px solid var(--rd-c-warn);
 }
 
 .rd-v2-home-pickup-secondary strong {
@@ -407,7 +406,7 @@
 .rd-v2-home-headroom-row {
   display: grid;
   min-width: 0;
-  gap: 3px;
+  gap: var(--rd-space-1);
 }
 
 .rd-v2-home-headroom-meta {
@@ -536,7 +535,7 @@
 }
 
 .rd-v2-home-recommended-row > div > span {
-  margin-top: 3px;
+  margin-top: var(--rd-space-1);
   color: var(--rd-hps-muted);
   font-size: var(--rd-text-2xs);
   line-height: 1.4;
@@ -548,8 +547,7 @@
   font-size: var(--rd-text-label);
   font-style: normal;
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: normal;
 }
 
 .rd-v2-home-recommended-go {
@@ -643,25 +641,24 @@
 .rd-v2-profile-badge {
   display: inline-flex;
   margin: 0 0 var(--rd-space-3) var(--rd-space-2);
-  padding: 3px var(--rd-space-2);
+  padding: var(--rd-space-1) var(--rd-space-2);
   border: 1px solid color-mix(in srgb, var(--rd-c-link) 22%, var(--rd-c-surface));
   border-radius: 999px;
   color: var(--rd-muted);
   font-family: var(--rd-font);
   font-size: var(--rd-text-label);
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: normal;
 }
 
 .rd-v2-profile-name {
   max-width: 760px;
   margin: 0;
   color: var(--rd-hps-ink);
-  font-size: clamp(27px, 3vw, 39px);
+  font-size: var(--rd-text-xl);
   font-weight: 700;
   letter-spacing: -0.01em;
-  line-height: 1.02;
+  line-height: 1.2;
 }
 
 .rd-v2-profile-org {
@@ -833,7 +830,7 @@
 }
 
 .rd-v2-profile-section-head > span {
-  padding: 3px var(--rd-space-2);
+  padding: var(--rd-space-1) var(--rd-space-2);
   border-radius: 999px;
   background: color-mix(in srgb, var(--rd-hps-muted) 10%, transparent);
   color: var(--rd-hps-muted);
@@ -870,7 +867,7 @@
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 3px;
+  gap: var(--rd-space-1);
 }
 
 .rd-v2-memory-controls strong {
@@ -915,8 +912,7 @@
   font-family: var(--rd-font);
   font-size: var(--rd-text-label);
   font-style: normal;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: normal;
 }
 
 .rd-v2-learned-memory-list strong {
@@ -938,7 +934,7 @@
 
   .rd-v2-learned-memory-list li > div {
     grid-template-columns: 1fr;
-    gap: 3px;
+    gap: var(--rd-space-1);
   }
 }
 
@@ -978,8 +974,7 @@
   font-family: var(--rd-font);
   font-size: var(--rd-text-label);
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: normal;
 }
 
 .rd-v2-profile-memory-card > strong {

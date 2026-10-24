@@ -110,3 +110,10 @@ test("the recommended construction carries its roles and counts alternatives", (
   assert.deepEqual(rec.methodWillResolve, ["component weighting", "missing-component rule"]);
   assert.equal(rec.alternatives, 2, "spec §6 counts alternatives but keeps them collapsed");
 });
+
+test("an objective that only repeats the title is not a recorded objective", async () => {
+  const { objectiveIsTitleOnly } = await import("./synthesisBrief.js");
+  assert.equal(objectiveIsTitleOnly({ title: "GDELT news shocks Asia", objective: "GDELT news shocks Asia", state: {} }), true);
+  assert.equal(objectiveIsTitleOnly({ title: "Weekly crypto panel", objective: "Build a weekly crypto panel to test whether de-pegs raise volatility", state: {} }), false);
+  assert.equal(objectiveIsTitleOnly({ title: "GDELT news shocks Asia", objective: "GDELT news shocks Asia", state: { required_grain: "country_week" } }), false);
+});

@@ -323,7 +323,7 @@
 
   .rd-v2-synthesis-page .s04-opening-facts dd {
     display: -webkit-box;
-    margin-top: 3px;
+    margin-top: var(--rd-space-1);
     overflow: hidden;
     font-size: var(--rd-text-2xs);
     line-height: 1.3;
@@ -554,13 +554,12 @@
   font-size: var(--rd-text-label);
   font-style: normal;
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: normal;
 }
 
 .s04-opening-construction > h2 {
   max-width: 34ch;
-  margin: 3px 0 var(--rd-space-2);
+  margin: var(--rd-space-1) 0 var(--rd-space-2);
   color: var(--rd-text);
   font-size: var(--rd-text-xl);
   font-weight: 700;
@@ -603,7 +602,7 @@
   position: relative;
   z-index: 1;
   display: grid;
-  gap: 3px;
+  gap: var(--rd-space-1);
   min-width: 0;
   padding: var(--rd-space-2) var(--rd-space-3);
   border: 1px solid color-mix(in srgb, var(--rd-c-steel) 20%, var(--rd-c-surface));
@@ -615,8 +614,7 @@
   color: var(--rd-muted);
   font-size: var(--rd-text-label);
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: normal;
 }
 
 .s04-opening-map li > strong {
@@ -692,8 +690,7 @@
 .s04-opening-map > p > b {
   color: var(--rd-link);
   font-size: var(--rd-text-label);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: normal;
 }
 
 .s04-opening-facts {
@@ -719,7 +716,7 @@
 }
 
 .s04-opening-facts dd {
-  margin-top: 3px;
+  margin-top: var(--rd-space-1);
   color: var(--rd-body);
   font-size: var(--rd-text-2xs);
   line-height: 1.48;
@@ -877,8 +874,7 @@
     color: var(--rd-muted);
     font-size: var(--rd-text-label);
     font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    letter-spacing: normal;
   }
 
   .s04-mobile-brief-disclosure > summary strong {
@@ -908,8 +904,7 @@
     flex: 0 0 auto;
     color: var(--rd-link);
     font-size: var(--rd-text-label);
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    letter-spacing: normal;
   }
 
   .s04-mobile-brief-disclosure .when-open,
@@ -939,11 +934,10 @@
     color: var(--rd-muted);
     font-size: var(--rd-text-label);
     font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    letter-spacing: normal;
   }
   .s04-mobile-brief-full dd {
-    margin-top: 3px;
+    margin-top: var(--rd-space-1);
     color: var(--rd-body);
     font-size: var(--rd-text-2xs);
     font-weight: 600;
@@ -1042,8 +1036,7 @@
   color: color-mix(in srgb, var(--rd-c-sidebar-fg-strong) 60%, transparent);
   font-size: var(--rd-text-label);
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: normal;
 }
 
 .yzu-sidebar .s04-threads--sidebar > header small {
@@ -1091,7 +1084,7 @@
 
 .yzu-sidebar .s04-thread-outputs > small {
   display: block;
-  margin-bottom: 3px;
+  margin-bottom: var(--rd-space-1);
   white-space: normal;
 }
 
@@ -1191,7 +1184,7 @@
 .s04-map .sources > .s04-map-node {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: var(--rd-space-1);
   min-width: 0;
   padding: var(--rd-space-3);
   border: 1px solid color-mix(in srgb, var(--rd-c-steel) 20%, var(--rd-c-surface));
@@ -1260,7 +1253,7 @@
 
 .rd-v2-synthesis-page .s04-evidence-proposal header > div {
   display: grid;
-  gap: 3px;
+  gap: var(--rd-space-1);
 }
 
 .rd-v2-synthesis-page .s04-evidence-proposal small,
@@ -1272,8 +1265,7 @@
 
 .rd-v2-synthesis-page .s04-evidence-proposal small {
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: normal;
 }
 
 .rd-v2-synthesis-page .s04-evidence-proposal header strong {
@@ -1292,8 +1284,7 @@
   font-size: var(--rd-text-label);
   font-style: normal;
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: normal;
 }
 
 .rd-v2-synthesis-page .s04-evidence-proposal ul {
@@ -1307,7 +1298,7 @@
 
 .rd-v2-synthesis-page .s04-evidence-proposal li {
   display: grid;
-  gap: 3px;
+  gap: var(--rd-space-1);
   min-width: 0;
   padding: var(--rd-space-2) var(--rd-space-2);
   border: 1px solid color-mix(in srgb, var(--rd-c-link) 22%, var(--rd-c-surface));
@@ -1338,7 +1329,7 @@
 .rd-v2-synthesis-page .s04-evidence-proposal li label > span {
   display: grid;
   min-width: 0;
-  gap: 3px;
+  gap: var(--rd-space-1);
 }
 
 .rd-v2-synthesis-page .s04-evidence-proposal li label strong {
@@ -1438,7 +1429,7 @@
 /* The thread title is a desk heading, not a fourth card. */
 .rd-v2-synthesis-page .s04-head {
   align-items: flex-start;
-  padding: 3px 0 var(--rd-space-3);
+  padding: var(--rd-space-1) 0 var(--rd-space-3);
   border: 0;
   border-bottom: 1px solid var(--s04-rule);
   border-radius: 0;
@@ -1678,7 +1669,6 @@
   gap: var(--rd-space-3);
   margin: var(--rd-space-3) 0;
   padding: var(--rd-space-2) 2px var(--rd-space-2) var(--rd-space-3);
-  border-left: 3px solid color-mix(in srgb, var(--rd-c-link) 60%, var(--rd-c-surface));
   color: var(--s04-ink);
 }
 
@@ -1769,7 +1759,7 @@
   display: inline-flex;
   align-items: baseline;
   gap: var(--rd-space-1);
-  padding: 3px var(--rd-space-2);
+  padding: var(--rd-space-1) var(--rd-space-2);
   border: 1px solid var(--rd-c-line);
   border-radius: 999px;
   background: color-mix(in srgb, var(--rd-c-paper) 72%, transparent);
@@ -1912,8 +1902,7 @@
     color: var(--rd-muted);
     font-size: var(--rd-text-label);
     font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    letter-spacing: normal;
   }
 
   .s04-thread-picker > select {
@@ -2008,8 +1997,7 @@
   color: var(--rd-muted);
   font-size: var(--rd-text-label);
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: normal;
 }
 
 .s04-reproduce > header strong {
@@ -2128,13 +2116,12 @@
   color: var(--rd-muted);
   font-size: var(--rd-text-label);
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: normal;
 }
 
 .s04-preview-head strong {
   display: block;
-  margin-top: 3px;
+  margin-top: var(--rd-space-1);
   color: var(--rd-body);
   font-size: var(--rd-text-xs);
 }
@@ -2194,7 +2181,7 @@
 
 .s04-preview-metrics > div + div { border-left: 1px solid var(--rd-c-mist); }
 .s04-preview-metrics dd {
-  margin: 3px 0 0;
+  margin: var(--rd-space-1) 0 0;
   overflow: hidden;
   color: var(--rd-body);
   font-size: var(--rd-text-2xs);
@@ -2463,9 +2450,8 @@
   fill: color-mix(in srgb, var(--rd-c-text-3) 80%, var(--rd-c-surface));
   font-size: var(--rd-text-label);
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: normal;
   text-anchor: middle;
-  text-transform: uppercase;
 }
 
 .s04-viz-overlap-facts {
@@ -2852,9 +2838,8 @@
   fill: #607166;
   font-size: var(--rd-text-label);
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: normal;
   text-anchor: middle;
-  text-transform: uppercase;
 }
 
 .s04-multi-source-legend,
@@ -2934,7 +2919,7 @@
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: 14px;
-  gap: 3px;
+  gap: var(--rd-space-1);
   align-items: center;
   min-width: 0;
 }
@@ -3207,8 +3192,7 @@
   color: var(--rd-muted);
   font-size: var(--rd-text-label);
   font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  letter-spacing: normal;
 }
 
 .s04-build-list { margin: 0; padding: 0; list-style: none; }
@@ -3330,7 +3314,7 @@
   .s04-diagram-arrow { transform: rotate(90deg); justify-self: center; }
 }
 
-.s04-diagram-detail small, .s04-rail-part small { color: var(--rd-muted); font-size: var(--rd-text-label); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+.s04-diagram-detail small, .s04-rail-part small { color: var(--rd-muted); font-size: var(--rd-text-label); font-weight: 600; letter-spacing: normal; }
 .s04-diagram-detail dl > div, .s04-rail-part dl > div { display: contents; }
 .s04-rail-part { display: grid; gap: var(--rd-space-2); align-content: start; font-size: var(--rd-text-xs); }
 .s04-rail-part strong { color: var(--rd-text); font-size: var(--rd-text-sm); }
@@ -3418,4 +3402,11 @@ ol.s04-diagram-col > li:not(:last-child)::after { content: "↓"; display: block
 .s04-rail-gates li.is-blocked > i,
 .s04-rail-gates li.is-blocked > strong {
   color: var(--rd-c-warn);
+}
+
+.s04-opening-brief .s04-brief-missing {
+  margin: 0;
+  color: var(--rd-c-warn);
+  font-size: var(--rd-text-xs);
+  font-weight: 600;
 }

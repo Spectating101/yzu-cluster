@@ -34,8 +34,7 @@
   font-family: var(--rd-font);
   font-size: var(--rd-text-label);
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: normal;
 }
 
 .rd-v2-library-folder-context {
@@ -112,7 +111,6 @@
 }
 
 .rd-v2-library-inspector-next {
-  border-left: 2px solid var(--rd-accent);
 }
 
 .rd-v2-library-inspector-next p {
@@ -169,8 +167,7 @@
   font-family: var(--rd-font);
   font-size: var(--rd-text-label);
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: normal;
 }
 
 .rd-v2-library-holding-focus strong {
@@ -215,13 +212,12 @@
   font-family: var(--rd-font);
   font-size: var(--rd-text-label);
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: normal;
 }
 
 .rd-v2-library-holdings-summary strong {
   display: block;
-  margin-top: 3px;
+  margin-top: var(--rd-space-1);
   color: var(--rd-text);
   font-size: var(--rd-text-xl);
 }
@@ -247,13 +243,13 @@
 }
 
 .rd-v2-library-holding-card h3 {
-  margin: 3px 0 0;
+  margin: var(--rd-space-1) 0 0;
   color: var(--rd-text);
   font-size: var(--rd-text-md);
 }
 
 .rd-v2-library-holding-card header p {
-  margin: 3px 0 0;
+  margin: var(--rd-space-1) 0 0;
   color: var(--rd-muted);
   font-size: var(--rd-text-2xs);
 }
@@ -266,7 +262,7 @@
 }
 
 .rd-v2-library-holding-status span {
-  padding: 3px var(--rd-space-2);
+  padding: var(--rd-space-1) var(--rd-space-2);
   border: 1px solid var(--rd-border2);
   border-radius: 999px;
   color: var(--rd-muted);
@@ -370,7 +366,7 @@
 }
 
 .rd-v2-library-inspector-next p {
-  margin-top: 3px;
+  margin-top: var(--rd-space-1);
   font-size: var(--rd-text-2xs);
   line-height: 1.45;
 }
@@ -436,7 +432,7 @@
 }
 
 .rd-v2-library-verify-list {
-  gap: 3px;
+  gap: var(--rd-space-1);
   margin: var(--rd-space-2) 0 0;
 }
 
@@ -630,7 +626,7 @@
 
 .rd-v2-cap-lens-options {
   display: inline-flex;
-  padding: 3px;
+  padding: var(--rd-space-1);
   border: 1px solid var(--rd-border2);
   border-radius: 10px;
   background: color-mix(in srgb, var(--rd-c-paper) 86%, transparent);
@@ -741,7 +737,9 @@
 .rd-v2-cap-ledger-row:hover,
 .rd-v2-cap-ledger-row:focus-visible {
   background: var(--rd-hover);
-  box-shadow: inset 3px 0 0 var(--rd-link);
+  box-shadow: none;
+  outline: 2px solid var(--rd-link);
+  outline-offset: -2px;
 }
 
 .rd-v2-cap-evidence {
@@ -914,7 +912,7 @@
   max-width: 100%;
   align-items: center;
   min-height: 22px;
-  padding: 3px var(--rd-space-2);
+  padding: var(--rd-space-1) var(--rd-space-2);
   border: 1px solid var(--rd-border2);
   border-radius: 999px;
   color: var(--rd-muted);
@@ -968,7 +966,6 @@
 .rd-v2-library-verification-note {
   margin: var(--rd-space-4) 0 0;
   padding: var(--rd-space-3) var(--rd-space-3);
-  border-left: 2px solid color-mix(in srgb, var(--rd-c-link) 28%, var(--rd-c-surface));
   background: var(--rd-c-on-ink);
   color: var(--rd-muted);
   font-size: var(--rd-text-xs);
@@ -1081,7 +1078,7 @@
   min-width: 0;
   gap: var(--rd-space-2);
   align-items: center;
-  margin-top: 3px;
+  margin-top: var(--rd-space-1);
   font-size: var(--rd-text-2xs);
   line-height: 1.25;
   color: var(--text-muted, #5d6574);
@@ -1170,8 +1167,7 @@
   font-family: var(--rd-font);
   font-size: var(--rd-text-label);
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: normal;
 }
 
 .rd-v2-library-filter-control select {
@@ -1482,8 +1478,7 @@
   color: var(--rd-muted);
   font-size: var(--rd-text-label);
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: normal;
 }
 
 .rd-v2-use-dataset-formats {

@@ -11,7 +11,7 @@
 .rd-provider-detail h3 span { font-size: 12px; font-weight: 400; }
 .rd-provider-detail h4 { margin: var(--rd-space-5) 0 var(--rd-space-3); font-size: 13px; }
 .rd-provider-actions { display: flex; flex-wrap: wrap; gap: var(--rd-space-3); margin: var(--rd-space-4) 0; }
-.rd-provider-review { border-left: 2px solid var(--rd-border); padding: var(--rd-space-2) 0 var(--rd-space-2) var(--rd-space-4); margin: var(--rd-space-4) 0; overflow-wrap: anywhere; }
+.rd-provider-review { padding: var(--rd-space-2) 0 var(--rd-space-2) var(--rd-space-4); margin: var(--rd-space-4) 0; overflow-wrap: anywhere; }
 .rd-provider-review button { margin-top: var(--rd-space-3); display: block; }
 .rd-provider-error { color: var(--rd-danger, #9d352c); font-size: 12px; line-height: 1.6; }
 @media (max-width: 640px) { .rd-provider-form { grid-template-columns: minmax(0, 1fr); } .rd-provider-actions button { max-width: 100%; white-space: normal; } }

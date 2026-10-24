@@ -279,12 +279,11 @@ function PersonalResearchProfile({ document, onDocument, onProfileRefresh }) {
     <>
       <section className="rd-v2-profile-identity" aria-label="Researcher identity" data-testid="personal-research-profile">
         <div className="rd-v2-profile-ident">
-          <span className="rd-v2-profile-kicker">Verified researcher</span>
           <h2 className="rd-v2-profile-name">
             {principal.display_name || principal.email?.split("@")[0] || "Researcher"}
           </h2>
           <p className="rd-v2-profile-hint">
-            {principal.email || "Verified account"} · Personal research workspace
+            {principal.email ? `Verified · ${principal.email}` : "Verified account"} · Personal research workspace
           </p>
         </div>
       </section>

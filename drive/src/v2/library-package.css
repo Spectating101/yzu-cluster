@@ -45,7 +45,7 @@
   background: color-mix(in srgb, var(--rd-accent, #315efb) 6%, white);
   border: 1px solid color-mix(in srgb, var(--rd-accent, #315efb) 16%, color-mix(in srgb, var(--rd-c-steel) 25%, var(--rd-c-surface)));
 }
-.rd-v2-library-package-need span { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--rd-muted, #647087); }
+.rd-v2-library-package-need span { font-size: 11px; letter-spacing: normal; color: var(--rd-muted, #647087); }
 
 .rd-v2-library-package-list {
   display: grid;
@@ -82,7 +82,7 @@
   border-top: 1px solid var(--rd-border, #d8dee8);
   align-items: flex-end;
 }
-.rd-v2-library-package-actions > div:first-child { display: grid; gap: 3px; max-width: 510px; }
+.rd-v2-library-package-actions > div:first-child { display: grid; gap: var(--rd-space-1); max-width: 510px; }
 .rd-v2-library-package-actions span { font-size: 12px; }
 
 .rd-v2-library-package-error {

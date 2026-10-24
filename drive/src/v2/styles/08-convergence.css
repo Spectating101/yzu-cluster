@@ -267,8 +267,7 @@ body:has(.rd-v2-synthesis-page [data-testid="synthesis-execution-state"] .s04-ex
   color: var(--rd-muted);
   font-size: var(--rd-text-label);
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: normal;
 }
 
 .rd-v2-situation-state {
@@ -344,7 +343,7 @@ body:has(.rd-v2-synthesis-page [data-testid="synthesis-execution-state"] .s04-ex
   grid-template-columns: 1fr 1fr;
   gap: 2px;
   margin: 0 0 var(--rd-space-3);
-  padding: 3px;
+  padding: var(--rd-space-1);
   border: 1px solid var(--rd-border);
   border-radius: 10px;
   background: color-mix(in srgb, var(--rd-c-mist) 72%, transparent);
@@ -569,7 +568,7 @@ body:has(.rd-v2-synthesis-page [data-testid="synthesis-execution-state"] .s04-ex
   }
 
   .rd-v2-synthesis-page .s04-opening-map-flow {
-    margin: 3px auto;
+    margin: var(--rd-space-1) auto;
   }
 
   .rd-v2-synthesis-page .s04-opening-map-output {
