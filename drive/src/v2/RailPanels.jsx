@@ -177,8 +177,8 @@ const PAGE_RAIL_COPY = {
     desc: "Your account, and how Research Drive behaves in this browser.",
     fields: [
       ["Account", "Sign in, sign out, recover access"],
-      ["Assistant", "How many Ask requests you have left"],
-      ["System status", "Under technical details"],
+      ["Assistant", "Your Ask allowance and external assistants"],
+      ["Advanced", "Storage, browser connection and system status"],
     ],
   },
   resources: {

@@ -2358,7 +2358,7 @@ button {
 .rd-v2-res-log-title h2 {
   margin: 0;
   color: var(--rd-text);
-  font-size: var(--rd-text-label);
+  font-size: var(--rd-text-xs);
   font-weight: 700;
   letter-spacing: normal;
 }
@@ -5122,7 +5122,7 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 .rd-v2-history-territories { display: grid; }
 .rd-v2-history-territory { min-width: 0; }
 .rd-v2-history-territory-head { display: flex; align-items: center; justify-content: space-between; gap: var(--rd-space-3); margin: 0 0 var(--rd-space-2); }
-.rd-v2-history-territory-head h3 { margin: 0; color: var(--rd-text); font-size: var(--rd-text-label); font-weight: 700; letter-spacing: normal; }
+.rd-v2-history-territory-head h3 { margin: 0; color: var(--rd-text); font-size: var(--rd-text-xs); font-weight: 700; letter-spacing: normal; }
 .rd-v2-history-territory-head span { color: var(--rd-muted); font-size: var(--rd-text-2xs); font-variant-numeric: tabular-nums; }
 .rd-v2-history-list { border-top: 1px solid var(--rd-border); }
 .rd-v2-history-row { display: grid; grid-template-columns: 10px minmax(0, 1fr) minmax(128px, auto); align-items: center; gap: var(--rd-space-3); width: 100%; min-height: 68px; padding: var(--rd-space-3) 0; border: 0; border-bottom: 1px solid var(--rd-border); color: var(--rd-body); cursor: pointer; font: inherit; text-align: left; }

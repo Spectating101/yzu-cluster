@@ -3189,8 +3189,8 @@
 
 .s04-home-section > h2 {
   margin: 0;
-  color: var(--rd-muted);
-  font-size: var(--rd-text-label);
+  color: var(--rd-c-text-2);
+  font-size: var(--rd-text-xs);
   font-weight: 600;
   letter-spacing: normal;
 }

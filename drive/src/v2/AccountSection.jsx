@@ -10,7 +10,7 @@ export function AccountSection({ deskAccess, onSignOut, onOpenAccess }) {
   return <StatementSection title="Your account">
     <div className="rd-account-summary">
       <strong>{signedIn ? actor?.display_name || actor?.email || "Researcher" : "Guest browsing"}</strong>
-      <span>{ACCOUNT_ROLES[actor?.role] || "Signed out"}{signedIn && actor?.email ? ` · ${actor.email}` : ""}</span>
+      {signedIn ? <span>{ACCOUNT_ROLES[actor?.role] || "Signed in"}{actor?.email ? ` · ${actor.email}` : ""}</span> : null}
       <p>{signedIn ? "Your profile, Ask conversations and research threads belong to this account. The shared Library is available to other researchers. Operators can inspect saved research work." : "Browse Library and Discover freely. Sign in to use Ask and keep a personal research trail."}</p>
       {signedIn ? <>
         <p>{deskAccess?.permissions?.submit_collection ? "You can connect providers and submit collections. Approval follows the desk’s collection policy." : "You can reason over shared evidence and save research work. A lab member handles provider connections and collection requests."}</p>

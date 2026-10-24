@@ -1,4 +1,5 @@
 import { LockMark, lockTitle } from "@/v2/Lock";
+import { plainGrain } from "./plainText.js";
 import { DISCOVER_GROUPS, collapseSameWork, discoverGroupOf, rowCitation, rowDescription, rowFacts } from "./discoverRowText.js";
 import { rowsLabel, spanOf, spanText } from "./libraryGlance.js";
 import { listDescription } from "./listDescription.js";
@@ -1790,7 +1791,7 @@ export function BrowsePage({
                           onClick={() => onSelectRow?.(row)}
                         >
                           <strong>{candidateTitle(row)}</strong>
-                          {row.grain ? <span>{String(row.grain).replace(/_/g, " ")}</span> : null}
+                          {plainGrain(row.grain) ? <span>{plainGrain(row.grain)}</span> : null}
                           <em>{cardState(taxonomy)}</em>
                         </button>
                         {kind === "collect" ? (
