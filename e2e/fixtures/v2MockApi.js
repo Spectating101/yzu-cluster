@@ -1020,3 +1020,22 @@ export async function searchDiscover(page, query) {
   await page.getByRole("button", { name: "Search", exact: true }).click();
   await page.getByTestId("discover-result-summary").waitFor({ timeout: 15_000 });
 }
+
+const ASSESSMENT_FOLD = ".rd-v2-evidence-brief.is-workspace details.rd-v2-evidence-detail-disclosure";
+
+export function assessmentReasoning(page) {
+  return page.getByTestId("discover-assessment-reasoning").or(page.locator(ASSESSMENT_FOLD));
+}
+
+export async function openAssessmentReasoning(page) {
+  const fold = page.locator(ASSESSMENT_FOLD);
+  if ((await fold.count()) && !(await fold.evaluate((node) => node.open))) await fold.locator(":scope > summary").click();
+}
+
+export async function assessmentText(page) {
+  return (await page.locator(".rd-v2-evidence-brief.is-workspace, [data-testid=discover-assessment-reasoning]").allTextContents()).join(" ");
+}
+
+export async function openBriefEditor(page) {
+  await page.locator(".rd-v2-evidence-brief.is-workspace details.rd-v2-evidence-edit > summary").click();
+}

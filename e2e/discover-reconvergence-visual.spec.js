@@ -258,9 +258,8 @@ test.describe("Discover reconvergence visual review", () => {
       await expect(workspace).toContainText(/Board-governance variables/i);
       await expect(page.getByTestId("discover-assembly-path")).toHaveCount(0);
       await expect(page.getByLabel("Discover next actions").getByRole("button", { name: "Review collection strategy" })).toBeVisible();
-      const details = workspace.locator(".rd-v2-evidence-detail-disclosure.is-workspace");
-      await expect(details).toBeVisible();
-      expect(await details.evaluate((node) => node.open)).toBe(false);
+      await expect(page.getByRole("complementary", { name: "Inspector" }).getByTestId("discover-assessment-reasoning")).toBeVisible();
+      await expect(workspace.locator(".rd-v2-evidence-detail-disclosure")).toHaveCount(0);
       const firstCandidateBox = await page.getByTestId("discover-ranked-results").locator(".rd-v2-discover-candidate").first().boundingBox();
       expect(firstCandidateBox).not.toBeNull();
       expect(firstCandidateBox.y).toBeLessThan(viewport.height);

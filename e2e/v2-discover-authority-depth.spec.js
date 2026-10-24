@@ -4,6 +4,7 @@ import {
   MOCK_DISCOVER_HIT,
   mockV2Api,
   waitForShell,
+  assessmentReasoning, assessmentText,
 } from "./fixtures/v2MockApi.js";
 
 async function search(page, query) {
@@ -13,10 +14,7 @@ async function search(page, query) {
 }
 
 async function openAssessmentEditor(workspace) {
-  const disclosure = workspace.locator("details.rd-v2-evidence-detail-disclosure.is-workspace");
-  await disclosure.locator(":scope > summary").click();
-  await expect(disclosure).toHaveAttribute("open", "");
-  await disclosure.locator("details.rd-v2-evidence-edit > summary").click();
+  await workspace.locator("details.rd-v2-evidence-edit > summary").click();
 }
 
 const correctedAssessment = {
@@ -94,7 +92,7 @@ test.describe("Discover authority depth", () => {
 
     const workspace = page.locator(".rd-v2-evidence-brief.is-workspace");
     await expect(workspace.getByTestId("discover-verdict")).toHaveText("Partially covered");
-    await expect(workspace).toContainText("MOPS governance disclosures");
+    await expect(assessmentReasoning(page)).toContainText("MOPS governance disclosures");
 
     await openAssessmentEditor(workspace);
     await workspace.getByLabel("Fields value").fill("director_tenure, independent_director_ratio");
@@ -103,8 +101,8 @@ test.describe("Discover authority depth", () => {
     await expect(workspace).toContainText("Coverage check unavailable");
     await expect(workspace).toContainText("Run the check again before relying on what the Library covers");
     await expect(workspace.getByTestId("discover-verdict")).toHaveCount(0);
-    await expect(workspace.getByTestId("discover-held-evidence")).toHaveCount(0);
-    await expect(workspace).not.toContainText("MOPS governance disclosures");
+    await expect(page.getByTestId("discover-held-evidence")).toHaveCount(0);
+    expect(await assessmentText(page)).not.toContain("MOPS governance disclosures");
     await expect(workspace).not.toContainText("Partially covered");
     expect(assessmentCalls()).toBe(2);
   });
@@ -148,8 +146,8 @@ test.describe("Discover authority depth", () => {
     await evidence.getByRole("button", { name: "Apply & reassess" }).click();
 
     await expect(evidence).toContainText("Director-tenure and independent-director ratio are not evidenced");
-    await expect(evidence).toContainText("TWSE director roster");
-    await expect(evidence).not.toContainText("MOPS governance disclosures");
+    await expect(assessmentReasoning(page)).toContainText("TWSE director roster");
+    expect(await assessmentText(page)).not.toContain("MOPS governance disclosures");
 
     const nextActions = page.getByLabel("Discover next actions");
     await expect(nextActions).toHaveAttribute("data-assessment-status", "assessed");

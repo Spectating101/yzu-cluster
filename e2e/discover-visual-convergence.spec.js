@@ -134,15 +134,14 @@ test.describe("Discover visual convergence", () => {
     await expect(workspace).toBeVisible();
     await expect(workspace).toContainText("Partially covered");
     await expect(workspace.getByTestId("discover-needs-band")).toBeVisible();
-    await expect(workspace).toContainText("One precise gap");
-    await expect(workspace).toContainText("MOPS governance disclosures");
-    await expect(workspace).toContainText("Execution capacity");
-    await expect(workspace).toContainText(/Collector fleet|BigQuery|GDrive vault/);
-    await expect(workspace).toContainText("No worker or quota is assigned here");
-
-    const assessmentDetails = workspace.locator("details.rd-v2-evidence-detail-disclosure.is-workspace");
-    await expect(assessmentDetails).not.toHaveAttribute("open", "");
-    await expect(workspace.locator(".rd-v2-evidence-capacity-grid > div").first()).toBeHidden();
+    const reasoning = page.getByRole("complementary", { name: "Inspector" }).getByTestId("discover-assessment-reasoning");
+    await expect(reasoning).toContainText("One precise gap");
+    await expect(reasoning).toContainText("MOPS governance disclosures");
+    await expect(reasoning).toContainText("Execution capacity");
+    await expect(reasoning).toContainText(/Collector fleet|BigQuery|GDrive vault/);
+    await expect(reasoning).toContainText("No worker or quota is assigned here");
+    await expect(workspace).not.toContainText("One precise gap");
+    await expect(workspace.locator("details.rd-v2-evidence-detail-disclosure")).toHaveCount(0);
     const nextActions = page.getByLabel("Discover next actions");
     await expect(nextActions).toBeVisible();
     await expect(nextActions).toHaveAttribute("data-has-evidence-gap", "true");

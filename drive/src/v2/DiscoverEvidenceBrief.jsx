@@ -93,14 +93,15 @@ function keyedRequirement(dimensions) {
 
 function evidenceStateSummary(state) {
   if (!state || typeof state !== "object" || Array.isArray(state)) return text(state, "Evidence state unknown");
+  const materialized = String(state.materialization?.status ?? state.materialization ?? "").toLowerCase();
+  const access = String(state.access?.status ?? state.access?.value ?? state.access ?? "").toLowerCase();
+  const coverage = String(state.coverage?.status ?? state.coverage ?? "").toLowerCase();
   const parts = [
-    text(state.materialization?.status ?? state.materialization, ""),
-    text(state.access?.status ?? state.access?.value ?? state.access, ""),
-    text(state.coverage?.status ?? state.coverage, ""),
-  ]
-    .map((item) => item.replaceAll("_", " "))
-    .filter(Boolean);
-  return [...new Set(parts)].join(" · ") || "Evidence state unknown";
+    /query_ready|materiali[sz]ed|ready/.test(materialized) ? "Ready to query" : materialized ? "Not ready yet" : "",
+    /licen|restrict|member/.test(access) ? "Members only" : "",
+    coverage === "documented" ? "coverage documented" : coverage ? "coverage not documented" : "",
+  ].filter(Boolean);
+  return parts.join(" · ") || "Evidence state unknown";
 }
 
 function assessmentBasisSummary(basis) {

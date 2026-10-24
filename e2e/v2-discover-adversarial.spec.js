@@ -4,6 +4,7 @@ import {
   MOCK_DISCOVER_HIT,
   mockV2Api,
   waitForShell,
+  assessmentReasoning, assessmentText, openAssessmentReasoning, openBriefEditor,
 } from "./fixtures/v2MockApi.js";
 
 async function search(page, query) {
@@ -95,34 +96,32 @@ test.describe("Discover adversarial lifecycle", () => {
     await search(page, "Do we hold issuer-quarter governance data for Taiwan?");
 
     const workspace = page.locator(".rd-v2-evidence-brief.is-workspace");
-    await expect(workspace).toContainText("MOPS governance disclosures");
+    const reasoning = assessmentReasoning(page);
+    await expect(reasoning).toContainText("MOPS governance disclosures");
 
-    // The approved dense composition keeps detailed routes/capacity in one
-    // disclosure. Exercise the real interaction instead of waiting on a
-    // deliberately hidden descendant.
-    await workspace.locator("details.rd-v2-evidence-detail-disclosure > summary").click();
-    await workspace.getByRole("button", { name: "Refresh documented routes" }).click();
-    await expect(workspace.getByRole("button", { name: "Comparing documented sources…" })).toBeDisabled();
+    await openAssessmentReasoning(page);
+    await reasoning.getByRole("button", { name: "Refresh documented routes" }).click();
+    await expect(reasoning.getByRole("button", { name: "Comparing documented sources…" })).toBeDisabled();
 
-    await workspace.locator("details.rd-v2-evidence-edit > summary").click();
+    await openBriefEditor(page);
     await workspace.getByLabel("Fields value").fill("director_tenure, independent_director_ratio");
     await workspace.getByRole("button", { name: "Apply & reassess" }).click();
 
     // Consequential sourcing advice belongs to the old brief and must disappear
     // synchronously, not only after the replacement model assessment returns.
     await page.waitForTimeout(50);
-    const duringReassessment = await workspace.textContent();
+    const duringReassessment = await assessmentText(page);
     expect(duringReassessment).not.toContain("MOPS governance disclosures");
     expect(duringReassessment).not.toContain("STALE refreshed governance route");
 
     await expect(workspace).toContainText("Director-tenure and independent-director ratio are not evidenced");
-    await expect(workspace).toContainText("TWSE director roster");
+    await expect(reasoning).toContainText("TWSE director roster");
 
     // The deliberately late response from the pre-reassessment refresh must
     // never overwrite the route judgment for the corrected research brief.
     await page.waitForTimeout(800);
-    await expect(workspace).not.toContainText("STALE refreshed governance route");
-    await expect(workspace).toContainText("TWSE director roster");
+    expect(await assessmentText(page)).not.toContain("STALE refreshed governance route");
+    await expect(reasoning).toContainText("TWSE director roster");
     expect(assessmentCalls).toBe(2);
     expect(routeCalls).toBeGreaterThanOrEqual(3);
   });
@@ -179,9 +178,9 @@ test.describe("Discover adversarial lifecycle", () => {
     await search(page, "What data covers Taiwan issuer-quarter governance?");
 
     const workspace = page.locator(".rd-v2-evidence-brief.is-workspace");
-    await expect(workspace).toContainText("Documented collection methods are unavailable. The gap remains unresolved.");
+    await expect(assessmentReasoning(page)).toContainText("Documented collection methods are unavailable. The gap remains unresolved.");
     await expect(workspace).toContainText("Not established");
-    await expect(workspace).not.toContainText("Collection can be requested for review");
+    expect(await assessmentText(page)).not.toContain("Collection can be requested for review");
   });
 
   test("capacity stays explicit while measurement is delayed, then converges to measured capability", async ({ page }) => {
@@ -196,7 +195,7 @@ test.describe("Discover adversarial lifecycle", () => {
     await search(page, "What data covers Taiwan issuer-quarter governance?");
 
     const capacity = page.locator('[aria-label="Execution capacity"]');
-    await page.locator("details.rd-v2-evidence-detail-disclosure > summary").click();
+    await openAssessmentReasoning(page);
     await expect(capacity).toBeVisible();
     // Capacity is intentionally subordinate inside the details disclosure.
     // On a fast run its delayed response can settle while the visible estate
@@ -227,7 +226,7 @@ test.describe("Discover adversarial lifecycle", () => {
     await search(page, "What data covers Taiwan issuer-quarter governance?");
 
     const capacity = page.locator('[aria-label="Execution capacity"]');
-    await page.locator("details.rd-v2-evidence-detail-disclosure > summary").click();
+    await openAssessmentReasoning(page);
     await expect(capacity).toBeVisible();
     await expect(capacity).toHaveAttribute("data-state", "partial");
     await expect(capacity).toContainText("The resource refresh failed");

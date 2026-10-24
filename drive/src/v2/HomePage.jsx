@@ -1,12 +1,13 @@
 import { uiVocabularyLabel } from "./uiVocabularyLabels.js";
 import { useEffect, useMemo, useState } from "react";
-import { listSynthesisThreads } from "@/v2/api";
+import { getSynthesisMeasurements, listSynthesisThreads } from "@/v2/api";
 import { resolveCapacityMark } from "@/v2/capacityMarks";
 import { GuidedState, Skeleton } from "@/v2/InteractionFeedback";
 import { HomeSuggestedAsks } from "@/v2/HomeSuggestedAsks";
 import { readResourcesRollupCache, writeResourcesRollupCache } from "@/v2/resourcesRollupCache";
 import { PageShell } from "@/v2/ui";
-import { synthesisGates } from "@/v2/synthesisGates";
+import { synthesisGates, threadWithMeasurements } from "@/v2/synthesisGates";
+import { isPreAcceptance } from "@/v2/synthesisBrief.js";
 import { synthesisAssist } from "@/v2/synthesisAssist.js";
 import { DeskError } from "@/v2/DeskError";
 import { resolveSurfaceLifecycle } from "@/v2/surfaceLifecycle";
@@ -195,7 +196,28 @@ function GuestReadyDatasets({ datasets, onGoTab, onSelectDataset }) {
   );
 }
 
+function useMeasuredThread(thread) {
+  const [measured, setMeasured] = useState(null);
+  const threadId = thread?.id || "";
+  const stamp = thread?.updated_at || "";
+  useEffect(() => {
+    setMeasured(null);
+    if (!threadId || !isPreAcceptance(thread)) return undefined;
+    let cancelled = false;
+    getSynthesisMeasurements(threadId)
+      .then((payload) => {
+        if (!cancelled && Array.isArray(payload?.column_profiles)) setMeasured(threadWithMeasurements(thread, payload));
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [threadId, stamp]);
+  return measured;
+}
+
 function PickUpCard({ point, loading, posture, onContinue, onReview }) {
+  const measuredThread = useMeasuredThread(point?.thread);
   const eyebrow = posture?.eyebrow || "Pick up";
   if (loading) {
     return (
@@ -227,8 +249,8 @@ function PickUpCard({ point, loading, posture, onContinue, onReview }) {
       </div>
     );
   }
-  const gates = point.thread?.state ? synthesisGates(point.thread) : null;
-  const decision = gates ? String(synthesisAssist(point.thread).decision || "").trim() : "";
+  const gates = measuredThread ? synthesisGates(measuredThread) : null;
+  const decision = gates ? String(synthesisAssist(measuredThread).decision || "").trim() : "";
   const location = point.pill && String(point.location || "").endsWith(point.pill)
     ? String(point.location).slice(0, -point.pill.length).replace(/\s*·\s*$/, "")
     : point.location;
@@ -603,6 +625,7 @@ export function HomePage({
               researchTopics={researchTopics}
               onAskComposer={onAskComposer || onSuggestSearch}
               allowPrincipalSeed={canUseSynthesis}
+              firstUse={homePosture.id === "cold"}
             />
           </div>
         )}

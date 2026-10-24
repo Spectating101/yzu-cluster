@@ -3,6 +3,7 @@ import {
   MOCK_DISCOVER_ASSESSMENT,
   mockV2Api,
   waitForShell,
+  assessmentReasoning, assessmentText, openBriefEditor,
 } from "./fixtures/v2MockApi.js";
 
 const PUBLIC_ARTIFACT = {
@@ -207,20 +208,17 @@ test.describe("Discover continuous hostile researcher journey", () => {
     const evidence = page.locator(".rd-v2-evidence-brief.is-workspace");
     await expect(evidence).toBeVisible();
     await expect(page.getByTestId("discover-verdict")).toHaveText("Partially covered");
-    await expect(evidence).toContainText("MOPS governance disclosures");
+    await expect(assessmentReasoning(page)).toContainText("MOPS governance disclosures");
     await expect(page.getByTestId("discover-ranked-results")).toContainText(PUBLIC_ARTIFACT.title);
 
     // Correct the research brief. The old sourcing answer must be replaced by a
     // sourcing route grounded in the revised requirement before acquisition.
-    const assessmentDetails = evidence.locator("details.rd-v2-evidence-detail-disclosure.is-workspace");
-    await assessmentDetails.locator(":scope > summary").click();
-    await expect(assessmentDetails).toHaveAttribute("open", "");
-    await assessmentDetails.locator("details.rd-v2-evidence-edit > summary").click();
+    await openBriefEditor(page);
     await evidence.getByLabel("Fields value").fill("director_tenure, independent_director_ratio");
     await evidence.getByRole("button", { name: "Apply & reassess" }).click();
     await expect(evidence).toContainText("Director-tenure and independent-director ratio are not evidenced");
-    await expect(evidence).toContainText("TWSE director roster");
-    await expect(evidence).not.toContainText("MOPS governance disclosures");
+    await expect(assessmentReasoning(page)).toContainText("TWSE director roster");
+    expect(await assessmentText(page)).not.toContain("MOPS governance disclosures");
     expect(assessmentCalls).toBe(2);
     expect(routeCalls).toBeGreaterThanOrEqual(2);
 

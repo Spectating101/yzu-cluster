@@ -1,4 +1,5 @@
 import { AnalysisResults } from "./AnalysisResults.jsx";
+import { threadWithMeasurements } from "./synthesisGates.js";
 import { synthesisObjectiveDisplay, uiVocabularyLabel } from "./uiVocabularyLabels.js";
 import { plainGrain } from "./plainText.js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -67,40 +68,6 @@ function text(value, fallback = "") {
 // instead of silent, indefinite optimism.
 const INTERPRETING_STALL_MS = 60000;
 const INTERPRETING_GIVE_UP_MS = 360000;
-
-const MEASURED_STATE_FIELDS = [
-  "column_profiles",
-  "column_profiles_by_dataset",
-  "input_measurements",
-  "unit_conflict",
-  "join_candidates",
-  "join_candidate_dataset_id",
-  "join_candidate_rows",
-  "multi_overlap",
-  "unmeasured",
-  "measured_inputs",
-  "truncated_inputs",
-  "max_inputs",
-  "join_unmeasured_because",
-  "input_dataset_ids",
-  "measurement_basis",
-];
-
-function threadWithMeasurements(thread, measurements) {
-  if (!thread || !measurements || !isPreAcceptance(thread)) return thread;
-  const measured = {};
-  MEASURED_STATE_FIELDS.forEach((field) => {
-    if (Object.prototype.hasOwnProperty.call(measurements, field)) measured[field] = measurements[field];
-  });
-  // An omitted conflict/join is a measured absence, not permission to retain a
-  // stale value that may have arrived in an older thread payload.
-  if (!Object.prototype.hasOwnProperty.call(measured, "unit_conflict")) measured.unit_conflict = null;
-  if (!Object.prototype.hasOwnProperty.call(measured, "join_candidates")) measured.join_candidates = [];
-  if (!Object.prototype.hasOwnProperty.call(measured, "join_candidate_dataset_id")) measured.join_candidate_dataset_id = null;
-  if (!Object.prototype.hasOwnProperty.call(measured, "join_candidate_rows")) measured.join_candidate_rows = null;
-  if (!Object.prototype.hasOwnProperty.call(measured, "multi_overlap")) measured.multi_overlap = null;
-  return { ...thread, state: { ...(thread.state || {}), ...measured } };
-}
 
 function titleFor(thread) {
   return text(thread?.title || thread?.state?.title, "Untitled synthesis");

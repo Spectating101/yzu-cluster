@@ -12,7 +12,7 @@ function seedLead(seed, profile) {
   return "Research Drive is ready — review data you have, then find what is missing";
 }
 
-export function HomeSuggestedAsks({ profile, onAskComposer, allowPrincipalSeed = true, researchTopics = [] }) {
+export function HomeSuggestedAsks({ profile, onAskComposer, allowPrincipalSeed = true, researchTopics = [], firstUse = true }) {
   const [seed, setSeed] = useState(null);
 
   useEffect(() => {
@@ -53,6 +53,24 @@ export function HomeSuggestedAsks({ profile, onAskComposer, allowPrincipalSeed =
   const connectedSources = Array.isArray(seed?.connected_sources) ? seed.connected_sources : [];
   const sourceSummary = seed?.source_summary && typeof seed.source_summary === "object" ? seed.source_summary : null;
   const lead = researchTopics.length ? `Suggested for your research: ${researchTopics[0]}` : seedLead(seed, profile);
+
+  if (!firstUse) {
+    if (!allowPrincipalSeed || !prompts.length) return null;
+    return (
+      <section className="rd-v2-home-suggested is-compact" aria-label="Suggested asks" data-testid="home-research-seed" data-bootstrap-mode={seed?.bootstrap_mode || "fallback"}>
+        <h3 className="rd-v2-home-suggested-head">{researchTopics.length ? `Ask about ${researchTopics[0]}` : "Ask to get started"}</h3>
+        <ul className="rd-v2-home-suggested-list" data-testid="home-suggested-prompts">
+          {prompts.map((prompt) => (
+            <li key={prompt}>
+              <button type="button" onClick={() => onAskComposer?.(prompt)}>
+                <span aria-hidden="true">›</span>{uiVocabularyLabel(prompt)}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </section>
+    );
+  }
 
   return (
     <section
