@@ -81,6 +81,10 @@ Builds larger than the memory budget now run in entity-complete pieces through t
 
 Steps that need the whole dataset at once (sort/head, rank_pct/ntile, whole-series lags, median/quantile/nunique across pieces) are refused at preflight with the step named.
 
+Live on 8775 (UI 4731a493, backend c97c8768), as a user: Add from Library found "crsp daily" and added the CRSP stock daily file; the assistant wrote the recipe (stock-year volatility, median, trading days); Preview said "about 107,663,470 rows · built in pieces by permno"; the operator approved on the build. The worker built it in 72 s in 8 pieces: 453,557 rows, archive verified, registered. Against DuckDB: volatility max abs diff 5.6e-17, medians and day counts identical.
+
+The first two attempts timed out: the assistant's preflight call hit the 30 s tool limit because the non-finite scan converted 108M date strings (a count named the date column). Counts and integer/text columns are no longer scanned and inputs over 20M rows are sampled (64 s -> 0.4 s).
+
 The input finder proposed no crypto dataset for a Bitcoin build. Builds now have Add from Library, which searches the held catalogue and adds through the same registry-checked call.
 
 ## Frontend fixes made from this run
