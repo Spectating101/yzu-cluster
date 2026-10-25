@@ -20,7 +20,10 @@ async function openDiscover(page) {
 async function search(page, query) {
   await page.getByLabel("Search or describe a research need").fill(query);
   await page.getByRole("button", { name: "Search", exact: true }).click();
-  return page.getByTestId("discover-result-summary");
+  return {
+    summary: page.getByTestId("discover-result-summary"),
+    counts: page.getByTestId("discover-result-counts"),
+  };
 }
 
 test.describe("candidate UI against the real backend", () => {
@@ -29,16 +32,16 @@ test.describe("candidate UI against the real backend", () => {
 
   test("a live weak Library match continues into a specific external route", async ({ page }) => {
     await openDiscover(page);
-    const summary = await search(page, "clinical trial outcomes");
+    const { summary, counts } = await search(page, "clinical trial outcomes");
 
-    await expect(summary).toContainText(/\d+ in your Library/, { timeout: 30_000 });
+    await expect(counts).toContainText(/\d+ in your Library/, { timeout: 30_000 });
     await expect(summary.getByRole("status")).toContainText("Checking broader sources", {
       timeout: 30_000,
     });
     await expect(
       page.getByText(/Clinical[- ]Trial[- ]Outcomes/i).first(),
     ).toBeVisible({ timeout: 60_000 });
-    await expect(summary).toContainText(/[1-9]\d* sources?/);
+    await expect(counts).toContainText(/[1-9]\d* sources?/);
     await expect(summary.getByRole("status")).toHaveCount(0);
   });
 
@@ -53,8 +56,8 @@ test.describe("candidate UI against the real backend", () => {
     });
 
     await openDiscover(page);
-    const summary = await search(page, "stablecoin");
-    await expect(summary).toContainText(/[1-9]\d* in your Library/, { timeout: 30_000 });
+    const { summary, counts } = await search(page, "stablecoin");
+    await expect(counts).toContainText(/[1-9]\d* in your Library/, { timeout: 30_000 });
     await page.waitForTimeout(2_000);
     expect(widerRequests).toBe(0);
     await expect(summary.getByText("Checking broader sources")).toHaveCount(0);
