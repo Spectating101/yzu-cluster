@@ -70,6 +70,19 @@ Limits found and fixed on `claude/preview-backend-synthesis-20261025` (f4c89ddf)
 - The check's non-finite scan loaded the whole input (13 GB peak on CRSP daily); it now streams the metric columns (0.3 GB).
 - The engine reported BTC~CO₂ as significant (p = 0.0006) with no caution. OLS and correlation on a single time series now test for trends and warn (CO₂ ADF p = 0.99, trend t = 37); differenced series pass without a warning.
 
+## Full CRSP daily and the input picker (2026-10-25, owner approved DuckDB and the picker)
+
+Builds larger than the memory budget now run in entity-complete pieces through the same pandas transforms (backend 35adda9f on `claude/preview-backend-synthesis-20261025`); DuckDB 2.0.0 regroups an input that is not ordered by the splitting column. Full CRSP daily, 107,663,470 rows:
+
+| Build | Pieces | Time | Peak memory | vs independent DuckDB |
+|---|---|---|---|---|
+| Stock-year volatility, median, day count (459,406 rows) | 10 by permno | 40 s | 2.9 GB | max rel. diff 1e-15; medians and counts identical |
+| Per-stock daily price change, mean/std by year | 16 by permno | 171 s | 3.8 GB | max rel. diff 1e-14; counts identical |
+
+Steps that need the whole dataset at once (sort/head, rank_pct/ntile, whole-series lags, median/quantile/nunique across pieces) are refused at preflight with the step named.
+
+The input finder proposed no crypto dataset for a Bitcoin build. Builds now have Add from Library, which searches the held catalogue and adds through the same registry-checked call.
+
 ## Frontend fixes made from this run
 
 - "Waiting for your approval" → "Waiting for approval" everywhere (members cannot approve).

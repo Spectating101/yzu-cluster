@@ -38,6 +38,7 @@ import { synthesisDraftBrief, synthesisDraftPrompt } from "@/v2/synthesisDraft.j
 // The record renders whether or not it leads, so the strip must not offer it too.
 const RECORD_ALWAYS = ["columns", "excursions", "settled", "provenance", "reuse"];
 import { JoinDecisionPanel } from "./JoinDecisionPanel.jsx";
+import { LibraryInputPicker } from "./LibraryInputPicker.jsx";
 import { MethodSurfacePanel } from "./MethodSurfacePanel.jsx";
 import { ProvenancePanel } from "./ProvenancePanel.jsx";
 import { ReusePanel } from "./ReusePanel.jsx";
@@ -753,6 +754,12 @@ function EvidenceMap({
         ) : null}
         <strong className="target">{mapTarget}</strong>
       </div>
+      <LibraryInputPicker
+        catalog={catalog}
+        mappedIds={evidence.map((node) => String(node.dataset_id || "")).filter(Boolean)}
+        busy={mappingEvidence}
+        onAdd={onApplyEvidence}
+      />
       {!evidence.length && evidenceProposal ? (
         <section
           ref={proposalRef}
@@ -1158,7 +1165,8 @@ function fullBuildEstimate(estimate) {
   const bytes = Number(estimate?.estimated_bytes);
   if (!Number.isFinite(rows) || rows <= 0) return "";
   const size = !Number.isFinite(bytes) || bytes <= 0 ? "" : bytes >= 2 ** 30 ? `${(bytes / 2 ** 30).toFixed(1)} GB` : `${Math.max(1, Math.round(bytes / 2 ** 20))} MB`;
-  return [`about ${rows.toLocaleString()} rows`, size ? `~${size} in memory` : ""].filter(Boolean).join(" · ");
+  const pieces = estimate?.engine === "pieces" ? `built in pieces${estimate.piece_key ? ` by ${estimate.piece_key}` : ""}` : "";
+  return [`about ${rows.toLocaleString()} rows`, pieces || (size ? `~${size} in memory` : "")].filter(Boolean).join(" · ");
 }
 
 function ExecutionRecord({ thread, busy, onRequest, canApprove = false, approved = false, onApprove, onAsk, onOpenDataset }) {

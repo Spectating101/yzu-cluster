@@ -1907,6 +1907,27 @@
     border-top: 1px solid color-mix(in srgb, var(--rd-c-link) 17%, var(--rd-c-surface));
   }
 
+  .rd-v2-synthesis-page .s04-library-picker > header > div {
+    display: grid;
+    flex: 1;
+    gap: var(--rd-space-1);
+  }
+
+  .rd-v2-synthesis-page .s04-library-picker input[type="search"] {
+    width: 100%;
+  }
+
+  .rd-v2-synthesis-page .s04-library-picker > footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--rd-space-2);
+  }
+
+  .rd-v2-synthesis-page .s04-library-picker-open {
+    justify-self: start;
+    margin: 0 var(--rd-space-4) var(--rd-space-4);
+  }
+
   /* The disabled reasoning control is a real lock state and remains visible,
      but only as a subordinate guardrail under the evidence-selection task. */
   .rd-v2-synthesis-page .s04-main:has([data-testid="synthesis-evidence-proposal"])
