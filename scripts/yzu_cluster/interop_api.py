@@ -56,6 +56,11 @@ class InteropAPI:
     def approve_job(self, run_id: str) -> dict[str, Any]:
         return {"job": self.store.approve(run_id)}
 
+    def discover_ckan_candidates(self, query: str, *, catalog: str = "data.gov.au", limit: int = 5) -> dict[str, Any]:
+        """Read-only external catalog discovery; deliberately cannot register assets."""
+        from .interop_ckan_discovery import discover
+        return discover(query, catalog=catalog, limit=limit)
+
     def upsert_connector(self, payload: Mapping[str, Any]) -> dict[str, Any]:
         return {"connector": self.store.upsert_connector(payload)}
 
